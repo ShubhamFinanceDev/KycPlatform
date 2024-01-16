@@ -174,7 +174,7 @@ public class ExternalApiServices {
             else
             {
                 verifyDetails.put("code", "1111");
-                verifyDetails.put("msg", "Technical issue ,please try again");
+                verifyDetails.put("msg", "Otp is not valid.");
             }
         }
         catch (Exception e)

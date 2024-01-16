@@ -7,6 +7,6 @@ import lombok.Data;
 public class AadharOtpInput {
 
     private String loanNumber;
-    private String documentType;
+    private String fileType;
     private String aadharNo;
 }

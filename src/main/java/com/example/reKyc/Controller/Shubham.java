@@ -48,7 +48,7 @@ public class Shubham {
     public HashMap invokeAddressPreviewService(@RequestBody AadharOtpInput inputParam) {
         HashMap<String, String> response = new HashMap<>();
 
-        if (!(inputParam.getLoanNumber().isBlank()) && !(inputParam.getDocumentType().isBlank())) {
+        if (!(inputParam.getLoanNumber().isBlank()) && !(inputParam.getFileType().isBlank())) {
             response = service.getAddessByAadhar(inputParam);
         }
         else
