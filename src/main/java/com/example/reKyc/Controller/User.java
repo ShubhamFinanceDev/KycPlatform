@@ -66,17 +66,24 @@ public class User {
     @PostMapping("/otpVerification")
         public ResponseEntity<JwtResponse> login(@RequestBody JwtRequest request) {
 
+        JwtResponse jwtResponse = new JwtResponse();
+        if(request.getMobileNo().isBlank() || request.getOtpCode().isBlank())
+        {
+            jwtResponse.setMsg("Required filed is empty.");
+            jwtResponse.setCode("1111");
+            return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
+
+        }
+        else {
             this.doAuthenticate(request.getMobileNo(), request.getOtpCode());
 
-
             UserDetails userDetails = userDetailsService.loadUserByUsername(request.getMobileNo());
-            CustomerDetails customerDetails=service.getCustomerDetail(request.getMobileNo());
+            CustomerDetails customerDetails = service.getCustomerDetail(request.getMobileNo());
 
 
             String token = this.jwtHelper.generateToken(userDetails);
 
 
-            JwtResponse jwtResponse = new JwtResponse();
             jwtResponse.setJwtToken(token);
             jwtResponse.setMobileNo(userDetails.getUsername());
             jwtResponse.setAddress(customerDetails.getAddressDetailsResidential());
@@ -85,6 +92,7 @@ public class User {
             jwtResponse.setAadharNo(customerDetails.getAadhar());
 
             return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
+        }
         }
 
         private void doAuthenticate(String email, String password) {
