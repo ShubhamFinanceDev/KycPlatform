@@ -90,6 +90,7 @@ public class User {
             jwtResponse.setName(customerDetails.getCustomerName());
             jwtResponse.setPanNo(customerDetails.getPAN());
             jwtResponse.setAadharNo(customerDetails.getAadhar());
+            jwtResponse.setLoanNo(customerDetails.getLoanNumber());
 
             return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
         }

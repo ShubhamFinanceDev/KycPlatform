@@ -12,4 +12,5 @@ public class JwtResponse extends CommonResponse {
     private String aadharNo;
     private String panNo;
     private String address;
+    private String loanNo;
 }
