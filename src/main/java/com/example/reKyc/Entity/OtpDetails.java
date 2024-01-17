@@ -5,6 +5,8 @@ import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Collection;
 
 @Entity
@@ -21,7 +23,7 @@ public class OtpDetails implements UserDetails {
     @Column(name="mobile_number")
     private String mobileNo;
     @Column(name="expr_time")
-    private String otpExprTime;
+    private LocalDateTime otpExprTime=LocalDateTime.now();
     @Column(name = "otp_password")
     private String otpPassword;
 

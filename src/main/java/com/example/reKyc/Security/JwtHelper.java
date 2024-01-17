@@ -3,6 +3,7 @@ package com.example.reKyc.Security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -13,9 +14,11 @@ import java.util.function.Function;
 
 @Component
 public class JwtHelper {
+    @Value("${jwt.expiration}")
+    private long JWT_TOKEN_VALIDITY;
 
         //requirement :
-        public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
+//        public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
 
         private String secret = "afafasfafafasfasfasfafacasdasfasxASFACASDFACASDFASFASFDAFASFASDAADSCSDFADCVSGCFVADXCcadwavfsfarvf";
 
@@ -59,7 +62,7 @@ public class JwtHelper {
         private String doGenerateToken(Map<String, Object> claims, String subject) {
 
             return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
-                    .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
+                    .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY))
                     .signWith(SignatureAlgorithm.HS512, secret).compact();
         }
 

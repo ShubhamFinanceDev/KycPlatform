@@ -1,8 +1,14 @@
 package com.example.reKyc.Utill;
 
+import com.example.reKyc.Entity.CustomerDetails;
+import com.example.reKyc.Repository.OtpDetailsRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.util.HashMap;
 
@@ -19,11 +25,22 @@ public class OtpUtility {
     @Value("${otp.sender}")
     private String otpSender;
 
-    public int generateOtp()
+    @Autowired
+    private OtpDetailsRepository otpDetailsRepository;
+    private Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
+
+    public int generateOtp(CustomerDetails customerDetails)
     {
+        int count = otpDetailsRepository.countByMobile(customerDetails.getMobileNumber());
+
+        if (count > 0) {
+            otpDetailsRepository.deletePreviousOtp(customerDetails.getMobileNumber());
+            logger.info("previous otp deleted");
+        }
         int randomNo = (int)(Math.random()*900000)+100000;
         return randomNo;
     }
+
 
     public boolean sendOtp(String mobileNo, int otpCode)
     {

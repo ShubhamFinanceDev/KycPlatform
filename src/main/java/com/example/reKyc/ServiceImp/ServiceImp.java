@@ -7,16 +7,22 @@ import com.example.reKyc.Model.AadharOtpVerifyInput;
 import com.example.reKyc.Model.InputBase64;
 import com.example.reKyc.Repository.CustomerDetailsRepository;
 import com.example.reKyc.Repository.OtpDetailsRepository;
-import com.example.reKyc.Utill.AuthToken;
+import com.example.reKyc.Utill.MaskDocument;
 import com.example.reKyc.Utill.DateTimeUtility;
 import com.example.reKyc.Utill.ExternalApiServices;
 import com.example.reKyc.Utill.OtpUtility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.lang.annotation.Annotation;
+import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,61 +39,63 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Autowired
     private DateTimeUtility dateTimeUtility;
     @Autowired
-    private AuthToken authToken;
+    private MaskDocument authToken;
     @Autowired
     private ExternalApiServices singzyServices;
     @Autowired
     ExternalApiServices externalApiServices;
 
     BCryptPasswordEncoder bCryptPasswordEncoder=new BCryptPasswordEncoder();
-    public HashMap validateSendOtp(String loanNo) {
+    Logger logger= LoggerFactory.getLogger(OncePerRequestFilter.class);
+
+    public HashMap validateAndSendOtp(String loanNo) {
         HashMap<String, String> otpResponse = new HashMap<>();
         CustomerDetails customerDetails = new CustomerDetails();
         try {
 
 
             customerDetails = customerDetailsRepository.findByLoanNumber(loanNo);
-            if (!(customerDetails == null)) {
-                int count = otpDetailsRepository.countByMobile(customerDetails.getMobileNumber());
+            if (customerDetails != null) {
+                int otpCode = otpUtility.generateOtp(customerDetails);
 
-                if (count > 0) {
-
-                    otpDetailsRepository.deletePreviousOtp(customerDetails.getMobileNumber());
-                }
-                int otpCode = otpUtility.generateOtp();
-
+                if (otpCode > 0) {
+                    logger.info("otp generated successfully");
 //                if (otpUtility.sendOtp(customerDetails.getMobileNumber(), otpCode)) {  //stopped sms services
-                OtpDetails otpDetails = new OtpDetails();
-                otpDetails.setOtpCode(Long.valueOf(otpCode));
+                    logger.info("otp sent on mobile");
+                    OtpDetails otpDetails = new OtpDetails();
+                    otpDetails.setOtpCode(Long.valueOf(otpCode));
 
-                System.out.println(otpCode);
-                otpDetails.setOtpPassword(bCryptPasswordEncoder.encode(String.valueOf(otpCode)));
-                otpDetails.setMobileNo(customerDetails.getMobileNumber());
+                    System.out.println(otpCode);
+                    otpDetails.setOtpPassword(bCryptPasswordEncoder.encode(String.valueOf(otpCode)));
+                    otpDetails.setMobileNo(customerDetails.getMobileNumber());
 
+                    otpDetailsRepository.save(otpDetails);
+                    Long otpId = otpDetails.getOtpId();
+                    otpResponse.put("otpCode", String.valueOf(otpCode));
+                    otpResponse.put("otpId", String.valueOf(otpId));
+                    otpResponse.put("mobile", otpDetails.getMobileNo());
+                    otpResponse.put("msg", "Otp send.");
+                    otpResponse.put("code", "0000");
 
-                String timeStamp = dateTimeUtility.otpExpiryTime();
-                otpDetails.setOtpExprTime(timeStamp);
-                otpDetailsRepository.save(otpDetails);
-                Long otpId = otpDetails.getOtpId();
+                }
+            else
+                    {
+                        otpResponse.put("msg", "Otp did not send, please try again");
+                        otpResponse.put("code", "1111");
+                    }
 
-                otpResponse.put("otpCode", String.valueOf(otpCode));
-                otpResponse.put("otpId", String.valueOf(otpId));
-                otpResponse.put("mobile", otpDetails.getMobileNo());
-                otpResponse.put("msg", "Otp send.");
-                otpResponse.put("code", "0000");
-            } else {
-                otpResponse.put("msg", "Otp did not send.");
-                otpResponse.put("code", "1111");
-            }
+                }
+                else {
+                    otpResponse.put("msg", "Otp did not generate, please try again");
+                    otpResponse.put("code", "1111");
+                }
 
-//            } else
-//                {
-//                    otpResponse.put("msg", "Loan no not found");
-//                    otpResponse.put("code", "1111");
-//
-//                }
-
-        } catch (Exception e) {
+//            } else {
+//                otpResponse.put("msg", "Loan no not found");
+//                otpResponse.put("code", "1111");
+//            }
+        }
+         catch (Exception e) {
             System.out.println(e);
         }
         return otpResponse;
@@ -98,41 +106,33 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
      * @return
      */
     @Override
-    public CustomerDetails getCustomerDetail(String mobileNo) {
-        CustomerDetails customerDetails=customerDetailsRepository.findUserDetailByMobile(mobileNo);
+    public CustomerDetails getCustomerDetail(String mobileNo,String otpCode) {
+
+        CustomerDetails customerDetails=new CustomerDetails();
+        OtpDetails otpDetails=otpDetailsRepository.IsotpExpired(mobileNo,otpCode);
+
+        Duration duration= Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now());
+        customerDetails=(duration.toMinutes()>50) ? null : customerDetailsRepository.findUserDetailByMobile(mobileNo);
         return customerDetails;
+
     }
 
-    @Override
-    public ResponseEntity<String> handleRequest(List<InputBase64> inputBase64) {
-        return null;
-    }
+    /**
+     * @param inputBase64
+     * @return
+     */
 
-
-    private CustomerDetails findUserDetail(String mobileNo) {
-        CustomerDetails customerDetails = new CustomerDetails();
-        customerDetails = customerDetailsRepository.findUserDetailByMobile(mobileNo);
-        if (customerDetails.getPAN() != null) {
-            customerDetails.setPAN(authToken.documentNoEncryption(customerDetails.getPAN()));
-        }
-
-        if (customerDetails.getAadhar() != null) {
-            customerDetails.setAadhar(authToken.documentNoEncryption(customerDetails.getAadhar()));
-        }
-
-        return customerDetails;
-    }
 
 
     @Override
-    public HashMap callFileExchangeServices(List<InputBase64> inputBase64) {
+    public HashMap callFileExchangeServices(List<InputBase64.Base64Data> inputBase64) {
 
         HashMap<String, String> documentDetail = new HashMap<>();
         List<String> urls = new ArrayList<>();
 
-        for (InputBase64 base64 : inputBase64) {
+        for (InputBase64.Base64Data base64 : inputBase64) {
 
-            documentDetail = singzyServices.convertBase64ToUrl(base64.getDocumentType(), base64.getBase64String());
+            documentDetail = singzyServices.convertBase64ToUrl(base64.getFileType(), base64.getBase64String());
             if (documentDetail.containsKey("code")) {
                 break;
             } else {
@@ -144,6 +144,27 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         }
         return documentDetail;
     }
+
+
+  public  CustomerDetails checkExtractedDocumentId(String loanNo, String documentId, String documentType)
+    {
+        CustomerDetails customerDetails=new CustomerDetails();
+
+        if(documentType.equals("aadhar")) {
+             customerDetails = customerDetailsRepository.checkCustomerAadharNo(loanNo, documentId);
+        }
+        else
+        {
+            customerDetails=null;
+        }
+        return customerDetails;
+    }
+
+
+
+
+
+
 
 
     public HashMap getAddessByAadhar(AadharOtpInput inputParam) {

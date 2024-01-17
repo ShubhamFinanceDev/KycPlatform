@@ -13,8 +13,8 @@ public interface OtpDetailsRepository extends JpaRepository<OtpDetails,Long> {
 
     @Query("select c from OtpDetails c where c.mobileNo=:mobileNo")
     Optional<OtpDetails> checkOtp(String mobileNo);
-    @Query("select otp from OtpDetails otp where otp.mobileNo=:mobileNo AND otp.otpCode=:otpCode And otp.otpId=:otpId")
-    OtpDetails verifyOtpOfUser(String mobileNo, String otpCode, String otpId);
+    @Query("select otp from OtpDetails otp where otp.mobileNo=:mobileNo AND otp.otpCode=:otpCode")
+    OtpDetails IsotpExpired(String mobileNo, String otpCode);
     @Query("select count(otp) from OtpDetails otp where otp.mobileNo=:mobileNumber")
     int countByMobile(String mobileNumber);
     @Modifying

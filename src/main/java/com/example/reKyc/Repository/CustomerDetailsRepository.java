@@ -16,5 +16,6 @@ public interface CustomerDetailsRepository extends JpaRepository<CustomerDetails
     @Query("select count(cd) from CustomerDetails cd where cd.loanNumber=:loanNumber  and cd.aadhar=:aadharNo")
     int checkAadharNo(String loanNumber,String aadharNo);
 
-
+    @Query("select cd from CustomerDetails cd where cd.loanNumber=:loanNumber  and cd.aadhar=:aadharNo")
+    CustomerDetails checkCustomerAadharNo(String loanNumber,String aadharNo);
 }

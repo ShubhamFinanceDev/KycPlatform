@@ -11,15 +11,17 @@ import java.util.List;
 
 public interface Service {
 
-    HashMap<String, String> validateSendOtp(String loanNo);
-    CustomerDetails getCustomerDetail(String mobileNo);
-    ResponseEntity<String> handleRequest(List<InputBase64> inputBase64);
+    HashMap<String, String> validateAndSendOtp(String loanNo);
+    CustomerDetails getCustomerDetail(String mobileNo,String otpCode);
+//    ResponseEntity<String> handleRequest(List<InputBase64> inputBase64);
 
-    HashMap callFileExchangeServices(List<InputBase64> inputBase64);
+    HashMap callFileExchangeServices(List<InputBase64.Base64Data> inputBase64);
 
     HashMap<String, String> getAddessByAadhar(AadharOtpInput inputParam);
 
     HashMap<String, String> verifyOtpAadhar(AadharOtpVerifyInput inputParam);
+
+    CustomerDetails checkExtractedDocumentId(String loanNo, String documentId,String documentType );
 
 //    UserDetail getDataByUser(
 }

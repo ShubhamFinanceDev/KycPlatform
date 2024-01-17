@@ -7,6 +7,7 @@ import com.example.reKyc.Model.JwtResponse;
 import com.example.reKyc.Repository.OtpDetailsRepository;
 import com.example.reKyc.Security.JwtHelper;
 import com.example.reKyc.Service.Service;
+import com.example.reKyc.Utill.MaskDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/userKyc")
+@CrossOrigin
 
 public class User {
     @Autowired
@@ -42,44 +44,46 @@ public class User {
 
     @Autowired
     private Service service;
-    private Logger logger = LoggerFactory.getLogger(User.class);
-    @PostMapping("/sendOtp")
-    public HashMap sendOtpOnRegisteredMobile(@RequestBody Map<String,String> inputParam)
-    {
-        String loanNo=  inputParam.get("loanNo");
-        HashMap<String,String> otpResponse= new HashMap<>();
 
-        if(loanNo.isEmpty())
-        {
-            otpResponse.put("msg","Loan number field is empty");
-            otpResponse.put("code","1111");
-        }
-        else {
-            otpResponse= service.validateSendOtp(loanNo);
+    @Autowired
+    private MaskDocument maskDocument;
+
+    private Logger logger = LoggerFactory.getLogger(User.class);
+
+    @PostMapping("/sendOtp")
+    public HashMap sendOtpOnRegisteredMobile(@RequestBody Map<String, String> inputParam) {
+        String loanNo = inputParam.get("loanNo");
+        HashMap<String, String> otpResponse = new HashMap<>();
+
+        if (loanNo.isEmpty()) {
+            otpResponse.put("msg", "Loan number field is empty");
+            otpResponse.put("code", "1111");
+        } else {
+            otpResponse = service.validateAndSendOtp(loanNo);
         }
 
         return otpResponse;
     }
 
 
-
     @PostMapping("/otpVerification")
-        public ResponseEntity<JwtResponse> login(@RequestBody JwtRequest request) {
+    public ResponseEntity<JwtResponse> login(@RequestBody JwtRequest request) {
 
         JwtResponse jwtResponse = new JwtResponse();
-        if(request.getMobileNo().isBlank() || request.getOtpCode().isBlank())
-        {
-            jwtResponse.setMsg("Required filed is empty.");
+        if (request.getMobileNo().isBlank() || request.getOtpCode().isBlank()) {
+            jwtResponse.setMsg("Required field is empty.");
             jwtResponse.setCode("1111");
             return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
 
         }
-        else {
-            this.doAuthenticate(request.getMobileNo(), request.getOtpCode());
+        else
+        {
+        this.doAuthenticate(request.getMobileNo(), request.getOtpCode());
 
-            UserDetails userDetails = userDetailsService.loadUserByUsername(request.getMobileNo());
-            CustomerDetails customerDetails = service.getCustomerDetail(request.getMobileNo());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getMobileNo());
+        CustomerDetails customerDetails = service.getCustomerDetail(request.getMobileNo(), request.getOtpCode());
 
+        if(customerDetails != null) {
 
             String token = this.jwtHelper.generateToken(userDetails);
 
@@ -88,13 +92,22 @@ public class User {
             jwtResponse.setMobileNo(userDetails.getUsername());
             jwtResponse.setAddress(customerDetails.getAddressDetailsResidential());
             jwtResponse.setName(customerDetails.getCustomerName());
-            jwtResponse.setPanNo(customerDetails.getPAN());
-            jwtResponse.setAadharNo(customerDetails.getAadhar());
+            jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPAN(), "panNo"));
+            jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadhar(), "aadharNo"));
             jwtResponse.setLoanNo(customerDetails.getLoanNumber());
 
             return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
         }
-        }
+
+        else {
+            jwtResponse.setMsg("Otp is expired, please try again.");
+            jwtResponse.setCode("1111");
+             return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
+    }
+    }
+    }
+
+
 
         private void doAuthenticate(String email, String password) {
 
@@ -103,7 +116,7 @@ public class User {
                 authenticationManager.authenticate(authentication);
 
             } catch (BadCredentialsException e) {
-                throw new BadCredentialsException(" Invalid Username or Password  !!");
+                throw new BadCredentialsException(" Invalid Username or Password !!");
 
             }
 
@@ -113,7 +126,7 @@ public class User {
         public CommonResponse exceptionHandler() {
             CommonResponse commonResponse=new CommonResponse();
             commonResponse.setCode("1111");
-            commonResponse.setMsg("invalid otp or expire.");
+            commonResponse.setMsg("invalid otp.");
             return commonResponse;
         }
 }

@@ -56,11 +56,12 @@ public class ExternalApiServices {
             responseOfBase64 = restTemplate.postForObject(fileExchangeBase64Url, inputBody, ResponseOfBase64.class);
             System.out.println(responseOfBase64.getFile().directURL);
             String url = responseOfBase64.getFile().directURL;
+
             if (responseOfBase64 != null) {
                 urlResponse.put("fileUrl", url);
             } else {
                 urlResponse.put("code", "1111");
-                urlResponse.put("msg", "File format convertor error, please try again");
+                urlResponse.put("msg", "Technical issue, please try again");
 
             }
 
@@ -90,8 +91,9 @@ public class ExternalApiServices {
 
             aadharResponse = restTemplate.postForObject(extractAadharUrl, requestEntity, AadharResponse.class);
 
-            if (aadharResponse.getResult().getUid() != null && aadharResponse.getResult().getAddress() != null) {
+            if (!(aadharResponse.getResult().getUid().isBlank())&& !(aadharResponse.getResult().getName().isBlank()) && !(aadharResponse.getResult().getAddress().isBlank()) && aadharResponse.getResult().isValidBackAndFront()) {
 
+                System.out.println(aadharResponse);
                 addressPreview.put("code", "0000");
                 addressPreview.put("msg", "File extracted successfully");
                 addressPreview.put("name", aadharResponse.getResult().getName());
@@ -101,10 +103,15 @@ public class ExternalApiServices {
 
 
             }
+            else
+            {
+                addressPreview.put("code", "1111");
+                addressPreview.put("msg", "File did not extracted, please try again");
+            }
         } catch (Exception e) {
             System.out.println(e);
             addressPreview.put("code", "1111");
-            addressPreview.put("msg", "Technical issue ,please try again");
+            addressPreview.put("msg", "Technical issue, please try again");
         }
         return addressPreview;
     }
@@ -112,7 +119,7 @@ public class ExternalApiServices {
 
 
 
-    public HashMap<String, String> sendOtpOnLinkMobileNO(String aadharNo) {
+    public HashMap<String,String> sendOtpOnLinkMobileNO(String aadharNo) {
         HashMap<String,String> inputBody=new HashMap<>();
         inputBody.put("aadhaarNumber",aadharNo);
         HashMap<String,String> otpDetails=new HashMap<>();
