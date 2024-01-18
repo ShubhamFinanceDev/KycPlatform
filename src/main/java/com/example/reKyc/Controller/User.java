@@ -2,7 +2,7 @@ package com.example.reKyc.Controller;
 
 import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Model.CommonResponse;
-import com.example.reKyc.Model.JwtRequest;
+import com.example.reKyc.Model.OtpRequest;
 import com.example.reKyc.Model.JwtResponse;
 import com.example.reKyc.Repository.OtpDetailsRepository;
 import com.example.reKyc.Security.JwtHelper;
@@ -11,6 +11,7 @@ import com.example.reKyc.Utill.MaskDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -67,7 +68,7 @@ public class User {
 
 
     @PostMapping("/otpVerification")
-    public ResponseEntity<JwtResponse> login(@RequestBody JwtRequest request) {
+    public ResponseEntity<JwtResponse> login(@RequestBody OtpRequest request) {
 
         JwtResponse jwtResponse = new JwtResponse();
         if (request.getMobileNo().isBlank() || request.getOtpCode().isBlank()) {
@@ -96,15 +97,14 @@ public class User {
             jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadhar(), "aadharNo"));
             jwtResponse.setLoanNo(customerDetails.getLoanNumber());
 
-            return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
         }
 
         else {
             jwtResponse.setMsg("Otp is expired, please try again.");
             jwtResponse.setCode("1111");
-             return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
-    }
-    }
+        }
+            return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
+        }
     }
 
 
@@ -124,10 +124,10 @@ public class User {
 
         @ExceptionHandler(BadCredentialsException.class)
         public CommonResponse exceptionHandler() {
-            CommonResponse commonResponse=new CommonResponse();
-            commonResponse.setCode("1111");
-            commonResponse.setMsg("invalid otp.");
-            return commonResponse;
+            JwtResponse jwtResponse=new JwtResponse();
+            jwtResponse.setCode("1111");
+            jwtResponse.setMsg("invalid otp.");
+            return jwtResponse;
         }
 }
 

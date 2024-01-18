@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class JwtRequest {
+public class OtpRequest {
     private String mobileNo;
     private String otpCode;
 }

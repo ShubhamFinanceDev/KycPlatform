@@ -4,6 +4,7 @@ import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Model.AadharOtpInput;
 import com.example.reKyc.Model.AadharOtpVerifyInput;
 import com.example.reKyc.Model.InputBase64;
+import com.example.reKyc.Model.UpdateAddress;
 import org.springframework.http.ResponseEntity;
 
 import java.util.HashMap;
@@ -22,6 +23,8 @@ public interface Service {
     HashMap<String, String> verifyOtpAadhar(AadharOtpVerifyInput inputParam);
 
     CustomerDetails checkExtractedDocumentId(String loanNo, String documentId,String documentType );
+
+    boolean saveUpdatedDetails(UpdateAddress inputUpdateAddress);
 
 //    UserDetail getDataByUser(
 }

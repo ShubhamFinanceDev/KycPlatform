@@ -2,15 +2,18 @@ package com.example.reKyc.ServiceImp;
 
 import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Entity.OtpDetails;
+import com.example.reKyc.Entity.UpdatedDetails;
 import com.example.reKyc.Model.AadharOtpInput;
 import com.example.reKyc.Model.AadharOtpVerifyInput;
 import com.example.reKyc.Model.InputBase64;
+import com.example.reKyc.Model.UpdateAddress;
 import com.example.reKyc.Repository.CustomerDetailsRepository;
 import com.example.reKyc.Repository.OtpDetailsRepository;
 import com.example.reKyc.Utill.MaskDocument;
 import com.example.reKyc.Utill.DateTimeUtility;
 import com.example.reKyc.Utill.ExternalApiServices;
 import com.example.reKyc.Utill.OtpUtility;
+import org.hibernate.annotations.processing.SQL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,10 +112,21 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     public CustomerDetails getCustomerDetail(String mobileNo,String otpCode) {
 
         CustomerDetails customerDetails=new CustomerDetails();
-        OtpDetails otpDetails=otpDetailsRepository.IsotpExpired(mobileNo,otpCode);
+       try {
+           OtpDetails otpDetails = otpDetailsRepository.IsotpExpired(mobileNo, otpCode);
+           if (otpDetails != null) {
+               Duration duration = Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now());
+               customerDetails = (duration.toMinutes() > 50) ?  null : customerDetailsRepository.findUserDetailByMobile(mobileNo);
+           }
 
-        Duration duration= Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now());
-        customerDetails=(duration.toMinutes()>50) ? null : customerDetailsRepository.findUserDetailByMobile(mobileNo);
+            else {
+                customerDetails=null;
+            }
+       }
+       catch (Exception e)
+       {
+           System.out.println(e);
+       }
         return customerDetails;
 
     }
@@ -162,7 +176,11 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
 
-
+   public boolean saveUpdatedDetails(UpdateAddress inputUpdateAddress)
+   {
+       UpdatedDetails updatedDetails=new UpdatedDetails();
+    return true;
+   }
 
 
 

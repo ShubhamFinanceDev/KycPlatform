@@ -13,4 +13,14 @@ public class JwtResponse extends CommonResponse {
     private String panNo;
     private String address;
     private String loanNo;
+
+    public JwtResponse() {
+        this.jwtToken = "";
+        this.mobileNo = "";
+        this.name = "";
+        this.aadharNo = "";
+        this.panNo = "";
+        this.address = "";
+        this.loanNo = "";
+    }
 }
