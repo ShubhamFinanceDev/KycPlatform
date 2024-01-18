@@ -76,7 +76,7 @@ public class Shubham {
         HashMap<String, String> response = new HashMap<>();
 
         if (!(inputParam.getLoanNumber().isBlank()) && !(inputParam.getFileType().isBlank()) && !(inputParam.getAadharNo().isBlank())) {
-            response = service.getAddessByAadhar(inputParam);
+            response = service.getAddressByAadhar(inputParam);
         } else {
             response.put("msg", "Required field is empty");
             response.put("code", "1111");
@@ -107,7 +107,7 @@ public class Shubham {
         UpdateAddressResponse updateAddressResponse=new UpdateAddressResponse();
          CustomerDetails customerDetails=new CustomerDetails();
 
-        if (inputUpdateAddress.getMobileNo().isBlank() || inputUpdateAddress.getOtpCode().isBlank()) {
+        if (inputUpdateAddress.getMobileNo().isBlank() || inputUpdateAddress.getOtpCode().isBlank() || inputUpdateAddress.getLoanNo().isBlank() || inputUpdateAddress.getDocumentType().isBlank() || inputUpdateAddress.getDocumentId().isBlank()) {
             updateAddressResponse.setMsg("Required field is empty.");
             updateAddressResponse.setCode("1111");
 
@@ -123,8 +123,26 @@ public class Shubham {
           }
           else
           {
-              saveStatus=service.saveUpdatedDetails(inputUpdateAddress);
+              if(inputUpdateAddress.getLoanNo().equals(customerDetails.getLoanNumber()))
+              {
+                if(service.saveUpdatedDetails(inputUpdateAddress))
+                {
+                    updateAddressResponse.setMsg("0000");
+                    inputUpdateAddress.setOtpCode("E-KYC completed successfully");
+                }
+              else{
+                    updateAddressResponse.setMsg("1111");
+                    inputUpdateAddress.setOtpCode("Something went wrong. please try again.");
+              }
           }
+              else
+              {
+                  updateAddressResponse.setMsg("1111");
+                  inputUpdateAddress.setOtpCode("Mobile number did not matched with loan number. please try again.");
+              }
+          }
+
+
         }
         return new ResponseEntity<CommonResponse>(updateAddressResponse, HttpStatus.OK);
     }

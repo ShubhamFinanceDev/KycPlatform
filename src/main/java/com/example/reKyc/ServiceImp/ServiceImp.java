@@ -9,6 +9,7 @@ import com.example.reKyc.Model.InputBase64;
 import com.example.reKyc.Model.UpdateAddress;
 import com.example.reKyc.Repository.CustomerDetailsRepository;
 import com.example.reKyc.Repository.OtpDetailsRepository;
+import com.example.reKyc.Repository.UpdatedDetailsRepository;
 import com.example.reKyc.Utill.MaskDocument;
 import com.example.reKyc.Utill.DateTimeUtility;
 import com.example.reKyc.Utill.ExternalApiServices;
@@ -38,6 +39,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Autowired
     private OtpDetailsRepository otpDetailsRepository;
     @Autowired
+    private UpdatedDetailsRepository updatedDetailsRepository;
+    @Autowired
     private OtpUtility otpUtility;
     @Autowired
     private DateTimeUtility dateTimeUtility;
@@ -48,8 +51,9 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Autowired
     ExternalApiServices externalApiServices;
 
-    BCryptPasswordEncoder bCryptPasswordEncoder=new BCryptPasswordEncoder();
-    Logger logger= LoggerFactory.getLogger(OncePerRequestFilter.class);
+
+    BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+    Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
     public HashMap validateAndSendOtp(String loanNo) {
         HashMap<String, String> otpResponse = new HashMap<>();
@@ -80,25 +84,21 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                     otpResponse.put("msg", "Otp send.");
                     otpResponse.put("code", "0000");
 
-                }
-            else
-                    {
-                        otpResponse.put("msg", "Otp did not send, please try again");
-                        otpResponse.put("code", "1111");
-                    }
-
-                }
-                else {
-                    otpResponse.put("msg", "Otp did not generate, please try again");
+                } else {
+                    otpResponse.put("msg", "Otp did not send, please try again");
                     otpResponse.put("code", "1111");
                 }
+
+            } else {
+                otpResponse.put("msg", "Otp did not generate, please try again");
+                otpResponse.put("code", "1111");
+            }
 
 //            } else {
 //                otpResponse.put("msg", "Loan no not found");
 //                otpResponse.put("code", "1111");
 //            }
-        }
-         catch (Exception e) {
+        } catch (Exception e) {
             System.out.println(e);
         }
         return otpResponse;
@@ -109,24 +109,20 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
      * @return
      */
     @Override
-    public CustomerDetails getCustomerDetail(String mobileNo,String otpCode) {
+    public CustomerDetails getCustomerDetail(String mobileNo, String otpCode) {
 
-        CustomerDetails customerDetails=new CustomerDetails();
-       try {
-           OtpDetails otpDetails = otpDetailsRepository.IsotpExpired(mobileNo, otpCode);
-           if (otpDetails != null) {
-               Duration duration = Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now());
-               customerDetails = (duration.toMinutes() > 50) ?  null : customerDetailsRepository.findUserDetailByMobile(mobileNo);
-           }
-
-            else {
-                customerDetails=null;
+        CustomerDetails customerDetails = new CustomerDetails();
+        try {
+            OtpDetails otpDetails = otpDetailsRepository.IsotpExpired(mobileNo, otpCode);
+            if (otpDetails != null) {
+                Duration duration = Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now());
+                customerDetails = (duration.toMinutes() > 50) ? null : customerDetailsRepository.findUserDetailByMobile(mobileNo);
+            } else {
+                customerDetails = null;
             }
-       }
-       catch (Exception e)
-       {
-           System.out.println(e);
-       }
+        } catch (Exception e) {
+            System.out.println(e);
+        }
         return customerDetails;
 
     }
@@ -135,7 +131,6 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
      * @param inputBase64
      * @return
      */
-
 
 
     @Override
@@ -160,45 +155,48 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     }
 
 
-  public  CustomerDetails checkExtractedDocumentId(String loanNo, String documentId, String documentType)
-    {
-        CustomerDetails customerDetails=new CustomerDetails();
+    public CustomerDetails checkExtractedDocumentId(String loanNo, String documentId, String documentType) {
+        CustomerDetails customerDetails = new CustomerDetails();
 
-        if(documentType.equals("aadhar")) {
-             customerDetails = customerDetailsRepository.checkCustomerAadharNo(loanNo, documentId);
-        }
-        else
-        {
-            customerDetails=null;
+        if (documentType.equals("aadhar")) {
+            customerDetails = customerDetailsRepository.checkCustomerAadharNo(loanNo, documentId);
+        } else {
+            customerDetails = null;
         }
         return customerDetails;
     }
 
 
+    public boolean saveUpdatedDetails(UpdateAddress inputUpdateAddress) {
+        UpdatedDetails updatedDetails = new UpdatedDetails();
+        updatedDetails.setUpdatedAddress(inputUpdateAddress.getUpdatedAddress());
+        updatedDetails.setMobileNo(inputUpdateAddress.getMobileNo());
+        updatedDetails.setLoanNo(inputUpdateAddress.getLoanNo());
+        updatedDetails.setDocumentId(inputUpdateAddress.getDocumentId());
+        updatedDetails.setDocumentType(inputUpdateAddress.getDocumentType());
 
-   public boolean saveUpdatedDetails(UpdateAddress inputUpdateAddress)
-   {
-       UpdatedDetails updatedDetails=new UpdatedDetails();
-    return true;
-   }
+        try {
+            updatedDetailsRepository.save(updatedDetails);
+            return true;
 
-
-
-
-    public HashMap getAddessByAadhar(AadharOtpInput inputParam) {
-
-        HashMap<String, String> aadhaNumberDetails = new HashMap<>();
-        int status= customerDetailsRepository.checkAadharNo(inputParam.getLoanNumber(),inputParam.getAadharNo());
-        if(status>0)
-        {
-//            aadhaNumberDetails.put("aadhar no", inputParam.getAadharNo());
-            aadhaNumberDetails=singzyServices.sendOtpOnLinkMobileNO(inputParam.getAadharNo());
+        } catch (Exception e) {
+            return false;
 
         }
-        else
-        {
-            aadhaNumberDetails.put("code","1111");
-            aadhaNumberDetails.put("msg","Aadhar number is not valid.");
+    }
+
+
+    public HashMap getAddressByAadhar(AadharOtpInput inputParam) {
+
+        HashMap<String, String> aadhaNumberDetails = new HashMap<>();
+        int status = customerDetailsRepository.checkAadharNo(inputParam.getLoanNumber(), inputParam.getAadharNo());
+        if (status > 0) {
+//            aadhaNumberDetails.put("aadhar no", inputParam.getAadharNo());
+            aadhaNumberDetails = singzyServices.sendOtpOnLinkMobileNO(inputParam.getAadharNo());
+
+        } else {
+            aadhaNumberDetails.put("code", "1111");
+            aadhaNumberDetails.put("msg", "Aadhar number is not valid.");
         }
         return aadhaNumberDetails;
     }
@@ -209,7 +207,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
      */
     @Override
     public HashMap<String, String> verifyOtpAadhar(AadharOtpVerifyInput inputParam) {
-        return singzyServices.validateOtp(inputParam.getRequestID(),inputParam.getOtpCode());
+        return singzyServices.validateOtp(inputParam.getRequestID(), inputParam.getOtpCode());
     }
 
 

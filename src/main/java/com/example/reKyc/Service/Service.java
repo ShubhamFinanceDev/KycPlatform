@@ -18,7 +18,7 @@ public interface Service {
 
     HashMap callFileExchangeServices(List<InputBase64.Base64Data> inputBase64);
 
-    HashMap<String, String> getAddessByAadhar(AadharOtpInput inputParam);
+    HashMap<String, String> getAddressByAadhar(AadharOtpInput inputParam);
 
     HashMap<String, String> verifyOtpAadhar(AadharOtpVerifyInput inputParam);
 
