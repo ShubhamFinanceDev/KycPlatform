@@ -32,14 +32,19 @@ CREATE TABLE IF NOT EXISTS `customer_details` (
   PRIMARY KEY (`user_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Data exporting was unselected.
+-- Dumping data for table rekyc.customer_details: ~2 rows (approximately)
+INSERT INTO `customer_details` (`user_id`, `application_number`, `loan_number`, `customer_name`, `address_details_residential`, `mobile_number`, `PAN`, `Aadhar`) VALUES
+	(1, '98765', 'LN003', 'nainish', '34 Main St, City', '8218372914', 'ABCDE1234F', 123456789012),
+	(2, '76756', 'LN005', 'kajal', '90 Main St, City', '8755776778', 'ABCuE1234F', 910117495119);
 
 -- Dumping structure for table rekyc.customer_details_seq
 CREATE TABLE IF NOT EXISTS `customer_details_seq` (
   `next_val` bigint DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Data exporting was unselected.
+-- Dumping data for table rekyc.customer_details_seq: ~1 rows (approximately)
+INSERT INTO `customer_details_seq` (`next_val`) VALUES
+	(1);
 
 -- Dumping structure for table rekyc.otp_detail
 CREATE TABLE IF NOT EXISTS `otp_detail` (
@@ -51,14 +56,19 @@ CREATE TABLE IF NOT EXISTS `otp_detail` (
   PRIMARY KEY (`otp_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=653 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Data exporting was unselected.
+-- Dumping data for table rekyc.otp_detail: ~1 rows (approximately)
+INSERT INTO `otp_detail` (`otp_id`, `expr_time`, `mobile_number`, `otp_code`, `otp_password`) VALUES
+	(552, '2024-01-18 16:40:47.343530', '8218372914', 610536, '$2a$10$mS.hio9BhMF5fLoZNcZJu.OcSqQFXCeRotbnukzIOtFRFP2yiLMqa'),
+	(652, '2024-01-18 17:56:41.079011', '8755776778', 852614, '$2a$10$ledXRIvmE0Mw0eido7N8e.AwW/drltalPUjLgZtumhEdL0fyURR2i');
 
 -- Dumping structure for table rekyc.otp_detail_seq
 CREATE TABLE IF NOT EXISTS `otp_detail_seq` (
   `next_val` bigint DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Data exporting was unselected.
+-- Dumping data for table rekyc.otp_detail_seq: ~1 rows (approximately)
+INSERT INTO `otp_detail_seq` (`next_val`) VALUES
+	(751);
 
 -- Dumping structure for table rekyc.updated_details
 CREATE TABLE IF NOT EXISTS `updated_details` (
@@ -72,7 +82,24 @@ CREATE TABLE IF NOT EXISTS `updated_details` (
   PRIMARY KEY (`update_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Data exporting was unselected.
+-- Dumping data for table rekyc.updated_details: ~3 rows (approximately)
+INSERT INTO `updated_details` (`update_id`, `loan_no`, `document_id`, `document_type`, `updated_address`, `mobile_no`, `updated_date`) VALUES
+	(1, '', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', NULL),
+	(2, '', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', NULL),
+	(3, 'LN005', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', NULL),
+	(4, 'LN005', '', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', NULL),
+	(5, 'LN005', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', NULL),
+	(6, 'LN005', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', NULL),
+	(7, 'LN005', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', NULL),
+	(8, 'LN005', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', NULL),
+	(9, 'LN003', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8218372914', NULL),
+	(10, 'LN003', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8218372914', NULL),
+	(11, 'LN003', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8218372914', NULL),
+	(12, 'LN005', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', NULL),
+	(13, 'LN005', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', NULL),
+	(14, 'LN005', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', NULL),
+	(15, 'LN005', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', '2024-01-18'),
+	(16, 'LN005', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', '2024-01-18');
 
 -- Dumping structure for table rekyc.uploaded_document
 CREATE TABLE IF NOT EXISTS `uploaded_document` (
@@ -86,7 +113,7 @@ CREATE TABLE IF NOT EXISTS `uploaded_document` (
   PRIMARY KEY (`upload_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Data exporting was unselected.
+-- Dumping data for table rekyc.uploaded_document: ~0 rows (approximately)
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
