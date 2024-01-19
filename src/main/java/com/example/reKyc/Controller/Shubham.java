@@ -27,7 +27,6 @@ public class Shubham {
     @PostMapping("/addressPreview")
     public HashMap handleRequest(@RequestBody InputBase64 inputParam) {     //convert base64 into url
         HashMap<String, String> extractDetail = new HashMap<>();
-        HashMap<String, String> result = new HashMap<>();
         CustomerDetails customerDetails = new CustomerDetails();
 
 
@@ -50,20 +49,24 @@ public class Shubham {
                     if (extractDetail.get("code").equals("0000")) {
 
                         boolean equality = maskDocument.compareAadharNoEquality(extractDetail.get("uid"), customerDetails.getAadhar());
-//                        extractDetail.put("frontSide", inputParam.getBase64Data().get(0));
-//                        extractDetail.put("backSide", inputParam.getBase64Data().get(1).toString());
 
                         if (!equality) {
                             extractDetail.clear();
                             extractDetail.put("msg", "aadhar no did not matched with document aadhar no.");
                             extractDetail.put("code", "1111");
                         }
+
                     }
                 } else {
-                    extractDetail.put("msg", "aadhar no and loan no is not matching.");
+                    extractDetail.put("msg", "aadhar number is not matching with loan number.");
                     extractDetail.put("code", "1111");
                 }
             }
+        }
+        else
+        {
+            extractDetail.put("code", "1111");
+            extractDetail.put("msg", "Required field is empty.");
         }
 
 
@@ -102,7 +105,7 @@ public class Shubham {
 
 
     @PostMapping("/updateAddress")
-    public ResponseEntity<CommonResponse> otpVerify(@RequestBody UpdateAddress inputUpdateAddress)
+    public ResponseEntity<UpdateAddressResponse> otpVerify(@RequestBody UpdateAddress inputUpdateAddress)
     {
         UpdateAddressResponse updateAddressResponse=new UpdateAddressResponse();
          CustomerDetails customerDetails=new CustomerDetails();
@@ -110,7 +113,6 @@ public class Shubham {
         if (inputUpdateAddress.getMobileNo().isBlank() || inputUpdateAddress.getOtpCode().isBlank() || inputUpdateAddress.getLoanNo().isBlank() || inputUpdateAddress.getDocumentType().isBlank() || inputUpdateAddress.getDocumentId().isBlank()) {
             updateAddressResponse.setMsg("Required field is empty.");
             updateAddressResponse.setCode("1111");
-
         }
         else
         {
@@ -123,28 +125,20 @@ public class Shubham {
           }
           else
           {
-              if(inputUpdateAddress.getLoanNo().equals(customerDetails.getLoanNumber()))
-              {
+
                 if(service.saveUpdatedDetails(inputUpdateAddress))
                 {
-                    updateAddressResponse.setMsg("0000");
-                    inputUpdateAddress.setOtpCode("E-KYC completed successfully");
+                    updateAddressResponse.setMsg("E-KYC completed successfully.");
+                    inputUpdateAddress.setOtpCode("0000.");
                 }
               else{
-                    updateAddressResponse.setMsg("1111");
-                    inputUpdateAddress.setOtpCode("Something went wrong. please try again.");
+                    updateAddressResponse.setMsg("Something went wrong. please try again.");
+                    inputUpdateAddress.setOtpCode("1111");
               }
           }
-              else
-              {
-                  updateAddressResponse.setMsg("1111");
-                  inputUpdateAddress.setOtpCode("Mobile number did not matched with loan number. please try again.");
-              }
-          }
-
 
         }
-        return new ResponseEntity<CommonResponse>(updateAddressResponse, HttpStatus.OK);
+        return new ResponseEntity<UpdateAddressResponse>(updateAddressResponse, HttpStatus.OK);
     }
 
 }
