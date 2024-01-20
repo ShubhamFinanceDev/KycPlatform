@@ -30,13 +30,13 @@ public class Shubham {
         CustomerDetails customerDetails = new CustomerDetails();
 
 
-        if (!(inputParam.getLoanNo().isBlank()) && !(inputParam.getDocumentId().isBlank()) && !(inputParam.getDocumentType().isBlank())) {
+        if (!( inputParam.getLoanNo()==null ||  inputParam.getLoanNo().isBlank()) && !(inputParam.getDocumentId()==null || inputParam.getDocumentId().isBlank()) && !(inputParam.getDocumentType()==null || inputParam.getDocumentType().isBlank())) {
 
             for (InputBase64.Base64Data data : inputParam.getBase64Data()) {
                 if (data.getFileType().isBlank() || data.getBase64String().isBlank()) {
 
                     extractDetail.put("code", "1111");
-                    extractDetail.put("msg", "Required field is empty.");
+                    extractDetail.put("msg", "required field is empty.");
                     break;
                 }
             }
@@ -66,7 +66,7 @@ public class Shubham {
         else
         {
             extractDetail.put("code", "1111");
-            extractDetail.put("msg", "Required field is empty.");
+            extractDetail.put("msg", "required field is empty.");
         }
 
 
@@ -105,13 +105,15 @@ public class Shubham {
 
 
     @PostMapping("/updateAddress")
-    public ResponseEntity<UpdateAddressResponse> otpVerify(@RequestBody UpdateAddress inputUpdateAddress)
+    public ResponseEntity<UpdateAddressResponse> finalUpdate(@RequestBody UpdateAddress inputUpdateAddress)
     {
         UpdateAddressResponse updateAddressResponse=new UpdateAddressResponse();
          CustomerDetails customerDetails=new CustomerDetails();
 
-        if (inputUpdateAddress.getMobileNo().isBlank() || inputUpdateAddress.getOtpCode().isBlank() || inputUpdateAddress.getLoanNo().isBlank() || inputUpdateAddress.getDocumentType().isBlank() || inputUpdateAddress.getDocumentId().isBlank()) {
-            updateAddressResponse.setMsg("Required field is empty.");
+        if (((inputUpdateAddress.getMobileNo().isBlank() ||inputUpdateAddress.getMobileNo()==null ) || (inputUpdateAddress.getOtpCode().isBlank()
+                || inputUpdateAddress.getUpdatedAddress()== null ) || (inputUpdateAddress.getLoanNo().isBlank() || inputUpdateAddress.getLoanNo()==null )|| (inputUpdateAddress.getDocumentType().isBlank() || inputUpdateAddress.getDocumentType()==null ) || (inputUpdateAddress.getDocumentId().isBlank() || inputUpdateAddress.getDocumentId()==null))) {
+
+            updateAddressResponse.setMsg("required field is empty.");
             updateAddressResponse.setCode("1111");
         }
         else
@@ -131,9 +133,9 @@ public class Shubham {
                     updateAddressResponse.setMsg("E-KYC completed successfully.");
                     inputUpdateAddress.setOtpCode("0000.");
                 }
-              else{
+              else {
                     updateAddressResponse.setMsg("Something went wrong. please try again.");
-                    inputUpdateAddress.setOtpCode("1111");
+                    updateAddressResponse.setCode("1111");
               }
           }
 
