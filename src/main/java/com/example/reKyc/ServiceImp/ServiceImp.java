@@ -10,11 +10,10 @@ import com.example.reKyc.Model.UpdateAddress;
 import com.example.reKyc.Repository.CustomerDetailsRepository;
 import com.example.reKyc.Repository.OtpDetailsRepository;
 import com.example.reKyc.Repository.UpdatedDetailsRepository;
-import com.example.reKyc.Utill.MaskDocument;
+import com.example.reKyc.Utill.MaskDocumentAndFile;
 import com.example.reKyc.Utill.DateTimeUtility;
 import com.example.reKyc.Utill.ExternalApiServices;
 import com.example.reKyc.Utill.OtpUtility;
-import org.hibernate.annotations.processing.SQL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +21,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.sql.Timestamp;
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +41,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Autowired
     private DateTimeUtility dateTimeUtility;
     @Autowired
-    private MaskDocument authToken;
+    private MaskDocumentAndFile authToken;
     @Autowired
     private ExternalApiServices singzyServices;
     @Autowired

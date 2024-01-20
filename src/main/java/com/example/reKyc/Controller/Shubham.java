@@ -3,14 +3,14 @@ package com.example.reKyc.Controller;
 import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Model.*;
 import com.example.reKyc.Service.Service;
-import com.example.reKyc.Utill.MaskDocument;
+import com.example.reKyc.Utill.MaskDocumentAndFile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 
 
 @RestController
@@ -21,16 +21,16 @@ public class Shubham {
     @Autowired
     private Service service;
     @Autowired
-    private MaskDocument maskDocument;
+    private MaskDocumentAndFile maskDocument;
 
 
     @PostMapping("/addressPreview")
-    public HashMap handleRequest(@RequestBody InputBase64 inputParam) {     //convert base64 into url
+    public HashMap handleRequest(@RequestBody InputBase64 inputParam) throws IOException {     //convert base64 into url
         HashMap<String, String> extractDetail = new HashMap<>();
         CustomerDetails customerDetails = new CustomerDetails();
 
 
-        if (!( inputParam.getLoanNo()==null ||  inputParam.getLoanNo().isBlank()) && !(inputParam.getDocumentId()==null || inputParam.getDocumentId().isBlank()) && !(inputParam.getDocumentType()==null || inputParam.getDocumentType().isBlank())) {
+        if (!(inputParam.getLoanNo() == null || inputParam.getLoanNo().isBlank()) && !(inputParam.getDocumentId() == null || inputParam.getDocumentId().isBlank()) && !(inputParam.getDocumentType() == null || inputParam.getDocumentType().isBlank())) {
 
             for (InputBase64.Base64Data data : inputParam.getBase64Data()) {
                 if (data.getFileType().isBlank() || data.getBase64String().isBlank()) {
@@ -41,34 +41,39 @@ public class Shubham {
                 }
             }
 
-            if (!(extractDetail.containsKey("code"))) {
-                customerDetails = service.checkExtractedDocumentId(inputParam.getLoanNo(), inputParam.getDocumentId(), inputParam.getDocumentType());
+                if (!(extractDetail.containsKey("code"))) {
+                    customerDetails = service.checkExtractedDocumentId(inputParam.getLoanNo(), inputParam.getDocumentId(), inputParam.getDocumentType());
 
-                if (customerDetails != null) {
-                    extractDetail = service.callFileExchangeServices(inputParam.getBase64Data());
-                    if (extractDetail.get("code").equals("0000")) {
+                    if (customerDetails != null) {
+                        extractDetail = service.callFileExchangeServices(inputParam.getBase64Data());      //convert file base 64 into url also extract details
+                        if (extractDetail.get("code").equals("0000")) {
 
-                        boolean equality = maskDocument.compareAadharNoEquality(extractDetail.get("uid"), customerDetails.getAadhar());
+                            boolean equality = maskDocument.compareAadharNoEquality(extractDetail.get("uid"), customerDetails.getAadhar()); //check extracted documented with registered documenteid
 
-                        if (!equality) {
-                            extractDetail.clear();
-                            extractDetail.put("msg", "aadhar no did not matched with document aadhar no.");
-                            extractDetail.put("code", "1111");
+                            if (!equality) {
+                                extractDetail.clear();
+                                extractDetail.put("msg", "aadhar no did not matched with document aadhar no.");
+                                extractDetail.put("code", "1111");
+                            }
+
+                            boolean fileStatus=maskDocument.generateFileLocally(inputParam);        //create a file  in local system
+                            if(!fileStatus){
+                                extractDetail.clear();
+                                extractDetail.put("msg", "something went wrong. please try again");
+                                extractDetail.put("code", "1111");
+
+                          }
                         }
-
+                    } else {
+                        extractDetail.put("msg", "aadhar number is not matching with loan number.");
+                        extractDetail.put("code", "1111");
                     }
-                } else {
-                    extractDetail.put("msg", "aadhar number is not matching with loan number.");
-                    extractDetail.put("code", "1111");
                 }
-            }
-        }
-        else
-        {
+
+        } else {
             extractDetail.put("code", "1111");
             extractDetail.put("msg", "required field is empty.");
         }
-
 
         return extractDetail;
     }
@@ -105,39 +110,41 @@ public class Shubham {
 
 
     @PostMapping("/updateAddress")
-    public ResponseEntity<UpdateAddressResponse> finalUpdate(@RequestBody UpdateAddress inputUpdateAddress)
-    {
-        UpdateAddressResponse updateAddressResponse=new UpdateAddressResponse();
-         CustomerDetails customerDetails=new CustomerDetails();
+    public ResponseEntity<UpdateAddressResponse> finalUpdate(@RequestBody UpdateAddress inputUpdateAddress) {
+        UpdateAddressResponse updateAddressResponse = new UpdateAddressResponse();
+        CustomerDetails customerDetails = new CustomerDetails();
 
-        if (((inputUpdateAddress.getMobileNo().isBlank() ||inputUpdateAddress.getMobileNo()==null ) || (inputUpdateAddress.getOtpCode().isBlank()
-                || inputUpdateAddress.getUpdatedAddress()== null ) || (inputUpdateAddress.getLoanNo().isBlank() || inputUpdateAddress.getLoanNo()==null )|| (inputUpdateAddress.getDocumentType().isBlank() || inputUpdateAddress.getDocumentType()==null ) || (inputUpdateAddress.getDocumentId().isBlank() || inputUpdateAddress.getDocumentId()==null))) {
+        if (((inputUpdateAddress.getMobileNo().isBlank() || inputUpdateAddress.getMobileNo() == null) || (inputUpdateAddress.getOtpCode().isBlank()
+                || inputUpdateAddress.getUpdatedAddress() == null) || (inputUpdateAddress.getLoanNo().isBlank() || inputUpdateAddress.getLoanNo() == null) || (inputUpdateAddress.getDocumentType().isBlank() || inputUpdateAddress.getDocumentType() == null) || (inputUpdateAddress.getDocumentId().isBlank() || inputUpdateAddress.getDocumentId() == null))) {
 
             updateAddressResponse.setMsg("required field is empty.");
             updateAddressResponse.setCode("1111");
-        }
-        else
-        {
-         customerDetails=  service.getCustomerDetail(inputUpdateAddress.getMobileNo(),inputUpdateAddress.getOtpCode());
-         boolean saveStatus;
-          if (customerDetails ==null)
-          {
-              updateAddressResponse.setMsg("Otp invalid or expire. please try again.");
-              inputUpdateAddress.setOtpCode("1111");
-          }
-          else
-          {
+        } else {
+            customerDetails = service.getCustomerDetail(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode());
+            boolean saveStatus;
 
-                if(service.saveUpdatedDetails(inputUpdateAddress))
-                {
-                    updateAddressResponse.setMsg("E-KYC completed successfully.");
-                    inputUpdateAddress.setOtpCode("0000.");
-                }
-              else {
+            if (customerDetails == null) {
+                updateAddressResponse.setMsg("Otp invalid or expire. please try again.");
+                inputUpdateAddress.setOtpCode("1111");
+            } else {
+
+                if (service.saveUpdatedDetails(inputUpdateAddress)) {
+
+                    if(maskDocument.createFileInDffs(customerDetails.getLoanNumber()))
+                    {
+                        updateAddressResponse.setMsg("E-KYC completed successfully.");
+                        inputUpdateAddress.setOtpCode("0000.");
+                    }
+                    else
+                    {
+                        updateAddressResponse.setMsg("Something went wrong. please try again.");
+                        updateAddressResponse.setCode("1111");
+                    }
+                } else {
                     updateAddressResponse.setMsg("Something went wrong. please try again.");
                     updateAddressResponse.setCode("1111");
-              }
-          }
+                }
+            }
 
         }
         return new ResponseEntity<UpdateAddressResponse>(updateAddressResponse, HttpStatus.OK);
