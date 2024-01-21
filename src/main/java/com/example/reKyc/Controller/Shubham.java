@@ -124,7 +124,7 @@ public class Shubham {
             boolean saveStatus;
 
             if (customerDetails == null) {
-                updateAddressResponse.setMsg("Otp invalid or expire. please try again.");
+                updateAddressResponse.setMsg("otp invalid or expire. please try again.");
                 inputUpdateAddress.setOtpCode("1111");
             } else {
 

@@ -69,7 +69,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                     otpDetails.setOtpCode(Long.valueOf(otpCode));
 
                     System.out.println(otpCode);
-                    otpDetails.setOtpPassword(bCryptPasswordEncoder.encode(String.valueOf(otpCode)));
+//                    otpDetails.setOtpPassword(bCryptPasswordEncoder.encode(String.valueOf(otpCode)));
                     otpDetails.setMobileNo(customerDetails.getMobileNumber());
 
                     otpDetailsRepository.save(otpDetails);

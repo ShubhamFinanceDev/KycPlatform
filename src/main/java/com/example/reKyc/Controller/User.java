@@ -70,64 +70,67 @@ public class User {
     public ResponseEntity<JwtResponse> login(@RequestBody OtpRequest request) {
 
         JwtResponse jwtResponse = new JwtResponse();
-        if (request.getMobileNo().isBlank() || request.getOtpCode().isBlank()) {
+        if(request.getMobileNo().isBlank() || request.getOtpCode().isBlank()) {
             jwtResponse.setMsg("Required field is empty.");
             jwtResponse.setCode("1111");
-            return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
 
         }
         else
         {
-        this.doAuthenticate(request.getMobileNo(), request.getOtpCode());
+            try {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(request.getMobileNo());
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getMobileNo());
-        CustomerDetails customerDetails = service.getCustomerDetail(request.getMobileNo(), request.getOtpCode());
+//                this.doAuthenticate(request.getMobileNo(), request.getOtpCode());
+                CustomerDetails customerDetails = service.getCustomerDetail(request.getMobileNo(), request.getOtpCode());
+                if (customerDetails != null) {
 
-        if(customerDetails != null) {
+                    String token = this.jwtHelper.generateToken(userDetails);
 
-            String token = this.jwtHelper.generateToken(userDetails);
+                    jwtResponse.setJwtToken(token);
+                    jwtResponse.setMobileNo(userDetails.getUsername());
+                    jwtResponse.setAddress(customerDetails.getAddressDetailsResidential());
+                    jwtResponse.setName(customerDetails.getCustomerName());
+                    jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPAN(), "panNo"));
+                    jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadhar(), "aadharNo"));
+                    jwtResponse.setLoanNo(customerDetails.getLoanNumber());
 
-
-            jwtResponse.setJwtToken(token);
-            jwtResponse.setMobileNo(userDetails.getUsername());
-            jwtResponse.setAddress(customerDetails.getAddressDetailsResidential());
-            jwtResponse.setName(customerDetails.getCustomerName());
-            jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPAN(), "panNo"));
-            jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadhar(), "aadharNo"));
-            jwtResponse.setLoanNo(customerDetails.getLoanNumber());
-
+                } else {
+                    jwtResponse.setMsg("Otp is invalid or expired, please try again.");
+                    jwtResponse.setCode("1111");
+                }
+            }
+            catch (Exception e)
+            {
+                jwtResponse.setMsg("phone number does not exist.");
+                jwtResponse.setCode("1111");
+            }
         }
-
-        else {
-            jwtResponse.setMsg("Otp is expired, please try again.");
-            jwtResponse.setCode("1111");
-        }
-            return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
-        }
+        return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
     }
 
 
 
-        private void doAuthenticate(String email, String password) {
+//        private void doAuthenticate(String email, String password) {
+//
+//            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, password);
+//            try {
+//                authenticationManager.authenticate(authentication);
+//
+//            } catch (BadCredentialsException e) {
+//                System.out.println("bad");
+//                throw new BadCredentialsException(" Invalid Username or Password !!");
+//
+//            }
 
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, password);
-            try {
-                authenticationManager.authenticate(authentication);
-
-            } catch (BadCredentialsException e) {
-                throw new BadCredentialsException(" Invalid Username or Password !!");
-
-            }
-
-        }
-
-        @ExceptionHandler(BadCredentialsException.class)
-        public CommonResponse exceptionHandler() {
-            JwtResponse jwtResponse=new JwtResponse();
-            jwtResponse.setCode("1111");
-            jwtResponse.setMsg("invalid otp.");
-            return jwtResponse;
-        }
+//        }
+//
+//        @ExceptionHandler(BadCredentialsException.class)
+//        public CommonResponse exceptionHandler() {
+//            JwtResponse jwtResponse=new JwtResponse();
+//            jwtResponse.setCode("1111");
+//            jwtResponse.setMsg("invalid otp.");
+//            return jwtResponse;
+//        }
 }
 
 

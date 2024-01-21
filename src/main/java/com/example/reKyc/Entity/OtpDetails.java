@@ -24,9 +24,6 @@ public class OtpDetails implements UserDetails {
     private String mobileNo;
     @Column(name="expr_time")
     private LocalDateTime otpExprTime=LocalDateTime.now();
-    @Column(name = "otp_password")
-    private String otpPassword;
-
 
 
     /**
@@ -42,8 +39,12 @@ public class OtpDetails implements UserDetails {
      */
     @Override
     public String getPassword() {
-        return otpPassword;
+        return null;
     }
+
+    /**
+     * @return
+     */
 
     /**
      * @return
