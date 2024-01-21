@@ -26,11 +26,12 @@ public class SecurityConfig  {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http.csrf(csrf -> csrf.disable())
-                .authorizeRequests().
-                requestMatchers("/shubham/**").authenticated().requestMatchers("/userKyc/**").permitAll()
+                .authorizeRequests()
+                .requestMatchers("/userKyc/**").permitAll()
+                .requestMatchers("/shubham/**").authenticated()
                 .anyRequest()
-                .authenticated()
-                .and().exceptionHandling(ex -> ex.authenticationEntryPoint(point))
+                .authenticated().and()
+//                .and().exceptionHandling(ex -> ex.authenticationEntryPoint(point))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

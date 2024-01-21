@@ -80,20 +80,20 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                     otpResponse.put("msg", "Otp send.");
                     otpResponse.put("code", "0000");
 
-                } else {
-                    otpResponse.put("msg", "Otp did not send, please try again");
-                    otpResponse.put("code", "1111");
-                }
+//                } else {
+//                    otpResponse.put("msg", "Otp did not send, please try again");
+//                    otpResponse.put("code", "1111");
+//                }
 
             } else {
-                otpResponse.put("msg", "Otp did not generate, please try again");
+                otpResponse.put("msg", "Otp did not generated, please try again");
                 otpResponse.put("code", "1111");
             }
 
-//            } else {
-//                otpResponse.put("msg", "Loan no not found");
-//                otpResponse.put("code", "1111");
-//            }
+            } else {
+                otpResponse.put("msg", "Loan no not found");
+                otpResponse.put("code", "1111");
+            }
         } catch (Exception e) {
             System.out.println(e);
         }
