@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `customer_details` (
 -- Dumping data for table rekyc.customer_details: ~2 rows (approximately)
 INSERT INTO `customer_details` (`user_id`, `application_number`, `loan_number`, `customer_name`, `address_details_residential`, `mobile_number`, `PAN`, `Aadhar`) VALUES
 	(1, '98765', 'LN003', 'nainish', '34 Main St, City', '8218372914', 'ABCDE1234F', 123456789012),
-	(2, '76756', 'LN005', 'kajal', '90 Main St, City', '8755776778', 'ABCuE1234F', 910117495119);
+	(2, '76756', 'LN005', 'kajal', '90 Main St, City', '8755776778', 'ABCuE1234F', 390920211147);
 
 -- Dumping structure for table rekyc.customer_details_seq
 CREATE TABLE IF NOT EXISTS `customer_details_seq` (
@@ -52,14 +52,13 @@ CREATE TABLE IF NOT EXISTS `otp_detail` (
   `expr_time` datetime(6) DEFAULT NULL,
   `mobile_number` varchar(255) DEFAULT NULL,
   `otp_code` bigint DEFAULT NULL,
-  `otp_password` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   PRIMARY KEY (`otp_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=653 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2404 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Dumping data for table rekyc.otp_detail: ~1 rows (approximately)
-INSERT INTO `otp_detail` (`otp_id`, `expr_time`, `mobile_number`, `otp_code`, `otp_password`) VALUES
-	(552, '2024-01-18 16:40:47.343530', '8218372914', 610536, '$2a$10$mS.hio9BhMF5fLoZNcZJu.OcSqQFXCeRotbnukzIOtFRFP2yiLMqa'),
-	(652, '2024-01-18 17:56:41.079011', '8755776778', 852614, '$2a$10$ledXRIvmE0Mw0eido7N8e.AwW/drltalPUjLgZtumhEdL0fyURR2i');
+-- Dumping data for table rekyc.otp_detail: ~2 rows (approximately)
+INSERT INTO `otp_detail` (`otp_id`, `expr_time`, `mobile_number`, `otp_code`) VALUES
+	(552, '2024-01-18 16:40:47.343530', '8218372914', 610536),
+	(2403, '2024-01-23 13:26:27.875211', '8755776778', 198934);
 
 -- Dumping structure for table rekyc.otp_detail_seq
 CREATE TABLE IF NOT EXISTS `otp_detail_seq` (
@@ -68,7 +67,7 @@ CREATE TABLE IF NOT EXISTS `otp_detail_seq` (
 
 -- Dumping data for table rekyc.otp_detail_seq: ~1 rows (approximately)
 INSERT INTO `otp_detail_seq` (`next_val`) VALUES
-	(751);
+	(2501);
 
 -- Dumping structure for table rekyc.updated_details
 CREATE TABLE IF NOT EXISTS `updated_details` (
@@ -80,9 +79,9 @@ CREATE TABLE IF NOT EXISTS `updated_details` (
   `mobile_no` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `updated_date` date DEFAULT NULL,
   PRIMARY KEY (`update_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Dumping data for table rekyc.updated_details: ~3 rows (approximately)
+-- Dumping data for table rekyc.updated_details: ~41 rows (approximately)
 INSERT INTO `updated_details` (`update_id`, `loan_no`, `document_id`, `document_type`, `updated_address`, `mobile_no`, `updated_date`) VALUES
 	(1, '', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', NULL),
 	(2, '', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', NULL),
@@ -99,7 +98,32 @@ INSERT INTO `updated_details` (`update_id`, `loan_no`, `document_id`, `document_
 	(13, 'LN005', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', NULL),
 	(14, 'LN005', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', NULL),
 	(15, 'LN005', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', '2024-01-18'),
-	(16, 'LN005', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', '2024-01-18');
+	(16, 'LN005', '390920211147', 'aadhar', 'S / O : Rakesh Singh , 75 , ward  no,01 , kundesar , kundesar , Kundaser , Ghazipur , Uttar Pradesh - 233227', '8755776778', '2024-01-18'),
+	(17, 'string', 'string', 'string', 'string', 'string', '2024-01-20'),
+	(18, 'string', 'string', 'string', 'string', 'string', '2024-01-20'),
+	(19, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-20'),
+	(20, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-20'),
+	(21, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-20'),
+	(22, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-20'),
+	(23, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-21'),
+	(24, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-21'),
+	(25, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-21'),
+	(26, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-21'),
+	(27, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-21'),
+	(28, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-21'),
+	(29, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-21'),
+	(30, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-21'),
+	(31, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-21'),
+	(32, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-21'),
+	(33, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-21'),
+	(34, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-21'),
+	(35, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-21'),
+	(36, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-21'),
+	(37, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-21'),
+	(38, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-21'),
+	(39, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-21'),
+	(40, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-21'),
+	(41, 'LN005', '390920211147', 'aadhar', 'SCn,hihuihdkvczz', '8755776778', '2024-01-21');
 
 -- Dumping structure for table rekyc.uploaded_document
 CREATE TABLE IF NOT EXISTS `uploaded_document` (
@@ -107,8 +131,8 @@ CREATE TABLE IF NOT EXISTS `uploaded_document` (
   `loan_no` varchar(255) DEFAULT NULL,
   `document_id` varchar(255) DEFAULT NULL,
   `document_type` varchar(255) DEFAULT NULL,
-  `front` varchar(255) DEFAULT NULL,
-  `back` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `front` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+  `back` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
   `updated_date` date DEFAULT NULL,
   PRIMARY KEY (`upload_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
