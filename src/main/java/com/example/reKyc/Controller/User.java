@@ -20,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -108,6 +109,11 @@ public class User {
         return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
     }
 
+    @PostMapping("/invoke-kyc-process-flag")
+    public String invokeProcessFlag(@RequestParam("file") MultipartFile file)
+    {
+      return   service.enableProcessFlag(file);
+    }
 
 
 //        private void doAuthenticate(String email, String password) {

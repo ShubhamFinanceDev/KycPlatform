@@ -6,6 +6,7 @@ import com.example.reKyc.Model.AadharOtpVerifyInput;
 import com.example.reKyc.Model.InputBase64;
 import com.example.reKyc.Model.UpdateAddress;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +26,8 @@ public interface Service {
     CustomerDetails checkExtractedDocumentId(String loanNo, String documentId,String documentType );
 
     boolean saveUpdatedDetails(UpdateAddress inputUpdateAddress);
+
+    String enableProcessFlag(MultipartFile file);
 
 //    UserDetail getDataByUser(
 }

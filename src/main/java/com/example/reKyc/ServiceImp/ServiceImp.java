@@ -14,17 +14,23 @@ import com.example.reKyc.Utill.MaskDocumentAndFile;
 import com.example.reKyc.Utill.DateTimeUtility;
 import com.example.reKyc.Utill.ExternalApiServices;
 import com.example.reKyc.Utill.OtpUtility;
+import org.apache.poi.openxml4j.util.ZipSecureFile;
+import org.apache.poi.ss.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 @Service
@@ -179,6 +185,62 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             return false;
 
         }
+    }
+
+    /**
+     * @param file
+     * @return
+     */
+    @Override
+    public String enableProcessFlag(MultipartFile file) {
+
+        String errorMsg="";
+//        Integer enable;
+        List<String> loanNo=new ArrayList<>();
+        try {
+
+
+            InputStream inputStream = file.getInputStream();
+            ZipSecureFile.setMinInflateRatio(0);                //for zip bomb detected
+            Workbook workbook = WorkbookFactory.create(inputStream);
+            Sheet sheet = workbook.getSheetAt(0);
+            Iterator<Row> rowIterator = sheet.iterator();
+//            Boolean fileFormat = true;
+            Row headerRow = rowIterator.next();
+
+            if(headerRow.getCell(0).toString().equals("Loan-No"))
+            {
+
+                while (rowIterator.hasNext()){
+                    Row row=rowIterator.next();
+                    Cell cell=row.getCell(0);
+                    errorMsg = (cell == null || cell.getCellType() == CellType.BLANK) ? "file upload error due to row no " + (row.getRowNum() + 1) + " is empty" : "";
+
+                    if (errorMsg.isEmpty())
+                    {
+                        loanNo.add(cell.toString());
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                if (!loanNo.isEmpty() && errorMsg.isEmpty())
+                {
+                    customerDetailsRepository.enableKycFlag(loanNo);
+                    errorMsg="successfully process.";
+                }
+            }
+            else {
+                errorMsg = "file format is different";
+            }
+
+        }
+        catch (Exception e)
+        {
+            errorMsg="failure:"+e;
+        }
+        return errorMsg;
     }
 
 

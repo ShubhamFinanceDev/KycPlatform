@@ -32,4 +32,7 @@ public class CustomerDetails {
 
     @Column(name = "mobile_number")
     private String mobileNumber;
+
+    @Column(name="kyc_flag")
+    private String kycFlag;
 }
