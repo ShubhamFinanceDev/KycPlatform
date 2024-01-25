@@ -2,6 +2,7 @@ package com.example.reKyc.Utill;
 
 
 import com.example.reKyc.Model.InputBase64;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -17,8 +18,8 @@ public class MaskDocumentAndFile {
 //    @Value("${jwt.secret}")
 //    private String jwtSecret;
 //
-//    @Value("${jwt.expiration}")
-//    private long jwtExpirationMs;
+    @Value("${file_path}")
+    private String file_path;
 //
 //
 //    public String generateToken(String username) {
@@ -74,7 +75,8 @@ public class MaskDocumentAndFile {
     public boolean generateFileLocally(InputBase64 inputParam) throws IOException {
         boolean status=true;
 
-        String outputPath = "src/main/resources/DocumentImage/";
+//        String outputPath = "src/main/resources/DocumentImage/";
+//        String outputPath="./Document/";
         int index = 0;
         for (InputBase64.Base64Data file : inputParam.getBase64Data()) {
 
@@ -82,9 +84,9 @@ public class MaskDocumentAndFile {
             String fileType = (file.getFileType().contains("pdf")) ? "pdf":"jpg";
             String fileName="";
             if (index == 0) {
-            fileName=outputPath+"front-"+inputParam.getLoanNo()+"." +fileType;
+            fileName=file_path+"front-"+inputParam.getLoanNo()+"." +fileType;
             } else {
-                fileName= outputPath+"back-"+inputParam.getLoanNo()+ "." + fileType;
+                fileName= file_path+"back-"+inputParam.getLoanNo()+ "." + fileType;
             }
 
             byte[] binaryData = Base64.getDecoder().decode(base64Data);
@@ -106,9 +108,9 @@ public class MaskDocumentAndFile {
 
 public boolean createFileInDffs(String loanNo)
 {
-   String filepath="src/main/resources/DocumentImage";
+//   String filepath="./Document/";
 
-    File folder = new File(filepath);
+    File folder = new File(file_path);
     File[] listOfFiles = folder.listFiles();
     boolean fileCreated=false;
 
@@ -116,7 +118,7 @@ public boolean createFileInDffs(String loanNo)
         if (file.getName().contains(loanNo)) {
 
             try {
-                byte[] fileBytes = Files.readAllBytes(Paths.get((filepath+"/"+file.getName())));
+                byte[] fileBytes = Files.readAllBytes(Paths.get((file_path+file.getName())));
                 String base64String = Base64.getEncoder().encodeToString(fileBytes);
                 System.out.println("Base64 representation of the file:\n" + base64String);
             } catch (Exception e) {
