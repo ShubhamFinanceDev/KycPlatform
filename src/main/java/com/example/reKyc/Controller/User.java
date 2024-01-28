@@ -59,21 +59,25 @@ public class User {
         if (loanNo.isEmpty()) {
             otpResponse.put("msg", "Loan number field is empty");
             otpResponse.put("code", "1111");
+
         } else {
             otpResponse = service.validateAndSendOtp(loanNo);
-        }
 
+        }
         return otpResponse;
+
     }
 
 
     @PostMapping("/otpVerification")
     public ResponseEntity<JwtResponse> login(@RequestBody OtpRequest request) {
 
+        CommonResponse commonResponse=new CommonResponse();
         JwtResponse jwtResponse = new JwtResponse();
         if(request.getMobileNo().isBlank() || request.getOtpCode().isBlank()) {
-            jwtResponse.setMsg("Required field is empty.");
-            jwtResponse.setCode("1111");
+            commonResponse.setMsg("Required field is empty.");
+            commonResponse.setCode("1111");
+            return new ResponseEntity(commonResponse,HttpStatus.OK);
 
         }
         else
@@ -83,7 +87,7 @@ public class User {
 
 //                this.doAuthenticate(request.getMobileNo(), request.getOtpCode());
                 CustomerDetails customerDetails = service.getCustomerDetail(request.getMobileNo(), request.getOtpCode());
-                if (customerDetails != null) {
+                if (customerDetails.getLoanNumber() != null) {
 
                     String token = this.jwtHelper.generateToken(userDetails);
 
@@ -96,17 +100,21 @@ public class User {
                     jwtResponse.setLoanNo(customerDetails.getLoanNumber());
 
                 } else {
-                    jwtResponse.setMsg("Otp is invalid or expired, please try again.");
-                    jwtResponse.setCode("1111");
+                    commonResponse.setMsg("Otp is invalid or expired, please try again.");
+                    commonResponse.setCode("1111");
+                    return new ResponseEntity(commonResponse,HttpStatus.OK);
+
                 }
+                return new ResponseEntity(jwtResponse, HttpStatus.OK);
+
             }
             catch (Exception e)
             {
-                jwtResponse.setMsg("phone number does not exist.");
-                jwtResponse.setCode("1111");
+                commonResponse.setMsg("Mobile Number is not valid.");
+                commonResponse.setCode("1111");
+                return new ResponseEntity(commonResponse,HttpStatus.OK);
             }
         }
-        return new ResponseEntity<>(jwtResponse, HttpStatus.OK);
     }
 
     @PostMapping("/invoke-kyc-process-flag")

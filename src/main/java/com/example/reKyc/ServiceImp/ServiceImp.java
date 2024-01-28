@@ -73,9 +73,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                     logger.info("otp sent on mobile");
                     OtpDetails otpDetails = new OtpDetails();
                     otpDetails.setOtpCode(Long.valueOf(otpCode));
-
                     System.out.println(otpCode);
-//                    otpDetails.setOtpPassword(bCryptPasswordEncoder.encode(String.valueOf(otpCode)));
                     otpDetails.setMobileNo(customerDetails.getMobileNumber());
 
                     otpDetailsRepository.save(otpDetails);
@@ -91,19 +89,25 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 //                    otpResponse.put("code", "1111");
 //                }
 
-            } else {
-                otpResponse.put("msg", "Otp did not generated, please try again");
-                otpResponse.put("code", "1111");
-            }
+
+                } else {
+                    otpResponse.put("msg", "Otp did not generated, please try again");
+                    otpResponse.put("code", "1111");
+
+                }
 
             } else {
                 otpResponse.put("msg", "Loan no not found");
                 otpResponse.put("code", "1111");
+
             }
+            return otpResponse;
         } catch (Exception e) {
             System.out.println(e);
+            otpResponse.put("msg", "Technical issue");
+            otpResponse.put("code", "1111");
+            return otpResponse;
         }
-        return otpResponse;
     }
 
     /**
@@ -118,10 +122,9 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             OtpDetails otpDetails = otpDetailsRepository.IsotpExpired(mobileNo, otpCode);
             if (otpDetails != null) {
                 Duration duration = Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now());
-                customerDetails = (duration.toMinutes() > 50) ? null : customerDetailsRepository.findUserDetailByMobile(mobileNo);
-            } else {
-                customerDetails = null;
+                customerDetails = (duration.toMinutes() > 50) ? customerDetails : customerDetailsRepository.findUserDetailByMobile(mobileNo);
             }
+
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -159,13 +162,16 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
     public CustomerDetails checkExtractedDocumentId(String loanNo, String documentId, String documentType) {
         CustomerDetails customerDetails = new CustomerDetails();
+        try {
 
-        if (documentType.equals("aadhar")) {
-            customerDetails = customerDetailsRepository.checkCustomerAadharNo(loanNo, documentId);
-        } else {
-            customerDetails = null;
+            if (documentType.equals("aadhar")) {
+                customerDetails = customerDetailsRepository.checkCustomerAadharNo(loanNo, documentId);
+            }
+        } catch (Exception e) {
+            System.out.println(e);
         }
         return customerDetails;
+
     }
 
 
@@ -194,9 +200,9 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Override
     public String enableProcessFlag(MultipartFile file) {
 
-        String errorMsg="";
+        String errorMsg = "";
 //        Integer enable;
-        List<String> loanNo=new ArrayList<>();
+        List<String> loanNo = new ArrayList<>();
         try {
 
 
@@ -208,37 +214,29 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 //            Boolean fileFormat = true;
             Row headerRow = rowIterator.next();
 
-            if(headerRow.getCell(0).toString().equals("Loan-No"))
-            {
+            if (headerRow.getCell(0).toString().equals("Loan-No")) {
 
-                while (rowIterator.hasNext()){
-                    Row row=rowIterator.next();
-                    Cell cell=row.getCell(0);
+                while (rowIterator.hasNext()) {
+                    Row row = rowIterator.next();
+                    Cell cell = row.getCell(0);
                     errorMsg = (cell == null || cell.getCellType() == CellType.BLANK) ? "file upload error due to row no " + (row.getRowNum() + 1) + " is empty" : "";
 
-                    if (errorMsg.isEmpty())
-                    {
+                    if (errorMsg.isEmpty()) {
                         loanNo.add(cell.toString());
-                    }
-                    else
-                    {
+                    } else {
                         break;
                     }
                 }
-                if (!loanNo.isEmpty() && errorMsg.isEmpty())
-                {
+                if (!loanNo.isEmpty() && errorMsg.isEmpty()) {
                     customerDetailsRepository.enableKycFlag(loanNo);
-                    errorMsg="successfully process.";
+                    errorMsg = "successfully process.";
                 }
-            }
-            else {
+            } else {
                 errorMsg = "file format is different";
             }
 
-        }
-        catch (Exception e)
-        {
-            errorMsg="failure:"+e;
+        } catch (Exception e) {
+            errorMsg = "failure:" + e;
         }
         return errorMsg;
     }

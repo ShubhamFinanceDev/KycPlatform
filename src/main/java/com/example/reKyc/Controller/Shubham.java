@@ -25,57 +25,58 @@ public class Shubham {
 
 
     @PostMapping("/addressPreview")
-    public HashMap handleRequest(@RequestBody InputBase64 inputParam) throws IOException {     //convert base64 into url
+    public HashMap handleRequest(@RequestBody InputBase64 inputParam) {     //convert base64 into url
         HashMap<String, String> extractDetail = new HashMap<>();
         CustomerDetails customerDetails = new CustomerDetails();
 
+        try {
+            if (!(inputParam.getLoanNo() == null || inputParam.getLoanNo().isBlank()) && !(inputParam.getDocumentId() == null || inputParam.getDocumentId().isBlank()) && !(inputParam.getDocumentType() == null || inputParam.getDocumentType().isBlank())) {
 
-        if (!(inputParam.getLoanNo() == null || inputParam.getLoanNo().isBlank()) && !(inputParam.getDocumentId() == null || inputParam.getDocumentId().isBlank()) && !(inputParam.getDocumentType() == null || inputParam.getDocumentType().isBlank())) {
+                for (InputBase64.Base64Data data : inputParam.getBase64Data()) {
+                    if ((data.getFileType() == null || data.getFileType().isBlank()) || (data.getBase64String() == null || data.getBase64String().isBlank())) {
 
-            for (InputBase64.Base64Data data : inputParam.getBase64Data()) {
-                if (data.getFileType().isBlank() || data.getBase64String().isBlank()) {
-
-                    extractDetail.put("code", "1111");
-                    extractDetail.put("msg", "required field is empty.");
-                    break;
-                }
-            }
-
-                if (!(extractDetail.containsKey("code"))) {
-                    customerDetails = service.checkExtractedDocumentId(inputParam.getLoanNo(), inputParam.getDocumentId(), inputParam.getDocumentType());
-
-                    if (customerDetails != null) {
-                        extractDetail = service.callFileExchangeServices(inputParam.getBase64Data());      //convert file base 64 into url also extract details
-                        if (extractDetail.get("code").equals("0000")) {
-
-                            boolean equality = maskDocument.compareAadharNoEquality(extractDetail.get("uid"), customerDetails.getAadhar()); //check extracted documented with registered documenteid
-
-                            if (!equality) {
-                                extractDetail.clear();
-                                extractDetail.put("msg", "aadhar no did not matched with document aadhar no.");
-                                extractDetail.put("code", "1111");
-                            }
-
-                            boolean fileStatus=maskDocument.generateFileLocally(inputParam);        //create a file  in local system
-                            if(!fileStatus){
-                                extractDetail.clear();
-                                extractDetail.put("msg", "something went wrong. please try again");
-                                extractDetail.put("code", "1111");
-
-                          }
-                        }
-                    } else {
-                        extractDetail.put("msg", "aadhar number is not matching with loan number.");
                         extractDetail.put("code", "1111");
+                        extractDetail.put("msg", "required field is empty.");
+                        return extractDetail;
                     }
                 }
 
-        } else {
-            extractDetail.put("code", "1111");
-            extractDetail.put("msg", "required field is empty.");
-        }
+                customerDetails = service.checkExtractedDocumentId(inputParam.getLoanNo(), inputParam.getDocumentId(), inputParam.getDocumentType());
+                if (customerDetails.getLoanNumber() != null) {
+                    extractDetail = service.callFileExchangeServices(inputParam.getBase64Data());      //convert file base 64 into url also extract details
 
-        return extractDetail;
+                    if (extractDetail.get("code").equals("0000")) {
+                        boolean equality = maskDocument.compareAadharNoEquality(extractDetail.get("uid"), customerDetails.getAadhar()); //check extracted documented with registered documenteid
+                        if (!equality) {
+                            extractDetail.clear();
+                            extractDetail.put("msg", "aadhar number did not matched with document aadhar no.");
+                            extractDetail.put("code", "1111");
+                        }
+                        boolean fileStatus = maskDocument.generateFileLocally(inputParam);        //create a file  in local system
+                        if (!fileStatus) {
+                            extractDetail.clear();
+                            extractDetail.put("msg", "something went wrong. please try again");
+                            extractDetail.put("code", "1111");
+                        }
+                    }
+
+                } else {
+                    extractDetail.put("msg", "aadhar number is not matching with loan number.");
+                    extractDetail.put("code", "1111");
+                }
+
+
+            } else {
+                extractDetail.put("code", "1111");
+                extractDetail.put("msg", "required field is empty.");
+            }
+            return extractDetail;
+
+        } catch (Exception e) {
+            extractDetail.put("code", "1111");
+            extractDetail.put("msg", "Technical issue");
+            return extractDetail;
+        }
     }
 
 
@@ -119,24 +120,24 @@ public class Shubham {
 
             updateAddressResponse.setMsg("required field is empty.");
             updateAddressResponse.setCode("1111");
+            return new ResponseEntity(updateAddressResponse,HttpStatus.OK);
         } else {
             customerDetails = service.getCustomerDetail(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode());
             boolean saveStatus;
 
-            if (customerDetails == null) {
+            if (customerDetails.getLoanNumber() == null) {
                 updateAddressResponse.setMsg("otp invalid or expire. please try again.");
-                inputUpdateAddress.setOtpCode("1111");
+                updateAddressResponse.setCode("1111");
+                return new ResponseEntity(updateAddressResponse, HttpStatus.OK);
+
             } else {
 
                 if (service.saveUpdatedDetails(inputUpdateAddress)) {
 
-                    if(maskDocument.createFileInDffs(customerDetails.getLoanNumber()))
-                    {
+                    if (maskDocument.createFileInDffs(customerDetails.getLoanNumber())) {
                         updateAddressResponse.setMsg("E-KYC completed successfully.");
                         inputUpdateAddress.setOtpCode("0000.");
-                    }
-                    else
-                    {
+                    } else {
                         updateAddressResponse.setMsg("Something went wrong. please try again.");
                         updateAddressResponse.setCode("1111");
                     }
@@ -147,7 +148,7 @@ public class Shubham {
             }
 
         }
-        return new ResponseEntity<UpdateAddressResponse>(updateAddressResponse, HttpStatus.OK);
+        return new ResponseEntity(updateAddressResponse, HttpStatus.OK);
     }
 
 }
