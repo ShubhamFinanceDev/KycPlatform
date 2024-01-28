@@ -111,44 +111,44 @@ public class Shubham {
 
 
     @PostMapping("/updateAddress")
-    public ResponseEntity<UpdateAddressResponse> finalUpdate(@RequestBody UpdateAddress inputUpdateAddress) {
-        UpdateAddressResponse updateAddressResponse = new UpdateAddressResponse();
+    public ResponseEntity<CommonResponse> finalUpdate(@RequestBody UpdateAddress inputUpdateAddress) {
         CustomerDetails customerDetails = new CustomerDetails();
+        CommonResponse commonResponse=new CommonResponse();
 
         if (((inputUpdateAddress.getMobileNo().isBlank() || inputUpdateAddress.getMobileNo() == null) || (inputUpdateAddress.getOtpCode().isBlank()
                 || inputUpdateAddress.getUpdatedAddress() == null) || (inputUpdateAddress.getLoanNo().isBlank() || inputUpdateAddress.getLoanNo() == null) || (inputUpdateAddress.getDocumentType().isBlank() || inputUpdateAddress.getDocumentType() == null) || (inputUpdateAddress.getDocumentId().isBlank() || inputUpdateAddress.getDocumentId() == null))) {
 
-            updateAddressResponse.setMsg("required field is empty.");
-            updateAddressResponse.setCode("1111");
-            return new ResponseEntity(updateAddressResponse,HttpStatus.OK);
+            commonResponse.setMsg("required field is empty.");
+            commonResponse.setCode("1111");
+            return new ResponseEntity(commonResponse,HttpStatus.OK);
         } else {
             customerDetails = service.getCustomerDetail(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode());
             boolean saveStatus;
 
             if (customerDetails.getLoanNumber() == null) {
-                updateAddressResponse.setMsg("otp invalid or expire. please try again.");
-                updateAddressResponse.setCode("1111");
-                return new ResponseEntity(updateAddressResponse, HttpStatus.OK);
+                commonResponse.setMsg("otp invalid or expire. please try again.");
+                commonResponse.setCode("1111");
+                return new ResponseEntity(commonResponse, HttpStatus.OK);
 
             } else {
 
                 if (service.saveUpdatedDetails(inputUpdateAddress)) {
 
                     if (maskDocument.createFileInDffs(customerDetails.getLoanNumber())) {
-                        updateAddressResponse.setMsg("E-KYC completed successfully.");
-                        inputUpdateAddress.setOtpCode("0000.");
+                        commonResponse.setMsg("E-KYC completed successfully.");
+                        commonResponse.setCode("0000.");
                     } else {
-                        updateAddressResponse.setMsg("Something went wrong. please try again.");
-                        updateAddressResponse.setCode("1111");
+                        commonResponse.setMsg("Something went wrong. please try again.");
+                        commonResponse.setCode("1111");
                     }
                 } else {
-                    updateAddressResponse.setMsg("Something went wrong. please try again.");
-                    updateAddressResponse.setCode("1111");
+                    commonResponse.setMsg("Something went wrong. please try again.");
+                    commonResponse.setCode("1111");
                 }
             }
 
         }
-        return new ResponseEntity(updateAddressResponse, HttpStatus.OK);
+        return new ResponseEntity(commonResponse, HttpStatus.OK);
     }
 
 }
