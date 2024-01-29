@@ -125,7 +125,7 @@ public class Shubham {
 
             if (customerDetails == null) {
                 updateAddressResponse.setMsg("otp invalid or expire. please try again.");
-                inputUpdateAddress.setOtpCode("1111");
+                updateAddressResponse.setCode("1111");
             } else {
 
                 if (service.saveUpdatedDetails(inputUpdateAddress)) {
@@ -133,7 +133,7 @@ public class Shubham {
                     if(maskDocument.createFileInDffs(customerDetails.getLoanNumber()))
                     {
                         updateAddressResponse.setMsg("E-KYC completed successfully.");
-                        inputUpdateAddress.setOtpCode("0000.");
+                        updateAddressResponse.setCode("0000.");
                     }
                     else
                     {
