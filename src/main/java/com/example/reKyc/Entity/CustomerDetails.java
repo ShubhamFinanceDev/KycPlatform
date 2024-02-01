@@ -25,7 +25,7 @@ public class CustomerDetails {
     private String addressDetailsResidential;
 
     @Column(name = "PAN")
-    private String PAN;
+    private String pan;
 
     @Column(name = "Aadhar")
     private String aadhar;

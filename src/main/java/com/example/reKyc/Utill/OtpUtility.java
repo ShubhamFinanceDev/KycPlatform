@@ -31,14 +31,20 @@ public class OtpUtility {
 
     public int generateOtp(CustomerDetails customerDetails)
     {
-        int count = otpDetailsRepository.countByMobile(customerDetails.getMobileNumber());
+        try {
+            int count = otpDetailsRepository.countByMobile(customerDetails.getMobileNumber());
 
-        if (count > 0) {
-            otpDetailsRepository.deletePreviousOtp(customerDetails.getMobileNumber());
-            logger.info("previous otp deleted");
+            if (count > 0) {
+                otpDetailsRepository.deletePreviousOtp(customerDetails.getMobileNumber());
+                logger.info("previous otp deleted");
+            }
+            int randomNo = (int) (Math.random() * 900000) + 100000;
+            return randomNo;
         }
-        int randomNo = (int)(Math.random()*900000)+100000;
-        return randomNo;
+        catch (Exception e)
+        {
+            return 0;
+        }
     }
 
 

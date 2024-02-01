@@ -1,14 +1,12 @@
 package com.example.reKyc.Utill;
 
 
-import com.example.reKyc.Model.AadharOtpResponse;
-import com.example.reKyc.Model.AadharOtpVerifyResonse;
-import com.example.reKyc.Model.AadharResponse;
-import com.example.reKyc.Model.ResponseOfBase64;
+import com.example.reKyc.Model.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -27,6 +25,8 @@ public class ExternalApiServices {
 
     @Value("${singzy.extraction.aadhar}")
     private String extractAadharUrl;
+    @Value("${singzy.extraction.pan}")
+    private String extractPanUrl;
 
     @Value("${singzy.authorisation.key}")
     private String singzyAuthKey;
@@ -84,7 +84,7 @@ public class ExternalApiServices {
         HashMap<String, String> addressPreview = new HashMap<>();
         AadharResponse aadharResponse = new AadharResponse();
         try {
-//            HttpHeaders headers = new HttpHeaders();
+
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Authorization", singzyAuthKey);
             HttpEntity<Map<String, List>> requestEntity = new HttpEntity<>(inputBody, headers);
@@ -116,6 +116,43 @@ public class ExternalApiServices {
         return addressPreview;
     }
 
+public HashMap extractPanDetails(List<String> urls)
+{
+
+    HashMap<String, Object> inputBody = new HashMap<>();
+    inputBody.put("files", urls);
+    inputBody.put("type","individualPan");
+    inputBody.put("getRelativeData",true);
+    HashMap<String,String> panResponse=new HashMap<>();
+
+    try {
+
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", singzyAuthKey);
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(inputBody, headers);
+       System.out.println("request"+inputBody);
+      ResponseEntity<PanCardResponse>  extractPanResponse= restTemplate.postForEntity(extractPanUrl, requestEntity,PanCardResponse.class);
+
+      if(extractPanResponse.getStatusCode().toString().contains("200")) {
+
+          System.out.println("Response-" + extractPanResponse.getBody().getResult());
+          System.out.println("staus"+extractPanResponse.getStatusCode());
+
+          panResponse.put("code", "0000");
+          panResponse.put("msg", "File extracted successfully");
+          panResponse.put("name", extractPanResponse.getBody().getResult().getName());
+//          panResponse.put("address", aadharResponse.getResult().getAddress());
+          panResponse.put("dateOfBirth", extractPanResponse.getBody().getResult().getDob());
+          panResponse.put("uid",extractPanResponse.getBody().getResult().getNumber());
+      }
+
+    } catch (Exception e) {
+        System.out.println(e);
+        panResponse.put("code", "1111");
+        panResponse.put("msg", "Technical issue, please try again");
+    }
+    return panResponse;
+}
 
 
 

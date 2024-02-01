@@ -41,15 +41,17 @@ public class Shubham {
                     }
                 }
 
-                customerDetails = service.checkExtractedDocumentId(inputParam.getLoanNo(), inputParam.getDocumentId(), inputParam.getDocumentType());
-                if (customerDetails.getLoanNumber() != null) {
-                    extractDetail = service.callFileExchangeServices(inputParam.getBase64Data());      //convert file base 64 into url also extract details
+//                customerDetails = service.checkExtractedDocumentId(inputParam.getLoanNo(), inputParam.getDocumentId(), inputParam.getDocumentType());
+                customerDetails = service.checkLoanNo(inputParam.getLoanNo());
+
+                if (customerDetails != null && (customerDetails.getPan().equals(inputParam.getDocumentId()) || customerDetails.getAadhar().equals(inputParam.getDocumentId()))) {
+                    extractDetail = service.callFileExchangeServices(inputParam.getBase64Data(),inputParam.getDocumentType());      //convert file base 64 into url also extract details
 
                     if (extractDetail.get("code").equals("0000")) {
-                        boolean equality = maskDocument.compareAadharNoEquality(extractDetail.get("uid"), customerDetails.getAadhar()); //check extracted documented with registered documenteid
+                        boolean equality = maskDocument.compareDocumentNumber(extractDetail.get("uid"), inputParam.getDocumentId(),inputParam.getDocumentType()); //check extracted documented with registered documenteid
                         if (!equality) {
                             extractDetail.clear();
-                            extractDetail.put("msg", "aadhar number did not matched with document aadhar no.");
+                            extractDetail.put("msg", "uploaded document is not matching with loan number.");
                             extractDetail.put("code", "1111");
                         }
                         boolean fileStatus = maskDocument.generateFileLocally(inputParam);        //create a file  in local system
@@ -61,7 +63,7 @@ public class Shubham {
                     }
 
                 } else {
-                    extractDetail.put("msg", "aadhar number is not matching with loan number.");
+                    extractDetail.put("msg", "Loan no not found or document id did not");
                     extractDetail.put("code", "1111");
                 }
 
@@ -80,34 +82,34 @@ public class Shubham {
     }
 
 
-    @PostMapping("/sendOtpForAadhar")
-    public HashMap invokeAddressPreviewService(@RequestBody AadharOtpInput inputParam) {
-        HashMap<String, String> response = new HashMap<>();
-
-        if (!(inputParam.getLoanNumber().isBlank()) && !(inputParam.getFileType().isBlank()) && !(inputParam.getAadharNo().isBlank())) {
-            response = service.getAddressByAadhar(inputParam);
-        } else {
-            response.put("msg", "Required field is empty");
-            response.put("code", "1111");
-        }
-        return response;
-
-    }
-
-
-    @PostMapping("/verifyOtpForAadhar")
-    public HashMap verifyOtp(@RequestBody AadharOtpVerifyInput inputParam) {
-        HashMap<String, String> response = new HashMap<>();
-
-
-        if (!(inputParam.getRequestID().isBlank()) && !(inputParam.getOtpCode().isBlank())) {
-            response = service.verifyOtpAadhar(inputParam);
-        } else {
-            response.put("msg", "Required field is empty");
-            response.put("code", "1111");
-        }
-        return response;
-    }
+//    @PostMapping("/sendOtpForAadhar")
+//    public HashMap invokeAddressPreviewService(@RequestBody AadharOtpInput inputParam) {
+//        HashMap<String, String> response = new HashMap<>();
+//
+//        if (!(inputParam.getLoanNumber().isBlank()) && !(inputParam.getFileType().isBlank()) && !(inputParam.getAadharNo().isBlank())) {
+//            response = service.getAddressByAadhar(inputParam);
+//        } else {
+//            response.put("msg", "Required field is empty");
+//            response.put("code", "1111");
+//        }
+//        return response;
+//
+//    }
+//
+//
+//    @PostMapping("/verifyOtpForAadhar")
+//    public HashMap verifyOtp(@RequestBody AadharOtpVerifyInput inputParam) {
+//        HashMap<String, String> response = new HashMap<>();
+//
+//
+//        if (!(inputParam.getRequestID().isBlank()) && !(inputParam.getOtpCode().isBlank())) {
+//            response = service.verifyOtpAadhar(inputParam);
+//        } else {
+//            response.put("msg", "Required field is empty");
+//            response.put("code", "1111");
+//        }
+//        return response;
+//    }
 
 
     @PostMapping("/updateAddress")
@@ -123,7 +125,6 @@ public class Shubham {
             return new ResponseEntity(commonResponse,HttpStatus.OK);
         } else {
             customerDetails = service.getCustomerDetail(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode());
-            boolean saveStatus;
 
             if (customerDetails.getLoanNumber() == null) {
                 commonResponse.setMsg("otp invalid or expire. please try again.");

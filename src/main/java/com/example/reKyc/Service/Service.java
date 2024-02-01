@@ -17,7 +17,7 @@ public interface Service {
     CustomerDetails getCustomerDetail(String mobileNo,String otpCode);
 //    ResponseEntity<String> handleRequest(List<InputBase64> inputBase64);
 
-    HashMap callFileExchangeServices(List<InputBase64.Base64Data> inputBase64);
+    HashMap callFileExchangeServices(List<InputBase64.Base64Data> inputBase64,String documentType);
 
     HashMap<String, String> getAddressByAadhar(AadharOtpInput inputParam);
 
@@ -28,6 +28,8 @@ public interface Service {
     boolean saveUpdatedDetails(UpdateAddress inputUpdateAddress);
 
     String enableProcessFlag(MultipartFile file);
+
+    CustomerDetails checkLoanNo(String loanNo);
 
 //    UserDetail getDataByUser(
 }

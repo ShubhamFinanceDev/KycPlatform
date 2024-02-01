@@ -95,7 +95,7 @@ public class User {
                     jwtResponse.setMobileNo(userDetails.getUsername());
                     jwtResponse.setAddress(customerDetails.getAddressDetailsResidential());
                     jwtResponse.setName(customerDetails.getCustomerName());
-                    jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPAN(), "panNo"));
+                    jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPan(), "panNo"));
                     jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadhar(), "aadharNo"));
                     jwtResponse.setLoanNo(customerDetails.getLoanNumber());
 

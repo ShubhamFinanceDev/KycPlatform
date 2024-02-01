@@ -1,6 +1,7 @@
 package com.example.reKyc.Utill;
 
 
+import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Model.InputBase64;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -57,18 +58,25 @@ public class MaskDocumentAndFile {
         return documentEncrypt;
     }
 
-    public boolean compareAadharNoEquality(String maskId, String documentId) {
+    public boolean compareDocumentNumber(String extractedId, String documentId,String documentType) {
 
-        String maskid = maskId.substring(maskId.length() - 4, maskId.length());
-        String documentid = documentId.substring(documentId.length() - 4, documentId.length());
-        System.out.println("mask" + maskId);
-        System.out.println("not mask" + documentId);
-
-        if (maskid.equals(documentid)) {
-            return true;
-        } else {
-            return false;
+        String subExtractedId = extractedId.substring(extractedId.length() - 4, extractedId.length());
+        boolean comparison=false;
+        if(documentType.equals("aadhar"))
+        {
+            String aadharNo = documentId.substring(documentId.length() - 4, documentId.length());
+            if(aadharNo.equals(subExtractedId))
+            {
+                comparison=true;
+            }
         }
+        else {
+            if (extractedId.equals(documentId)) {
+                comparison=true;
+            }
+        }
+        return comparison;
+
     }
 
 

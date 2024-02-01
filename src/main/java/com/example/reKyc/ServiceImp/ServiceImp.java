@@ -91,7 +91,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
                 } else {
-                    otpResponse.put("msg", "Otp did not generated, please try again");
+                    otpResponse.put("msg", "Technical issue");
                     otpResponse.put("code", "1111");
 
                 }
@@ -139,7 +139,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     @Override
-    public HashMap callFileExchangeServices(List<InputBase64.Base64Data> inputBase64) {
+    public HashMap callFileExchangeServices(List<InputBase64.Base64Data> inputBase64, String documentType) {
 
         HashMap<String, String> documentDetail = new HashMap<>();
         List<String> urls = new ArrayList<>();
@@ -154,7 +154,11 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             }
         }
         if (!(urls.isEmpty())) {
-            documentDetail = singzyServices.extractAadharDetails(urls);
+            if (documentType.equals("aadhar")) {
+                documentDetail = singzyServices.extractAadharDetails(urls);
+            } else {
+                documentDetail = singzyServices.extractPanDetails(urls);
+            }
         }
         return documentDetail;
     }
@@ -163,16 +167,23 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     public CustomerDetails checkExtractedDocumentId(String loanNo, String documentId, String documentType) {
         CustomerDetails customerDetails = new CustomerDetails();
         try {
-
             if (documentType.equals("aadhar")) {
+
                 customerDetails = customerDetailsRepository.checkCustomerAadharNo(loanNo, documentId);
             }
+            if (documentType.equals("pan")) {
+
+                customerDetails = customerDetailsRepository.checkCustomerPanNo(loanNo, documentId);
+            }
+
         } catch (Exception e) {
             System.out.println(e);
         }
         return customerDetails;
 
     }
+
+
 
 
     public boolean saveUpdatedDetails(UpdateAddress inputUpdateAddress) {
@@ -239,6 +250,16 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             errorMsg = "failure:" + e;
         }
         return errorMsg;
+    }
+
+    /**
+     * @param loanNo
+     * @return
+     */
+    @Override
+    public CustomerDetails checkLoanNo(String loanNo) {
+
+        return this.customerDetailsRepository.findByLoanNumber(loanNo);
     }
 
 
