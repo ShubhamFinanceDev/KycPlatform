@@ -170,6 +170,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             if (documentType.equals("aadhar")) {
 
                 customerDetails = customerDetailsRepository.checkCustomerAadharNo(loanNo, documentId);
+                
             }
             if (documentType.equals("pan")) {
 

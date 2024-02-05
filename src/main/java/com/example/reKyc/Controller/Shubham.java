@@ -63,7 +63,7 @@ public class Shubham {
                     }
 
                 } else {
-                    extractDetail.put("msg", "Loan no not found or document id did not");
+                    extractDetail.put("msg", "document id did not matched");
                     extractDetail.put("code", "1111");
                 }
 
@@ -137,7 +137,7 @@ public class Shubham {
 
                     if (maskDocument.createFileInDffs(customerDetails.getLoanNumber())) {
                         commonResponse.setMsg("E-KYC completed successfully.");
-                        commonResponse.setCode("0000.");
+                        commonResponse.setCode("0000");
                     } else {
                         commonResponse.setMsg("Something went wrong. please try again.");
                         commonResponse.setCode("1111");
