@@ -63,7 +63,7 @@ public class Shubham {
                     }
 
                 } else {
-                    extractDetail.put("msg", "Loan no not found or document id did not");
+                    extractDetail.put("msg", "document id did not matched");
                     extractDetail.put("code", "1111");
                 }
 
