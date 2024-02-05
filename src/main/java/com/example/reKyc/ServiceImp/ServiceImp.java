@@ -184,8 +184,6 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     }
 
 
-
-
     public boolean saveUpdatedDetails(UpdateAddress inputUpdateAddress) {
         UpdatedDetails updatedDetails = new UpdatedDetails();
         updatedDetails.setUpdatedAddress(inputUpdateAddress.getUpdatedAddress());
@@ -243,7 +241,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                     errorMsg = "successfully process.";
                 }
             } else {
-                errorMsg = "file format is different";
+                errorMsg = "file format is not matching";
             }
 
         } catch (Exception e) {
@@ -261,35 +259,4 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
         return this.customerDetailsRepository.findByLoanNumber(loanNo);
     }
-
-
-    public HashMap getAddressByAadhar(AadharOtpInput inputParam) {
-
-        HashMap<String, String> aadhaNumberDetails = new HashMap<>();
-        int status = customerDetailsRepository.checkAadharNo(inputParam.getLoanNumber(), inputParam.getAadharNo());
-        if (status > 0) {
-//            aadhaNumberDetails.put("aadhar no", inputParam.getAadharNo());
-            aadhaNumberDetails = singzyServices.sendOtpOnLinkMobileNO(inputParam.getAadharNo());
-
-        } else {
-            aadhaNumberDetails.put("code", "1111");
-            aadhaNumberDetails.put("msg", "Aadhar number is not valid.");
-        }
-        return aadhaNumberDetails;
-    }
-
-    /**
-     * @param inputParam
-     * @return
-     */
-    @Override
-    public HashMap<String, String> verifyOtpAadhar(AadharOtpVerifyInput inputParam) {
-        return singzyServices.validateOtp(inputParam.getRequestID(), inputParam.getOtpCode());
-    }
-
-
-    /**
-     * @return
-     */
-
 }

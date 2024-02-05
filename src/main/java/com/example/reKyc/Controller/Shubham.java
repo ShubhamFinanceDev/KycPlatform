@@ -82,35 +82,6 @@ public class Shubham {
     }
 
 
-//    @PostMapping("/sendOtpForAadhar")
-//    public HashMap invokeAddressPreviewService(@RequestBody AadharOtpInput inputParam) {
-//        HashMap<String, String> response = new HashMap<>();
-//
-//        if (!(inputParam.getLoanNumber().isBlank()) && !(inputParam.getFileType().isBlank()) && !(inputParam.getAadharNo().isBlank())) {
-//            response = service.getAddressByAadhar(inputParam);
-//        } else {
-//            response.put("msg", "Required field is empty");
-//            response.put("code", "1111");
-//        }
-//        return response;
-//
-//    }
-//
-//
-//    @PostMapping("/verifyOtpForAadhar")
-//    public HashMap verifyOtp(@RequestBody AadharOtpVerifyInput inputParam) {
-//        HashMap<String, String> response = new HashMap<>();
-//
-//
-//        if (!(inputParam.getRequestID().isBlank()) && !(inputParam.getOtpCode().isBlank())) {
-//            response = service.verifyOtpAadhar(inputParam);
-//        } else {
-//            response.put("msg", "Required field is empty");
-//            response.put("code", "1111");
-//        }
-//        return response;
-//    }
-
 
     @PostMapping("/updateAddress")
     public ResponseEntity<CommonResponse> finalUpdate(@RequestBody UpdateAddress inputUpdateAddress) {
@@ -137,7 +108,7 @@ public class Shubham {
 
                     if (maskDocument.createFileInDffs(customerDetails.getLoanNumber())) {
                         commonResponse.setMsg("E-KYC completed successfully.");
-                        commonResponse.setCode("0000.");
+                        commonResponse.setCode("0000");
                     } else {
                         commonResponse.setMsg("Something went wrong. please try again.");
                         commonResponse.setCode("1111");

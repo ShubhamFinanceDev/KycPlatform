@@ -45,17 +45,18 @@ public class MaskDocumentAndFile {
 //    }
 
 
-    public String documentNoEncryption(String documentNo, String documentType) {
-        String documentEncrypt;
-        String documentId = documentNo.substring(documentNo.length() - 4, documentNo.length());
-        if (documentType.equals("aadharNo")) {
-            documentEncrypt = "************".concat(documentId);
-        } else {
-            documentEncrypt = "******".concat(documentId);
+    public String documentNoEncryption(String documentNo) {
+
+        String documentEncrypt="";
+        for(int i=0;i<documentNo.length()-4;i++)
+        {
+            documentEncrypt=documentEncrypt+"*";
 
         }
+        String subString=documentNo.substring(documentNo.length()-4,documentNo.length());
+        documentEncrypt=documentEncrypt+ subString;
 
-        return documentEncrypt;
+         return documentEncrypt;
     }
 
     public boolean compareDocumentNumber(String extractedId, String documentId,String documentType) {

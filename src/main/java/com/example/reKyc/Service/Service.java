@@ -18,18 +18,10 @@ public interface Service {
 //    ResponseEntity<String> handleRequest(List<InputBase64> inputBase64);
 
     HashMap callFileExchangeServices(List<InputBase64.Base64Data> inputBase64,String documentType);
-
-    HashMap<String, String> getAddressByAadhar(AadharOtpInput inputParam);
-
-    HashMap<String, String> verifyOtpAadhar(AadharOtpVerifyInput inputParam);
-
-    CustomerDetails checkExtractedDocumentId(String loanNo, String documentId,String documentType );
-
     boolean saveUpdatedDetails(UpdateAddress inputUpdateAddress);
 
     String enableProcessFlag(MultipartFile file);
 
     CustomerDetails checkLoanNo(String loanNo);
 
-//    UserDetail getDataByUser(
 }

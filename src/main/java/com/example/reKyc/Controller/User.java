@@ -84,7 +84,6 @@ public class User {
         {
             try {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(request.getMobileNo());
-
 //                this.doAuthenticate(request.getMobileNo(), request.getOtpCode());
                 CustomerDetails customerDetails = service.getCustomerDetail(request.getMobileNo(), request.getOtpCode());
                 if (customerDetails.getLoanNumber() != null) {
@@ -95,8 +94,8 @@ public class User {
                     jwtResponse.setMobileNo(userDetails.getUsername());
                     jwtResponse.setAddress(customerDetails.getAddressDetailsResidential());
                     jwtResponse.setName(customerDetails.getCustomerName());
-                    jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPan(), "panNo"));
-                    jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadhar(), "aadharNo"));
+                    jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPan()));
+                    jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadhar()));
                     jwtResponse.setLoanNo(customerDetails.getLoanNumber());
 
                 } else {
@@ -123,28 +122,6 @@ public class User {
       return   service.enableProcessFlag(file);
     }
 
-
-//        private void doAuthenticate(String email, String password) {
-//
-//            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, password);
-//            try {
-//                authenticationManager.authenticate(authentication);
-//
-//            } catch (BadCredentialsException e) {
-//                System.out.println("bad");
-//                throw new BadCredentialsException(" Invalid Username or Password !!");
-//
-//            }
-
-//        }
-//
-//        @ExceptionHandler(BadCredentialsException.class)
-//        public CommonResponse exceptionHandler() {
-//            JwtResponse jwtResponse=new JwtResponse();
-//            jwtResponse.setCode("1111");
-//            jwtResponse.setMsg("invalid otp.");
-//            return jwtResponse;
-//        }
 }
 
 
