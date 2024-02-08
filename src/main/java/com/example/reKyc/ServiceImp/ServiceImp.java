@@ -3,10 +3,7 @@ package com.example.reKyc.ServiceImp;
 import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Entity.OtpDetails;
 import com.example.reKyc.Entity.UpdatedDetails;
-import com.example.reKyc.Model.AadharOtpInput;
-import com.example.reKyc.Model.AadharOtpVerifyInput;
-import com.example.reKyc.Model.InputBase64;
-import com.example.reKyc.Model.UpdateAddress;
+import com.example.reKyc.Model.*;
 import com.example.reKyc.Repository.CustomerDetailsRepository;
 import com.example.reKyc.Repository.OtpDetailsRepository;
 import com.example.reKyc.Repository.UpdatedDetailsRepository;
@@ -187,7 +184,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
     public boolean saveUpdatedDetails(UpdateAddress inputUpdateAddress) {
         UpdatedDetails updatedDetails = new UpdatedDetails();
-        updatedDetails.setUpdatedAddress(inputUpdateAddress.getUpdatedAddress());
+//        updatedDetails.setUpdatedAddress(inputUpdateAddress.getUpdatedAddress());
         updatedDetails.setMobileNo(inputUpdateAddress.getMobileNo());
         updatedDetails.setLoanNo(inputUpdateAddress.getLoanNo());
         updatedDetails.setDocumentId(inputUpdateAddress.getDocumentId());
@@ -221,7 +218,6 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             Workbook workbook = WorkbookFactory.create(inputStream);
             Sheet sheet = workbook.getSheetAt(0);
             Iterator<Row> rowIterator = sheet.iterator();
-//            Boolean fileFormat = true;
             Row headerRow = rowIterator.next();
 
             if (headerRow.getCell(0).toString().equals("Loan-No")) {
@@ -229,7 +225,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 while (rowIterator.hasNext()) {
                     Row row = rowIterator.next();
                     Cell cell = row.getCell(0);
-                    errorMsg = (cell == null || cell.getCellType() == CellType.BLANK) ? "file upload error due to row no " + (row.getRowNum() + 1) + " is empty" : "";
+                    errorMsg = (cell == null || cell.getCellType() == CellType.BLANK) ? "File upload error due to row no " + (row.getRowNum() + 1) + " is empty" : "";
 
                     if (errorMsg.isEmpty()) {
                         loanNo.add(cell.toString());
@@ -239,10 +235,10 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 }
                 if (!loanNo.isEmpty() && errorMsg.isEmpty()) {
                     customerDetailsRepository.enableKycFlag(loanNo);
-                    errorMsg = "successfully process.";
+                    errorMsg = "Successfully process.";
                 }
             } else {
-                errorMsg = "file format is not matching";
+                errorMsg = "File format is not matching";
             }
 
         } catch (Exception e) {
@@ -259,5 +255,39 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     public CustomerDetails checkLoanNo(String loanNo) {
 
         return this.customerDetailsRepository.findByLoanNumber(loanNo);
+    }
+
+    /**
+     * @param loanNo
+     * @return
+     */
+    @Override
+    public CommonResponse updatCustomerKycFlag(String loanNo) {
+
+        CommonResponse commonResponse=new CommonResponse();
+        try {
+            CustomerDetails customerDetails=customerDetailsRepository.findByLoanNumber(loanNo);
+            if (customerDetails !=null)
+            {
+                try {
+
+                    customerDetailsRepository.updateKycFlag(loanNo);
+                    commonResponse.setMsg("Successfully");
+                    commonResponse.setCode("0000");
+                }
+                catch (Exception e)
+                {
+                    commonResponse.setMsg("Flag did not updated.");
+                    commonResponse.setCode("1111");
+                }
+            }
+
+        }
+        catch (Exception e)
+        {
+            commonResponse.setMsg("Loan is not valid, try again");
+            commonResponse.setCode("1111");
+        }
+        return commonResponse;
     }
 }

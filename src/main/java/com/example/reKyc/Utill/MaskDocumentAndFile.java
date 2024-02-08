@@ -130,13 +130,14 @@ public boolean createFileInDffs(String loanNo)
                 byte[] fileBytes = Files.readAllBytes(Paths.get((file_path+file.getName())));
                 String base64String = Base64.getEncoder().encodeToString(fileBytes);
                 System.out.println("Base64 representation of the file:\n" + base64String);
+                fileCreated= true;
+
             } catch (Exception e) {
                 e.printStackTrace(); // Handle the exception appropriately
                 fileCreated=false;
             }
         }
             System.out.println(file.getName());
-            fileCreated= true;
         }
           return  fileCreated;
     }

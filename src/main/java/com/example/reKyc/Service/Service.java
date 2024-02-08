@@ -1,10 +1,7 @@
 package com.example.reKyc.Service;
 
 import com.example.reKyc.Entity.CustomerDetails;
-import com.example.reKyc.Model.AadharOtpInput;
-import com.example.reKyc.Model.AadharOtpVerifyInput;
-import com.example.reKyc.Model.InputBase64;
-import com.example.reKyc.Model.UpdateAddress;
+import com.example.reKyc.Model.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,4 +21,5 @@ public interface Service {
 
     CustomerDetails checkLoanNo(String loanNo);
 
+    CommonResponse updatCustomerKycFlag(String loanNo);
 }

@@ -9,8 +9,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 
 @RestController
@@ -67,7 +70,6 @@ public class Shubham {
                     extractDetail.put("code", "1111");
                 }
 
-
             } else {
                 extractDetail.put("code", "1111");
                 extractDetail.put("msg", "required field is empty.");
@@ -88,8 +90,7 @@ public class Shubham {
         CustomerDetails customerDetails = new CustomerDetails();
         CommonResponse commonResponse=new CommonResponse();
 
-        if (((inputUpdateAddress.getMobileNo().isBlank() || inputUpdateAddress.getMobileNo() == null) || (inputUpdateAddress.getOtpCode().isBlank()
-                || inputUpdateAddress.getUpdatedAddress() == null) || (inputUpdateAddress.getLoanNo().isBlank() || inputUpdateAddress.getLoanNo() == null) || (inputUpdateAddress.getDocumentType().isBlank() || inputUpdateAddress.getDocumentType() == null) || (inputUpdateAddress.getDocumentId().isBlank() || inputUpdateAddress.getDocumentId() == null))) {
+        if ((inputUpdateAddress.getMobileNo().isBlank() || inputUpdateAddress.getMobileNo() == null) || (inputUpdateAddress.getOtpCode().isBlank() || inputUpdateAddress.getOtpCode()==null) || (inputUpdateAddress.getLoanNo().isBlank() || inputUpdateAddress.getLoanNo() == null) || (inputUpdateAddress.getDocumentType().isBlank() || inputUpdateAddress.getDocumentType() == null) || (inputUpdateAddress.getDocumentId().isBlank() || inputUpdateAddress.getDocumentId() == null)) {
 
             commonResponse.setMsg("required field is empty.");
             commonResponse.setCode("1111");
@@ -104,17 +105,17 @@ public class Shubham {
 
             } else {
 
-                if (service.saveUpdatedDetails(inputUpdateAddress)) {
+                 if (maskDocument.createFileInDffs(customerDetails.getLoanNumber())) {
 
-                    if (maskDocument.createFileInDffs(customerDetails.getLoanNumber())) {
-                        commonResponse.setMsg("E-KYC completed successfully.");
+                     if (service.saveUpdatedDetails(inputUpdateAddress)) {
+                    commonResponse.setMsg("E-KYC completed successfully.");
                         commonResponse.setCode("0000");
                     } else {
                         commonResponse.setMsg("Something went wrong. please try again.");
                         commonResponse.setCode("1111");
                     }
                 } else {
-                    commonResponse.setMsg("Something went wrong. please try again.");
+                    commonResponse.setMsg("Failure,while creating file in DDFS");
                     commonResponse.setCode("1111");
                 }
             }
@@ -123,4 +124,28 @@ public class Shubham {
         return new ResponseEntity(commonResponse, HttpStatus.OK);
     }
 
-}
+    @PostMapping("/disable-kyc-flag")
+        public ResponseEntity<CommonResponse> disableKycFlag(@RequestBody Map<String,String> inputParam) {
+        CommonResponse commonResponse = new CommonResponse();
+        try {
+            if (inputParam.containsKey("loanNo")) {
+                commonResponse = service.updatCustomerKycFlag(inputParam.get("loanNo"));
+            }
+            else
+            {
+                commonResponse.setCode("1111");
+                commonResponse.setMsg("Required fields are empty");
+            }
+            return new ResponseEntity(commonResponse,HttpStatus.OK);
+        }
+        catch (Exception e)
+        {
+            commonResponse.setCode("1111");
+            commonResponse.setMsg("Something went wrong. please try again");
+        }
+        return new ResponseEntity(commonResponse,HttpStatus.OK);
+    }
+
+
+
+    }

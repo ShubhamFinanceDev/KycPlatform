@@ -3,6 +3,8 @@ package com.example.reKyc.Entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.sql.Date;
+
 @Entity
 @Table(name = "customer_details")
 @Data
@@ -35,4 +37,6 @@ public class CustomerDetails {
 
     @Column(name="kyc_flag")
     private String kycFlag;
+    @Column(name = "last_update_date")
+    private Date lastUpdateDate;
 }

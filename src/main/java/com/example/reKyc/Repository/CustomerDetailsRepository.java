@@ -24,8 +24,12 @@ public interface CustomerDetailsRepository extends JpaRepository<CustomerDetails
     CustomerDetails checkCustomerAadharNo(String loanNumber,String aadharNo);
     @Transactional
     @Modifying
-    @Query("update CustomerDetails cd set cd.kycFlag='Y' where cd.loanNumber in :loanNo")
+    @Query("update CustomerDetails cd set cd.kycFlag='Y' ,cd.lastUpdateDate=CURRENT DATE where cd.loanNumber in :loanNo")
     Integer enableKycFlag(List<String> loanNo);
     @Query("select cd from CustomerDetails cd where cd.loanNumber=:loanNo  and cd.pan=:panNO")
     CustomerDetails checkCustomerPanNo(String loanNo, String panNO);
+    @Transactional
+    @Modifying
+    @Query("update CustomerDetails cd set cd.kycFlag='N',cd.lastUpdateDate=CURRENT DATE where cd.loanNumber in :loanNo")
+    void updateKycFlag(String loanNo);
 }
