@@ -83,9 +83,9 @@ public class User {
         else
         {
             try {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(request.getMobileNo());
+                UserDetails userDetails = userDetailsService.loadUserByUsername(request.getLoanNo());
 //                this.doAuthenticate(request.getMobileNo(), request.getOtpCode());
-                CustomerDetails customerDetails = service.getCustomerDetail(request.getMobileNo(), request.getOtpCode());
+                CustomerDetails customerDetails = service.getCustomerDetail(request.getMobileNo(), request.getOtpCode(),request.getLoanNo());
                 if (customerDetails.getLoanNumber() != null) {
 
                     String token = this.jwtHelper.generateToken(userDetails);

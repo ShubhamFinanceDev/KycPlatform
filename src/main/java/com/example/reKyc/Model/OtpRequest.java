@@ -8,4 +8,5 @@ import lombok.Data;
 public class OtpRequest {
     private String mobileNo;
     private String otpCode;
+    private String loanNo;
 }

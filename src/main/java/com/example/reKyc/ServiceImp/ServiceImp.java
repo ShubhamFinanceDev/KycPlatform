@@ -112,14 +112,14 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
      * @return
      */
     @Override
-    public CustomerDetails getCustomerDetail(String mobileNo, String otpCode) {
+    public CustomerDetails getCustomerDetail(String mobileNo, String otpCode,String loanNo) {
 
         CustomerDetails customerDetails = new CustomerDetails();
         try {
             OtpDetails otpDetails = otpDetailsRepository.IsotpExpired(mobileNo, otpCode);
             if (otpDetails != null) {
                 Duration duration = Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now());
-                customerDetails = (duration.toMinutes() > 50) ? customerDetails : customerDetailsRepository.findUserDetailByMobile(mobileNo);
+                customerDetails = (duration.toMinutes() > 50) ? customerDetails : customerDetailsRepository.findUserDetailByMobile(mobileNo,loanNo);
             }
 
         } catch (Exception e) {

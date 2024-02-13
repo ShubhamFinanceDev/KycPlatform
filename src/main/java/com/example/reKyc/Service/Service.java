@@ -11,7 +11,7 @@ import java.util.List;
 public interface Service {
 
     HashMap<String, String> validateAndSendOtp(String loanNo);
-    CustomerDetails getCustomerDetail(String mobileNo,String otpCode);
+    CustomerDetails getCustomerDetail(String mobileNo,String otpCode,String loanNo);
 //    ResponseEntity<String> handleRequest(List<InputBase64> inputBase64);
 
     HashMap callFileExchangeServices(List<InputBase64.Base64Data> inputBase64,String documentType);

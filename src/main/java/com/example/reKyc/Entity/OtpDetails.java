@@ -12,7 +12,7 @@ import java.util.Collection;
 @Entity
 @Table(name = "otp_detail")
 @Data
-public class OtpDetails implements UserDetails {
+public class OtpDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -26,63 +26,5 @@ public class OtpDetails implements UserDetails {
     private LocalDateTime otpExprTime=LocalDateTime.now();
 
 
-    /**
-     * @return
-     */
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
-    }
 
-    /**
-     * @return
-     */
-    @Override
-    public String getPassword() {
-        return null;
-    }
-
-    /**
-     * @return
-     */
-
-    /**
-     * @return
-     */
-    @Override
-    public String getUsername() {
-        return mobileNo;
-    }
-
-    /**
-     * @return
-     */
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    /**
-     * @return
-     */
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    /**
-     * @return
-     */
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    /**
-     * @return
-     */
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
 }

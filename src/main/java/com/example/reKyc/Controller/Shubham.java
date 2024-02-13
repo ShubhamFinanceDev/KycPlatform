@@ -96,7 +96,7 @@ public class Shubham {
             commonResponse.setCode("1111");
             return new ResponseEntity(commonResponse,HttpStatus.OK);
         } else {
-            customerDetails = service.getCustomerDetail(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode());
+            customerDetails = service.getCustomerDetail(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(),inputUpdateAddress.getLoanNo());
 
             if (customerDetails.getLoanNumber() == null) {
                 commonResponse.setMsg("otp invalid or expire. please try again.");
