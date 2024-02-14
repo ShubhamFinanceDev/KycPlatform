@@ -3,10 +3,7 @@ package com.example.reKyc.ServiceImp;
 import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Entity.OtpDetails;
 import com.example.reKyc.Entity.UpdatedDetails;
-import com.example.reKyc.Model.AadharOtpInput;
-import com.example.reKyc.Model.AadharOtpVerifyInput;
-import com.example.reKyc.Model.InputBase64;
-import com.example.reKyc.Model.UpdateAddress;
+import com.example.reKyc.Model.*;
 import com.example.reKyc.Repository.CustomerDetailsRepository;
 import com.example.reKyc.Repository.OtpDetailsRepository;
 import com.example.reKyc.Repository.UpdatedDetailsRepository;
@@ -73,9 +70,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                     logger.info("otp sent on mobile");
                     OtpDetails otpDetails = new OtpDetails();
                     otpDetails.setOtpCode(Long.valueOf(otpCode));
-
                     System.out.println(otpCode);
-//                    otpDetails.setOtpPassword(bCryptPasswordEncoder.encode(String.valueOf(otpCode)));
                     otpDetails.setMobileNo(customerDetails.getMobileNumber());
 
                     otpDetailsRepository.save(otpDetails);
@@ -91,19 +86,25 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 //                    otpResponse.put("code", "1111");
 //                }
 
-            } else {
-                otpResponse.put("msg", "Otp did not generated, please try again");
-                otpResponse.put("code", "1111");
-            }
+
+                } else {
+                    otpResponse.put("msg", "Technical issue");
+                    otpResponse.put("code", "1111");
+
+                }
 
             } else {
                 otpResponse.put("msg", "Loan no not found");
                 otpResponse.put("code", "1111");
+
             }
+            return otpResponse;
         } catch (Exception e) {
             System.out.println(e);
+            otpResponse.put("msg", "Technical issue");
+            otpResponse.put("code", "1111");
+            return otpResponse;
         }
-        return otpResponse;
     }
 
     /**
@@ -111,17 +112,16 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
      * @return
      */
     @Override
-    public CustomerDetails getCustomerDetail(String mobileNo, String otpCode) {
+    public CustomerDetails getCustomerDetail(String mobileNo, String otpCode,String loanNo) {
 
         CustomerDetails customerDetails = new CustomerDetails();
         try {
             OtpDetails otpDetails = otpDetailsRepository.IsotpExpired(mobileNo, otpCode);
             if (otpDetails != null) {
                 Duration duration = Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now());
-                customerDetails = (duration.toMinutes() > 50) ? null : customerDetailsRepository.findUserDetailByMobile(mobileNo);
-            } else {
-                customerDetails = null;
+                customerDetails = (duration.toMinutes() > 50) ? customerDetails : customerDetailsRepository.findUserDetailByMobile(mobileNo,loanNo);
             }
+
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -136,7 +136,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     @Override
-    public HashMap callFileExchangeServices(List<InputBase64.Base64Data> inputBase64) {
+    public HashMap callFileExchangeServices(List<InputBase64.Base64Data> inputBase64, String documentType) {
 
         HashMap<String, String> documentDetail = new HashMap<>();
         List<String> urls = new ArrayList<>();
@@ -151,7 +151,11 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             }
         }
         if (!(urls.isEmpty())) {
-            documentDetail = singzyServices.extractAadharDetails(urls);
+            if (documentType.equals("aadhar")) {
+                documentDetail = singzyServices.extractAadharDetails(urls);
+            } else {
+                documentDetail = singzyServices.extractPanDetails(urls);
+            }
         }
         return documentDetail;
     }
@@ -159,19 +163,28 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
     public CustomerDetails checkExtractedDocumentId(String loanNo, String documentId, String documentType) {
         CustomerDetails customerDetails = new CustomerDetails();
+        try {
+            if (documentType.equals("aadhar")) {
 
-        if (documentType.equals("aadhar")) {
-            customerDetails = customerDetailsRepository.checkCustomerAadharNo(loanNo, documentId);
-        } else {
-            customerDetails = null;
+                customerDetails = customerDetailsRepository.checkCustomerAadharNo(loanNo, documentId);
+
+            }
+            if (documentType.equals("pan")) {
+
+                customerDetails = customerDetailsRepository.checkCustomerPanNo(loanNo, documentId);
+            }
+
+        } catch (Exception e) {
+            System.out.println(e);
         }
         return customerDetails;
+
     }
 
 
     public boolean saveUpdatedDetails(UpdateAddress inputUpdateAddress) {
         UpdatedDetails updatedDetails = new UpdatedDetails();
-        updatedDetails.setUpdatedAddress(inputUpdateAddress.getUpdatedAddress());
+//        updatedDetails.setUpdatedAddress(inputUpdateAddress.getUpdatedAddress());
         updatedDetails.setMobileNo(inputUpdateAddress.getMobileNo());
         updatedDetails.setLoanNo(inputUpdateAddress.getLoanNo());
         updatedDetails.setDocumentId(inputUpdateAddress.getDocumentId());
@@ -194,9 +207,9 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Override
     public String enableProcessFlag(MultipartFile file) {
 
-        String errorMsg="";
+        String errorMsg = "";
 //        Integer enable;
-        List<String> loanNo=new ArrayList<>();
+        List<String> loanNo = new ArrayList<>();
         try {
 
 
@@ -205,72 +218,76 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             Workbook workbook = WorkbookFactory.create(inputStream);
             Sheet sheet = workbook.getSheetAt(0);
             Iterator<Row> rowIterator = sheet.iterator();
-//            Boolean fileFormat = true;
             Row headerRow = rowIterator.next();
 
-            if(headerRow.getCell(0).toString().equals("Loan-No"))
-            {
+            if (headerRow.getCell(0).toString().equals("Loan-No")) {
 
-                while (rowIterator.hasNext()){
-                    Row row=rowIterator.next();
-                    Cell cell=row.getCell(0);
-                    errorMsg = (cell == null || cell.getCellType() == CellType.BLANK) ? "file upload error due to row no " + (row.getRowNum() + 1) + " is empty" : "";
+                while (rowIterator.hasNext()) {
+                    Row row = rowIterator.next();
+                    Cell cell = row.getCell(0);
+                    errorMsg = (cell == null || cell.getCellType() == CellType.BLANK) ? "File upload error due to row no " + (row.getRowNum() + 1) + " is empty" : "";
 
-                    if (errorMsg.isEmpty())
-                    {
+                    if (errorMsg.isEmpty()) {
                         loanNo.add(cell.toString());
-                    }
-                    else
-                    {
+                    } else {
                         break;
                     }
                 }
-                if (!loanNo.isEmpty() && errorMsg.isEmpty())
-                {
+                if (!loanNo.isEmpty() && errorMsg.isEmpty()) {
                     customerDetailsRepository.enableKycFlag(loanNo);
-                    errorMsg="successfully process.";
+                    errorMsg = "Successfully process.";
                 }
+            } else {
+                errorMsg = "File format is not matching";
             }
-            else {
-                errorMsg = "file format is different";
+
+        } catch (Exception e) {
+            errorMsg = "failure:" + e;
+        }
+        return errorMsg;
+    }
+
+    /**
+     * @param loanNo
+     * @return
+     */
+    @Override
+    public CustomerDetails checkLoanNo(String loanNo) {
+
+        return this.customerDetailsRepository.findByLoanNumber(loanNo);
+    }
+
+    /**
+     * @param loanNo
+     * @return
+     */
+    @Override
+    public CommonResponse updatCustomerKycFlag(String loanNo) {
+
+        CommonResponse commonResponse=new CommonResponse();
+        try {
+            CustomerDetails customerDetails=customerDetailsRepository.findByLoanNumber(loanNo);
+            if (customerDetails !=null)
+            {
+                try {
+
+                    customerDetailsRepository.updateKycFlag(loanNo);
+                    commonResponse.setMsg("Successfully");
+                    commonResponse.setCode("0000");
+                }
+                catch (Exception e)
+                {
+                    commonResponse.setMsg("Flag did not updated.");
+                    commonResponse.setCode("1111");
+                }
             }
 
         }
         catch (Exception e)
         {
-            errorMsg="failure:"+e;
+            commonResponse.setMsg("Loan is not valid, try again");
+            commonResponse.setCode("1111");
         }
-        return errorMsg;
+        return commonResponse;
     }
-
-
-    public HashMap getAddressByAadhar(AadharOtpInput inputParam) {
-
-        HashMap<String, String> aadhaNumberDetails = new HashMap<>();
-        int status = customerDetailsRepository.checkAadharNo(inputParam.getLoanNumber(), inputParam.getAadharNo());
-        if (status > 0) {
-//            aadhaNumberDetails.put("aadhar no", inputParam.getAadharNo());
-            aadhaNumberDetails = singzyServices.sendOtpOnLinkMobileNO(inputParam.getAadharNo());
-
-        } else {
-            aadhaNumberDetails.put("code", "1111");
-            aadhaNumberDetails.put("msg", "Aadhar number is not valid.");
-        }
-        return aadhaNumberDetails;
-    }
-
-    /**
-     * @param inputParam
-     * @return
-     */
-    @Override
-    public HashMap<String, String> verifyOtpAadhar(AadharOtpVerifyInput inputParam) {
-        return singzyServices.validateOtp(inputParam.getRequestID(), inputParam.getOtpCode());
-    }
-
-
-    /**
-     * @return
-     */
-
 }

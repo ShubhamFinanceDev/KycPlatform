@@ -90,7 +90,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             } else {
 
-                logger.info("Invalid Header Value !! ");
+                logger.info("Authorisation required !! ");
                 errorMsg.put("code", "1111");
                 errorMsg.put("msg", "Invalid Header Value !!");
                 response.getWriter().write(objectMapper.writeValueAsString(errorMsg));

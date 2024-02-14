@@ -1,6 +1,7 @@
 package com.example.reKyc.Utill;
 
 
+import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Model.InputBase64;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -44,31 +45,39 @@ public class MaskDocumentAndFile {
 //    }
 
 
-    public String documentNoEncryption(String documentNo, String documentType) {
-        String documentEncrypt;
-        String documentId = documentNo.substring(documentNo.length() - 4, documentNo.length());
-        if (documentType.equals("aadharNo")) {
-            documentEncrypt = "************".concat(documentId);
-        } else {
-            documentEncrypt = "******".concat(documentId);
+    public String documentNoEncryption(String documentNo) {
+
+        String documentEncrypt="";
+        for(int i=0;i<documentNo.length()-4;i++)
+        {
+            documentEncrypt=documentEncrypt+"*";
 
         }
+        String subString=documentNo.substring(documentNo.length()-4,documentNo.length());
+        documentEncrypt=documentEncrypt+ subString;
 
-        return documentEncrypt;
+         return documentEncrypt;
     }
 
-    public boolean compareAadharNoEquality(String maskId, String documentId) {
+    public boolean compareDocumentNumber(String extractedId, String documentId,String documentType) {
 
-        String maskid = maskId.substring(maskId.length() - 4, maskId.length());
-        String documentid = documentId.substring(documentId.length() - 4, documentId.length());
-        System.out.println("mask" + maskId);
-        System.out.println("not mask" + documentId);
-
-        if (maskid.equals(documentid)) {
-            return true;
-        } else {
-            return false;
+        String subExtractedId = extractedId.substring(extractedId.length() - 4, extractedId.length());
+        boolean comparison=false;
+        if(documentType.equals("aadhar"))
+        {
+            String aadharNo = documentId.substring(documentId.length() - 4, documentId.length());
+            if(aadharNo.equals(subExtractedId))
+            {
+                comparison=true;
+            }
         }
+        else {
+            if (extractedId.equals(documentId)) {
+                comparison=true;
+            }
+        }
+        return comparison;
+
     }
 
 
@@ -121,13 +130,14 @@ public boolean createFileInDffs(String loanNo)
                 byte[] fileBytes = Files.readAllBytes(Paths.get((file_path+file.getName())));
                 String base64String = Base64.getEncoder().encodeToString(fileBytes);
                 System.out.println("Base64 representation of the file:\n" + base64String);
+                fileCreated= true;
+
             } catch (Exception e) {
                 e.printStackTrace(); // Handle the exception appropriately
                 fileCreated=false;
             }
         }
             System.out.println(file.getName());
-            fileCreated= true;
         }
           return  fileCreated;
     }
