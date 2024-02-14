@@ -105,7 +105,7 @@ public class Shubham {
 
             } else {
 
-                 if (maskDocument.createFileInDffs(customerDetails.getLoanNumber())) {
+//                 if (maskDocument.createFileInDffs(customerDetails.getLoanNumber())) {
 
                      if (service.saveUpdatedDetails(inputUpdateAddress)) {
                     commonResponse.setMsg("E-KYC completed successfully.");
@@ -114,10 +114,10 @@ public class Shubham {
                         commonResponse.setMsg("Something went wrong. please try again.");
                         commonResponse.setCode("1111");
                     }
-                } else {
-                    commonResponse.setMsg("Failure,while creating file in DDFS");
-                    commonResponse.setCode("1111");
-                }
+//                } else {
+//                    commonResponse.setMsg("Failure,while creating file in DDFS");
+//                    commonResponse.setCode("1111");
+//                }
             }
 
         }
