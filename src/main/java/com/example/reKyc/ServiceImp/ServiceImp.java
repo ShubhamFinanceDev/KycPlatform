@@ -25,10 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class ServiceImp implements com.example.reKyc.Service.Service {
@@ -58,12 +55,10 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         HashMap<String, String> otpResponse = new HashMap<>();
         CustomerDetails customerDetails = new CustomerDetails();
         try {
-
-
             customerDetails = customerDetailsRepository.findByLoanNumber(loanNo);
-            if (customerDetails != null) {
+            System.out.println(customerDetails.getMobileNumber());
                 int otpCode = otpUtility.generateOtp(customerDetails);
-
+            try {
                 if (otpCode > 0) {
                     logger.info("otp generated successfully");
 //                if (otpUtility.sendOtp(customerDetails.getMobileNumber(), otpCode)) {  //stopped sms services
@@ -86,25 +81,26 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 //                    otpResponse.put("code", "1111");
 //                }
 
-
                 } else {
-                    otpResponse.put("msg", "Technical issue");
+                    otpResponse.put("msg", "Otp did not generated");
                     otpResponse.put("code", "1111");
-
                 }
-
-            } else {
-                otpResponse.put("msg", "Loan no not found");
+            }
+            catch (Exception e)
+            {
+                System.out.println("==exception while saving otp detail==");
+                otpResponse.put("msg", "Technical issue");
                 otpResponse.put("code", "1111");
 
             }
-            return otpResponse;
+
         } catch (Exception e) {
-            System.out.println(e);
-            otpResponse.put("msg", "Technical issue");
+            System.out.println("==Loan not not found==");
+            otpResponse.put("msg", "Loan no not found");
             otpResponse.put("code", "1111");
-            return otpResponse;
+
         }
+        return otpResponse;
     }
 
     /**
@@ -117,13 +113,10 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         CustomerDetails customerDetails = new CustomerDetails();
         try {
             OtpDetails otpDetails = otpDetailsRepository.IsotpExpired(mobileNo, otpCode);
-            if (otpDetails != null) {
-                Duration duration = Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now());
-                customerDetails = (duration.toMinutes() > 50) ? customerDetails : customerDetailsRepository.findUserDetailByMobile(mobileNo,loanNo);
-            }
-
+            Duration duration = Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now());
+            customerDetails = (duration.toMinutes() > 50) ? customerDetails : customerDetailsRepository.findUserDetailByMobile(mobileNo, loanNo);
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println("===Otp invalid==");
         }
         return customerDetails;
 
