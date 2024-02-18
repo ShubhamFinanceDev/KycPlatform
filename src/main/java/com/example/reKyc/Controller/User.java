@@ -91,11 +91,20 @@ public class User {
                     String token = this.jwtHelper.generateToken(userDetails);
 
                     jwtResponse.setJwtToken(token);
-                    jwtResponse.setMobileNo(userDetails.getUsername());
+                    jwtResponse.setMobileNo(customerDetails.getMobileNumber());
                     jwtResponse.setAddress(customerDetails.getAddressDetailsResidential());
                     jwtResponse.setName(customerDetails.getCustomerName());
-                    jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPan()));
-                    jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadhar()));
+                    try {
+
+                        if (customerDetails.getPan() != null) {
+                            jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPan()));
+                        } else if (customerDetails.getAadhar() != null) {
+                            jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadhar()));
+                        }
+                    }
+                    catch (Exception e){
+                        System.out.println(e);
+                    }
                     jwtResponse.setLoanNo(customerDetails.getLoanNumber());
 
                 } else {
