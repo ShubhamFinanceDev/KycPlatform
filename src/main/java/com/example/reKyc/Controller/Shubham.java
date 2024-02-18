@@ -105,23 +105,25 @@ public class Shubham {
 
             } else {
 
-                 if (maskDocument.createFileInDffs(customerDetails.getLoanNumber())) {
-
-                     if (service.saveUpdatedDetails(inputUpdateAddress)) {
-                    commonResponse.setMsg("E-KYC completed successfully.");
-                        commonResponse.setCode("0000");
-                    } else {
-                        commonResponse.setMsg("Something went wrong. please try again.");
-                        commonResponse.setCode("1111");
-                    }
-                } else {
-                    commonResponse.setMsg("Failure,while creating file in DDFS");
-                    commonResponse.setCode("1111");
-                }
-            }
+//                 if (maskDocument.createFileInDffs(customerDetails.getLoanNumber())) {
+//
+//                     if (service.saveUpdatedDetails(inputUpdateAddress)) {
+//                    commonResponse.setMsg("E-KYC completed successfully.");
+//                        commonResponse.setCode("0000");
+//                    } else {
+//                        commonResponse.setMsg("Something went wrong. please try again.");
+//                        commonResponse.setCode("1111");
+//                    }
+//                } else {
+//                    commonResponse.setMsg("Failure,while creating file in DDFS");
+//                    commonResponse.setCode("1111");
+//                }
+//            }
+                 commonResponse=service.callDdfsService(inputUpdateAddress);
 
         }
         return new ResponseEntity(commonResponse, HttpStatus.OK);
+    }
     }
 
     @PostMapping("/disable-kyc-flag")
@@ -129,7 +131,7 @@ public class Shubham {
         CommonResponse commonResponse = new CommonResponse();
         try {
             if (inputParam.containsKey("loanNo")) {
-                commonResponse = service.updatCustomerKycFlag(inputParam.get("loanNo"));
+                commonResponse = service.updateCustomerKycFlag(inputParam.get("loanNo"));
             }
             else
             {

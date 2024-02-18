@@ -21,5 +21,7 @@ public interface Service {
 
     CustomerDetails checkLoanNo(String loanNo);
 
-    CommonResponse updatCustomerKycFlag(String loanNo);
+    CommonResponse updateCustomerKycFlag(String loanNo);
+
+    CommonResponse callDdfsService(UpdateAddress inputAddress);
 }
