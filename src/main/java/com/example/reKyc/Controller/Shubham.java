@@ -48,10 +48,10 @@ public class Shubham {
                 customerDetails = service.checkLoanNo(inputParam.getLoanNo());
 
                 if (customerDetails != null && (customerDetails.getPan().equals(inputParam.getDocumentId()) || customerDetails.getAadhar().equals(inputParam.getDocumentId()))) {
-                    extractDetail = service.callFileExchangeServices(inputParam.getBase64Data(),inputParam.getDocumentType());      //convert file base 64 into url also extract details
+                    extractDetail = service.callFileExchangeServices(inputParam.getBase64Data(), inputParam.getDocumentType());      //convert file base 64 into url also extract details
 
                     if (extractDetail.get("code").equals("0000")) {
-                        boolean equality = maskDocument.compareDocumentNumber(extractDetail.get("uid"), inputParam.getDocumentId(),inputParam.getDocumentType()); //check extracted documented with registered documenteid
+                        boolean equality = maskDocument.compareDocumentNumber(extractDetail.get("uid"), inputParam.getDocumentId(), inputParam.getDocumentType()); //check extracted documented with registered documenteid
                         if (!equality) {
                             extractDetail.clear();
                             extractDetail.put("msg", "uploaded document is not matching with loan number.");
@@ -84,19 +84,17 @@ public class Shubham {
     }
 
 
-
     @PostMapping("/updateAddress")
     public ResponseEntity<CommonResponse> finalUpdate(@RequestBody UpdateAddress inputUpdateAddress) {
         CustomerDetails customerDetails = new CustomerDetails();
-        CommonResponse commonResponse=new CommonResponse();
+        CommonResponse commonResponse = new CommonResponse();
 
-        if ((inputUpdateAddress.getMobileNo().isBlank() || inputUpdateAddress.getMobileNo() == null) || (inputUpdateAddress.getOtpCode().isBlank() || inputUpdateAddress.getOtpCode()==null) || (inputUpdateAddress.getLoanNo().isBlank() || inputUpdateAddress.getLoanNo() == null) || (inputUpdateAddress.getDocumentType().isBlank() || inputUpdateAddress.getDocumentType() == null) || (inputUpdateAddress.getDocumentId().isBlank() || inputUpdateAddress.getDocumentId() == null)) {
+        if ((inputUpdateAddress.getMobileNo().isBlank() || inputUpdateAddress.getMobileNo() == null) || (inputUpdateAddress.getOtpCode().isBlank() || inputUpdateAddress.getOtpCode() == null) || (inputUpdateAddress.getLoanNo().isBlank() || inputUpdateAddress.getLoanNo() == null) || (inputUpdateAddress.getDocumentType().isBlank() || inputUpdateAddress.getDocumentType() == null) || (inputUpdateAddress.getDocumentId().isBlank() || inputUpdateAddress.getDocumentId() == null)) {
 
             commonResponse.setMsg("required field is empty.");
             commonResponse.setCode("1111");
-            return new ResponseEntity(commonResponse,HttpStatus.OK);
         } else {
-            customerDetails = service.getCustomerDetail(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(),inputUpdateAddress.getLoanNo());
+            customerDetails = service.getCustomerDetail(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo());
 
             if (customerDetails.getLoanNumber() == null) {
                 commonResponse.setMsg("otp invalid or expire. please try again.");
@@ -105,49 +103,29 @@ public class Shubham {
 
             } else {
 
-//                 if (maskDocument.createFileInDffs(customerDetails.getLoanNumber())) {
-//
-//                     if (service.saveUpdatedDetails(inputUpdateAddress)) {
-//                    commonResponse.setMsg("E-KYC completed successfully.");
-//                        commonResponse.setCode("0000");
-//                    } else {
-//                        commonResponse.setMsg("Something went wrong. please try again.");
-//                        commonResponse.setCode("1111");
-//                    }
-//                } else {
-//                    commonResponse.setMsg("Failure,while creating file in DDFS");
-//                    commonResponse.setCode("1111");
-//                }
-//            }
-                 commonResponse=service.callDdfsService(inputUpdateAddress);
-
+                commonResponse = service.callDdfsService(inputUpdateAddress, customerDetails.getApplicationNumber());
+            }
         }
         return new ResponseEntity(commonResponse, HttpStatus.OK);
     }
-    }
 
     @PostMapping("/disable-kyc-flag")
-        public ResponseEntity<CommonResponse> disableKycFlag(@RequestBody Map<String,String> inputParam) {
+    public ResponseEntity<CommonResponse> disableKycFlag(@RequestBody Map<String, String> inputParam) {
         CommonResponse commonResponse = new CommonResponse();
         try {
             if (inputParam.containsKey("loanNo")) {
                 commonResponse = service.updateCustomerKycFlag(inputParam.get("loanNo"));
-            }
-            else
-            {
+            } else {
                 commonResponse.setCode("1111");
                 commonResponse.setMsg("Required fields are empty");
             }
-            return new ResponseEntity(commonResponse,HttpStatus.OK);
-        }
-        catch (Exception e)
-        {
+            return new ResponseEntity(commonResponse, HttpStatus.OK);
+        } catch (Exception e) {
             commonResponse.setCode("1111");
             commonResponse.setMsg("Something went wrong. please try again");
         }
-        return new ResponseEntity(commonResponse,HttpStatus.OK);
+        return new ResponseEntity(commonResponse, HttpStatus.OK);
     }
 
 
-
-    }
+}

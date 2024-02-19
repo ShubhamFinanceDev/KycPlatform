@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.multipart.MultipartFile;
@@ -176,24 +177,6 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     }
 
 
-    public boolean saveUpdatedDetails(UpdateAddress inputUpdateAddress) {
-        UpdatedDetails updatedDetails = new UpdatedDetails();
-//        updatedDetails.setUpdatedAddress(inputUpdateAddress.getUpdatedAddress());
-        updatedDetails.setMobileNo(inputUpdateAddress.getMobileNo());
-        updatedDetails.setLoanNo(inputUpdateAddress.getLoanNo());
-        updatedDetails.setDocumentId(inputUpdateAddress.getDocumentId());
-        updatedDetails.setDocumentType(inputUpdateAddress.getDocumentType());
-
-        try {
-            updatedDetailsRepository.save(updatedDetails);
-            return true;
-
-        } catch (Exception e) {
-            return false;
-
-        }
-    }
-
     /**
      * @param file
      * @return
@@ -284,7 +267,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
      * @return
      */
     @Override
-    public CommonResponse callDdfsService(UpdateAddress inputAddress) {
+    public CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNO) {
         CommonResponse commonResponse = new CommonResponse();
 
         File folder = new File(file_path);
@@ -298,14 +281,48 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                     byte[] fileBytes = Files.readAllBytes(Paths.get((file_path + file.getName())));
                     base64String = Base64.getEncoder().encodeToString(fileBytes);
 //                System.out.println("Base64 representation of the file:\n" + base64String);
-                  String  ddfsResponse = ddfsUtility.callDDFSApi(base64String,inputAddress.getDocumentType(),);
+                    if (ddfsUtility.callDDFSApi(base64String, applicationNO)) {
+
+                        if (saveUpdatedDetails(inputAddress, applicationNO)) {
+                            System.out.println("=== data has been updated in db ===");
+                        }
+                    }
+                    else
+                    {
+                        System.out.println("=== DDFS file upload exception ===");
+                        commonResponse.setCode("1111");
+                        commonResponse.setMsg("File upload error.");
+                        break;
+                    }
 
                 } catch (Exception e) {
                     e.printStackTrace();
+                    commonResponse.setCode("1111");
+                    commonResponse.setMsg("File upload error.");
                 }
+                System.out.println(file.getName());
             }
-            System.out.println(file.getName());
+
         }
         return commonResponse;
     }
+
+    public boolean saveUpdatedDetails(UpdateAddress inputUpdateAddress, String fileName) {
+        UpdatedDetails updatedDetails = new UpdatedDetails();
+        updatedDetails.setMobileNo(inputUpdateAddress.getMobileNo());
+        updatedDetails.setLoanNo(inputUpdateAddress.getLoanNo());
+        updatedDetails.setFileName(fileName);
+        updatedDetails.setDocumentType(inputUpdateAddress.getDocumentType());
+        updatedDetails.setDdfsFlag("Y");
+
+        try {
+            updatedDetailsRepository.save(updatedDetails);
+            return true;
+
+        } catch (Exception e) {
+            return false;
+
+        }
+    }
+
 }

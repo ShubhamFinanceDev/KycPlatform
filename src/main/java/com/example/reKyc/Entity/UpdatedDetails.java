@@ -18,16 +18,16 @@ public class UpdatedDetails {
     private Long updatedId;
     @Column(name="loan_no")
     private String loanNo;
-    @Column(name="document_id")
-    private  String documentId;
     @Column(name="document_type")
     private String documentType;
-    @Column(name="updated_address")
-    private String updatedAddress;
+    @Column(name="file_name")
+    private String fileName;
     @Column(name="mobile_no")
     private String mobileNo;
     @Column(name="updated_date")
     private LocalDateTime updatedDate;
+    @Column(name="ddfs_flag")
+    private String ddfsFlag;
     @PrePersist
     public void prePersist() {
         this.updatedDate = LocalDateTime.now();

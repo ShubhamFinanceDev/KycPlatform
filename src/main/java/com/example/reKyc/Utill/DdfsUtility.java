@@ -67,15 +67,14 @@ public class DdfsUtility {
     }
 
 
-    public String callDDFSApi(String document)
+    public Boolean callDDFSApi(String document,String applicationNo)
     {
-
+     Boolean status=false;
     MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-
       try {
           formData.add("token", generateDDFSKey());
           formData.add("clientId", "SHUBHAM/OP");
-          formData.add("file", "APPL05341259");
+          formData.add("file", applicationNo);
           formData.add("subPath", "2024/Aadhar");
           formData.add("docCategory", "IdentityProofs");
           formData.add("clientUserId", "06799");
@@ -93,14 +92,21 @@ public class DdfsUtility {
          if(responseBody.getStatusCode().toString().contains("200") && responseBody.getBody().get("status").toString().contains("SUCCESS"))
          {
              System.out.println("Response from the DDFS API: " + responseBody.getBody().get("status"));
+             status=true;
+
+         }
+         else
+         {
+             status=false;
 
          }
       }
       catch (Exception e)
       {
-          System.out.println("===exception while calling ddfs api ");
+          System.out.println("===exception while calling DDFS api ");
+          status=false;
       }
-        return formData.getFirst("file");
+        return status;
     }
 
 }

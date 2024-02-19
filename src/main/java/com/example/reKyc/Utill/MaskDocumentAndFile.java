@@ -89,32 +89,6 @@ public class MaskDocumentAndFile {
         return status;
     }
 
-////    public String createFileInDffs(String loanNo) {
-////        File folder = new File(file_path);
-////        File[] listOfFiles = folder.listFiles();
-////        boolean fileCreated = false;
-////        String base64String = null;
-////        HashMap ddfsResponse=new HashMap<>();
-////
-////        for (File file : listOfFiles) {
-////            if (file.getName().contains(loanNo)) {
-////
-////                try {
-////                    System.out.println("===ddfs token==" + ddfsUtility.generateDDFSKey());
-////                    byte[] fileBytes = Files.readAllBytes(Paths.get((file_path + file.getName())));
-////                    base64String = Base64.getEncoder().encodeToString(fileBytes);
-//////                System.out.println("Base64 representation of the file:\n" + base64String);
-//////                    fileCreated = true;
-////                    ddfsResponse= ddfsUtility.callDDFSApi(base64String);
-////
-////                } catch (Exception e) {
-////                    e.printStackTrace(); // Handle the exception appropriately
-////                }
-////            }
-////            System.out.println(file.getName());
-////        }
-////        return base64String;
-//    }
 }
 
 
