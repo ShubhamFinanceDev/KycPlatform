@@ -2,11 +2,11 @@ package com.example.reKyc.ServiceImp;
 
 import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Entity.OtpDetails;
-import com.example.reKyc.Entity.UpdatedDetails;
+import com.example.reKyc.Entity.DdfsUpload;
 import com.example.reKyc.Model.*;
 import com.example.reKyc.Repository.CustomerDetailsRepository;
 import com.example.reKyc.Repository.OtpDetailsRepository;
-import com.example.reKyc.Repository.UpdatedDetailsRepository;
+import com.example.reKyc.Repository.DdfsUploadRepository;
 import com.example.reKyc.Utill.*;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.*;
@@ -15,13 +15,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -37,7 +35,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Autowired
     private OtpDetailsRepository otpDetailsRepository;
     @Autowired
-    private UpdatedDetailsRepository updatedDetailsRepository;
+    private DdfsUploadRepository updatedDetailsRepository;
     @Autowired
     private OtpUtility otpUtility;
     @Autowired
@@ -45,9 +43,9 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Autowired
     private MaskDocumentAndFile maskDocumentAndFile;
     @Autowired
-    private ExternalApiServices singzyServices;
+    private AadharAndPanUtility singzyServices;
     @Autowired
-    ExternalApiServices externalApiServices;
+    AadharAndPanUtility externalApiServices;
     @Autowired
     private DdfsUtility ddfsUtility;
     @Value("${file_path}")
@@ -308,7 +306,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     }
 
     public boolean saveUpdatedDetails(UpdateAddress inputUpdateAddress, String fileName) {
-        UpdatedDetails updatedDetails = new UpdatedDetails();
+        DdfsUpload updatedDetails = new DdfsUpload();
         updatedDetails.setMobileNo(inputUpdateAddress.getMobileNo());
         updatedDetails.setLoanNo(inputUpdateAddress.getLoanNo());
         updatedDetails.setFileName(fileName);

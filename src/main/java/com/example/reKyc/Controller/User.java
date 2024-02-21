@@ -96,11 +96,11 @@ public class User {
                     jwtResponse.setName(customerDetails.getCustomerName());
                     try {
 
-                        if (customerDetails.getPan() != null) {
+//                        if (customerDetails.getPan() != null) {
                             jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPan()));
-                        } else if (customerDetails.getAadhar() != null) {
+//                        } else if (customerDetails.getAadhar() != null) {
                             jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadhar()));
-                        }
+//                        }
                     }
                     catch (Exception e){
                         System.out.println(e);

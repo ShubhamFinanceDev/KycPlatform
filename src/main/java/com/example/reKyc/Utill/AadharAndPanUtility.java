@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class ExternalApiServices {
+public class AadharAndPanUtility {
 
     @Value("${singzy.fileExchange}")
     private String fileExchangeBase64Url;

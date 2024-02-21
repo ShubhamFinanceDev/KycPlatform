@@ -78,7 +78,7 @@ public class DdfsUtility {
           formData.add("subPath", "2024/Aadhar");
           formData.add("docCategory", "IdentityProofs");
           formData.add("clientUserId", "06799");
-          formData.add("remarks", "");
+          formData.add("remarks", "aadhar");
           formData.add("maker", "06799");
           formData.add("path", "HOBR/APF under-Constructi");
           formData.add("document",document);
