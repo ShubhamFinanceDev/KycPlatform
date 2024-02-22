@@ -22,7 +22,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -91,20 +93,30 @@ public class User {
                     String token = this.jwtHelper.generateToken(userDetails);
 
                     jwtResponse.setJwtToken(token);
+//                    jwtResponse.setMobileNo(userDetails.getUsername());
                     jwtResponse.setMobileNo(customerDetails.getMobileNumber());
                     jwtResponse.setAddress(customerDetails.getAddressDetailsResidential());
                     jwtResponse.setName(customerDetails.getCustomerName());
                     try {
-
-//                        if (customerDetails.getPan() != null) {
-                            jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPan()));
-//                        } else if (customerDetails.getAadhar() != null) {
+                        if (customerDetails.getPan() != null && customerDetails.getAadhar() != null) {
                             jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadhar()));
-//                        }
-                    }
-                    catch (Exception e){
+                            jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPan()));
+                        }else if (customerDetails.getPan() != null) {
+                            jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPan()));
+                        } else if (customerDetails.getAadhar() != null) {
+                            jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadhar()));
+                        } else {
+                            jwtResponse.setMsg("please fill required field");
+                            jwtResponse.setCode("1111");
+                        }
+
+                    }catch (Exception e){
                         System.out.println(e);
                     }
+//                    }else {
+//                        jwtResponse.setMsg("please fill required field");
+//                        jwtResponse.setCode("1111");
+//                    }
                     jwtResponse.setLoanNo(customerDetails.getLoanNumber());
 
                 } else {
@@ -128,9 +140,7 @@ public class User {
     @PostMapping("/invoke-kyc-process-flag")
     public String invokeProcessFlag(@RequestParam("file") MultipartFile file)
     {
-      return   service.enableProcessFlag(file);
+        return   service.enableProcessFlag(file);
     }
 
 }
-
-
