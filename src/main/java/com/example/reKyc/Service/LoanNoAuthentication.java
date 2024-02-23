@@ -1,9 +1,7 @@
 package com.example.reKyc.Service;
 
 import com.example.reKyc.Entity.CustomerDetails;
-import com.example.reKyc.Entity.OtpDetails;
 import com.example.reKyc.Repository.CustomerDetailsRepository;
-import com.example.reKyc.Repository.OtpDetailsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -11,7 +9,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
-public class OtpService implements UserDetailsService {
+public class LoanNoAuthentication implements UserDetailsService {
     /**
      * @param username
      * @return

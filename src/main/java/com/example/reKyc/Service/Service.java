@@ -15,11 +15,11 @@ public interface Service {
 //    ResponseEntity<String> handleRequest(List<InputBase64> inputBase64);
 
     HashMap callFileExchangeServices(List<InputBase64.Base64Data> inputBase64,String documentType);
-    boolean saveUpdatedDetails(UpdateAddress inputUpdateAddress);
-
     String enableProcessFlag(MultipartFile file);
 
     CustomerDetails checkLoanNo(String loanNo);
 
-    CommonResponse updatCustomerKycFlag(String loanNo);
+    CommonResponse updateCustomerKycFlag(String loanNo);
+
+    CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNo);
 }
