@@ -102,6 +102,7 @@ public class DdfsUtility {
              status=false;
 
          }
+          System.out.println("ddfs response "+responseBody.getBody());
       }
       catch (Exception e)
       {
