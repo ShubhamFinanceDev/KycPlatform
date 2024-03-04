@@ -11,18 +11,21 @@ import com.example.reKyc.Utill.MaskDocumentAndFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -48,7 +51,9 @@ public class User {
 
     @Autowired
     private MaskDocumentAndFile maskDocument;
-
+    @Autowired
+    @Qualifier("oracleJdbcTemplate")
+    private JdbcTemplate jdbcTemplate;
     private Logger logger = LoggerFactory.getLogger(User.class);
 
     @PostMapping("/sendOtp")
@@ -72,20 +77,18 @@ public class User {
     @PostMapping("/otpVerification")
     public ResponseEntity<JwtResponse> login(@RequestBody OtpRequest request) {
 
-        CommonResponse commonResponse=new CommonResponse();
+        CommonResponse commonResponse = new CommonResponse();
         JwtResponse jwtResponse = new JwtResponse();
-        if(request.getMobileNo().isBlank() || request.getOtpCode().isBlank()) {
+        if (request.getMobileNo().isBlank() || request.getOtpCode().isBlank()) {
             commonResponse.setMsg("Required field is empty.");
             commonResponse.setCode("1111");
-            return new ResponseEntity(commonResponse,HttpStatus.OK);
+            return new ResponseEntity(commonResponse, HttpStatus.OK);
 
-        }
-        else
-        {
+        } else {
             try {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(request.getLoanNo());
 //                this.doAuthenticate(request.getMobileNo(), request.getOtpCode());
-                CustomerDetails customerDetails = service.getCustomerDetail(request.getMobileNo(), request.getOtpCode(),request.getLoanNo());
+                CustomerDetails customerDetails = service.getCustomerDetail(request.getMobileNo(), request.getOtpCode(), request.getLoanNo());
                 if (customerDetails.getLoanNumber() != null) {
 
                     String token = this.jwtHelper.generateToken(userDetails);
@@ -97,12 +100,11 @@ public class User {
                     try {
 
 //                        if (customerDetails.getPan() != null) {
-                            jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPan()));
+                        jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPan()));
 //                        } else if (customerDetails.getAadhar() != null) {
-                            jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadhar()));
+                        jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadhar()));
 //                        }
-                    }
-                    catch (Exception e){
+                    } catch (Exception e) {
                         System.out.println(e);
                     }
                     jwtResponse.setLoanNo(customerDetails.getLoanNumber());
@@ -110,27 +112,33 @@ public class User {
                 } else {
                     commonResponse.setMsg("Otp is invalid or expired, please try again.");
                     commonResponse.setCode("1111");
-                    return new ResponseEntity(commonResponse,HttpStatus.OK);
+                    return new ResponseEntity(commonResponse, HttpStatus.OK);
 
                 }
                 return new ResponseEntity(jwtResponse, HttpStatus.OK);
 
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 commonResponse.setMsg("Mobile Number is not valid.");
                 commonResponse.setCode("1111");
-                return new ResponseEntity(commonResponse,HttpStatus.OK);
+                return new ResponseEntity(commonResponse, HttpStatus.OK);
             }
         }
     }
 
     @PostMapping("/invoke-kyc-process-flag")
-    public String invokeProcessFlag(@RequestParam("file") MultipartFile file)
-    {
-      return   service.enableProcessFlag(file);
+    public String invokeProcessFlag(@RequestParam("file") MultipartFile file) {
+        return service.enableProcessFlag(file);
     }
 
-}
+    @GetMapping("/getData")
+    public Map getData() {
 
+    Map<String,Object> data=null;
+    String sql="select * from new_customer_details where user_id='1'";
+    data=jdbcTemplate.queryForMap(sql);
+
+
+        return data;
+    }
+}
 
