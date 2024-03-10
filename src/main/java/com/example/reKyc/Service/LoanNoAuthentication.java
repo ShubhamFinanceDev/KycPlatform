@@ -40,11 +40,11 @@ public class LoanNoAuthentication implements UserDetailsService {
         try {
             List<CustomerDetails> customerDetails = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(CustomerDetails.class));
 
-            customerDataResponse.setCustomerName(customerDetails.get(0).getCUSTOMER_NAME());
-            customerDataResponse.setLoanNumber(customerDetails.get(0).getLOAN_NUMBER());
-            customerDataResponse.setApplicationNumber(customerDetails.get(0).getAPPLICATION_NUMBER());
-            customerDataResponse.setMobileNumber(customerDetails.get(0).getMOBILE_NUMBER());
-            customerDataResponse.setAddressDetailsResidential(customerDetails.get(0).getADDRESS_DETAILS_RESIDENTIAL());
+            customerDataResponse.setCustomerName(customerDetails.get(0).getCustomer_Name());
+            customerDataResponse.setLoanNumber(customerDetails.get(0).getLOAN_ACCOUNT_NO());
+            customerDataResponse.setApplicationNumber(customerDetails.get(0).getApplication_Number());
+            customerDataResponse.setMobileNumber(customerDetails.get(0).getPHONE_NUMBER());
+            customerDataResponse.setAddressDetailsResidential(customerDetails.get(0).getCustomer_Name());
 
             for (CustomerDetails data : customerDetails) {
                 if (data.getIDENTIFICATION_TYPE().contains("PAN")) {

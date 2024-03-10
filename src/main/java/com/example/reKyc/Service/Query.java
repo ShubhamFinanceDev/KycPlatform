@@ -1,9 +1,10 @@
 package com.example.reKyc.Service;
 
 public class Query {
- public static final String loanQuery="SELECT IC.\"Application Number\",\r\n" + //
+ public static final String loanQuery="    IC.\"Application Number\" AS Application_Number,\n\",\r\n" + //
             "       --IDE.\"LOAN_ACCOUNT_NO\",\r\n" + //
-            "       IC.\"Customer Name\", \r\n" + //
+            "       IDE.\"LOAN_ACCOUNT_NO\",\n"+//
+            "       IC.\"Customer Name\" As Customer_Name, \r\n" + //
             "--       AD.\"Address 1\",\r\n" + //
             "--       AD.\"Address 2\",\r\n" + //
             "--       AD.\"Address 3\",\r\n" + //

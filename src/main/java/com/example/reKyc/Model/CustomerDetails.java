@@ -13,16 +13,15 @@ import java.util.Collection;
 
 @Data
 public class CustomerDetails  {
-    private Long USER_ID;
-    private String APPLICATION_NUMBER;
-    private String LOAN_NUMBER;
-    private String CUSTOMER_NAME;
-    private String ADDRESS_DETAILS_RESIDENTIAL;
-    private String MOBILE_NUMBER;
-
+//    private Long USER_ID;
+    private String Application_Number;
+    private String LOAN_ACCOUNT_NO;
+    private String Customer_Name;
+//    private String ADDRESS_DETAILS_RESIDENTIAL;
+    private String PHONE_NUMBER;
+    private String IDENTIFICATION_NUMBER;
     private String IDENTIFICATION_TYPE;
 
-    private String IDENTIFICATION_NUMBER;
 
 
 }
