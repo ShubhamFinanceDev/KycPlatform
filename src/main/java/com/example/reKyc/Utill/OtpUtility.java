@@ -1,6 +1,6 @@
 package com.example.reKyc.Utill;
 
-import com.example.reKyc.Entity.CustomerDetails;
+import com.example.reKyc.Model.CustomerDataResponse;
 import com.example.reKyc.Repository.OtpDetailsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,7 @@ public class OtpUtility {
     private OtpDetailsRepository otpDetailsRepository;
     private Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
-    public int generateOtp(CustomerDetails customerDetails)
+    public int generateOtp(CustomerDataResponse customerDetails)
     {
         try {
             int count = otpDetailsRepository.countByMobile(customerDetails.getMobileNumber());

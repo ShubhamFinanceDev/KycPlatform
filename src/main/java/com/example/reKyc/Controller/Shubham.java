@@ -1,7 +1,7 @@
 package com.example.reKyc.Controller;
 
-import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Model.*;
+import com.example.reKyc.Service.LoanNoAuthentication;
 import com.example.reKyc.Service.Service;
 import com.example.reKyc.Utill.MaskDocumentAndFile;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,9 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,12 +22,13 @@ public class Shubham {
     private Service service;
     @Autowired
     private MaskDocumentAndFile maskDocument;
-
+    @Autowired
+    private LoanNoAuthentication loanNoAuthentication;
 
     @PostMapping("/addressPreview")
     public HashMap handleRequest(@RequestBody InputBase64 inputParam) {     //convert base64 into url
         HashMap<String, String> extractDetail = new HashMap<>();
-        CustomerDetails customerDetails = new CustomerDetails();
+        CustomerDataResponse customerDetails = new CustomerDataResponse();
 
         try {
             if (!(inputParam.getLoanNo() == null || inputParam.getLoanNo().isBlank()) && !(inputParam.getDocumentId() == null || inputParam.getDocumentId().isBlank()) && !(inputParam.getDocumentType() == null || inputParam.getDocumentType().isBlank())) {
@@ -45,9 +43,9 @@ public class Shubham {
                 }
 
 //                customerDetails = service.checkExtractedDocumentId(inputParam.getLoanNo(), inputParam.getDocumentId(), inputParam.getDocumentType());
-                customerDetails = service.checkLoanNo(inputParam.getLoanNo());
+                customerDetails = loanNoAuthentication.getCustomerData(inputParam.getLoanNo());
 
-                if (customerDetails != null && (customerDetails.getPan().equals(inputParam.getDocumentId()) || customerDetails.getAadhar().equals(inputParam.getDocumentId()))) {
+                if (customerDetails != null && (customerDetails.getPanNumber().equals(inputParam.getDocumentId()) || customerDetails.getAadharNumber().equals(inputParam.getDocumentId()))) {
                     extractDetail = service.callFileExchangeServices(inputParam.getBase64Data(), inputParam.getDocumentType());      //convert file base 64 into url also extract details
 
                     if (extractDetail.get("code").equals("0000")) {
@@ -66,7 +64,7 @@ public class Shubham {
                     }
 
                 } else {
-                    extractDetail.put("msg", "document id did not matched");
+                    extractDetail.put("msg", "entered mention id did not correct");
                     extractDetail.put("code", "1111");
                 }
 
@@ -86,7 +84,7 @@ public class Shubham {
 
     @PostMapping("/updateAddress")
     public ResponseEntity<CommonResponse> finalUpdate(@RequestBody UpdateAddress inputUpdateAddress) {
-        CustomerDetails customerDetails = new CustomerDetails();
+        CustomerDataResponse customerDetails = new CustomerDataResponse();
         CommonResponse commonResponse = new CommonResponse();
 
         if ((inputUpdateAddress.getMobileNo().isBlank() || inputUpdateAddress.getMobileNo() == null) || (inputUpdateAddress.getOtpCode().isBlank() || inputUpdateAddress.getOtpCode() == null) || (inputUpdateAddress.getLoanNo().isBlank() || inputUpdateAddress.getLoanNo() == null) || (inputUpdateAddress.getDocumentType().isBlank() || inputUpdateAddress.getDocumentType() == null) || (inputUpdateAddress.getDocumentId().isBlank() || inputUpdateAddress.getDocumentId() == null)) {
@@ -94,7 +92,7 @@ public class Shubham {
             commonResponse.setMsg("required field is empty.");
             commonResponse.setCode("1111");
         } else {
-            customerDetails = service.getCustomerDetail(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo());
+            customerDetails = service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo());
 
             if (customerDetails.getLoanNumber() == null) {
                 commonResponse.setMsg("otp invalid or expire. please try again.");

@@ -1,12 +1,13 @@
 package com.example.reKyc.ServiceImp;
 
-import com.example.reKyc.Entity.CustomerDetails;
+import com.example.reKyc.Entity.Customer;
 import com.example.reKyc.Entity.OtpDetails;
 import com.example.reKyc.Entity.DdfsUpload;
 import com.example.reKyc.Model.*;
-import com.example.reKyc.Repository.CustomerDetailsRepository;
+import com.example.reKyc.Repository.CustomerRepository;
 import com.example.reKyc.Repository.OtpDetailsRepository;
 import com.example.reKyc.Repository.DdfsUploadRepository;
+import com.example.reKyc.Service.LoanNoAuthentication;
 import com.example.reKyc.Utill.*;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.*;
@@ -31,7 +32,9 @@ import java.util.*;
 public class ServiceImp implements com.example.reKyc.Service.Service {
 
     @Autowired
-    private CustomerDetailsRepository customerDetailsRepository;
+    private LoanNoAuthentication loanNoAuthentication;
+    @Autowired
+    private CustomerRepository customerRepository;
     @Autowired
     private OtpDetailsRepository otpDetailsRepository;
     @Autowired
@@ -55,9 +58,11 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
     public HashMap validateAndSendOtp(String loanNo) {
         HashMap<String, String> otpResponse = new HashMap<>();
-        CustomerDetails customerDetails = new CustomerDetails();
+        CustomerDataResponse customerDetails = new CustomerDataResponse();
         try {
-            customerDetails = customerDetailsRepository.findByLoanNumber(loanNo);
+
+            Customer customer = customerRepository.getCustomer(loanNo);
+            customerDetails = loanNoAuthentication.getCustomerData(customer.getLoanNumber());
             System.out.println(customerDetails.getMobileNumber());
             int otpCode = otpUtility.generateOtp(customerDetails);
             try {
@@ -108,13 +113,15 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
      * @return
      */
     @Override
-    public CustomerDetails getCustomerDetail(String mobileNo, String otpCode, String loanNo) {
+    public CustomerDataResponse otpValidation(String mobileNo, String otpCode, String loanNo) {
 
-        CustomerDetails customerDetails = new CustomerDetails();
+        CustomerDataResponse customerDetails = new CustomerDataResponse();
         try {
             OtpDetails otpDetails = otpDetailsRepository.IsotpExpired(mobileNo, otpCode);
             Duration duration = Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now());
-            customerDetails = (duration.toMinutes() > 50) ? customerDetails : customerDetailsRepository.findUserDetailByMobile(mobileNo, loanNo);
+//            customerDetails = (duration.toMinutes() > 50) ? customerDetails : customerDetailsRepository.findUserDetailByMobile(mobileNo, loanNo);
+            customerDetails = (duration.toMinutes() > 50) ? customerDetails : loanNoAuthentication.getCustomerData(loanNo);
+
         } catch (Exception e) {
             System.out.println("===Otp invalid==");
         }
@@ -154,83 +161,27 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     }
 
 
-    public CustomerDetails checkExtractedDocumentId(String loanNo, String documentId, String documentType) {
-        CustomerDetails customerDetails = new CustomerDetails();
-        try {
-            if (documentType.equals("aadhar")) {
-
-                customerDetails = customerDetailsRepository.checkCustomerAadharNo(loanNo, documentId);
-
-            }
-            if (documentType.equals("pan")) {
-
-                customerDetails = customerDetailsRepository.checkCustomerPanNo(loanNo, documentId);
-            }
-
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-        return customerDetails;
-
-    }
-
-
-    /**
-     * @param file
-     * @return
-     */
-    @Override
-    public String enableProcessFlag(MultipartFile file) {
-
-        String errorMsg = "";
-//        Integer enable;
-        List<String> loanNo = new ArrayList<>();
-        try {
+//    public CustomerDetails checkExtractedDocumentId(String loanNo, String documentId, String documentType) {
+//        CustomerDetails customerDetails = new CustomerDetails();
+//        try {
+//            if (documentType.equals("aadhar")) {
+//
+//                customerDetails = customerDetailsRepository.checkCustomerAadharNo(loanNo, documentId);
+//
+//            }
+//            if (documentType.equals("pan")) {
+//
+//                customerDetails = customerDetailsRepository.checkCustomerPanNo(loanNo, documentId);
+//            }
+//
+//        } catch (Exception e) {
+//            System.out.println(e);
+//        }
+//        return customerDetails;
+//
+//    }
 
 
-            InputStream inputStream = file.getInputStream();
-            ZipSecureFile.setMinInflateRatio(0);                //for zip bomb detected
-            Workbook workbook = WorkbookFactory.create(inputStream);
-            Sheet sheet = workbook.getSheetAt(0);
-            Iterator<Row> rowIterator = sheet.iterator();
-            Row headerRow = rowIterator.next();
-
-            if (headerRow.getCell(0).toString().equals("Loan-No")) {
-
-                while (rowIterator.hasNext()) {
-                    Row row = rowIterator.next();
-                    Cell cell = row.getCell(0);
-                    errorMsg = (cell == null || cell.getCellType() == CellType.BLANK) ? "File upload error due to row no " + (row.getRowNum() + 1) + " is empty" : "";
-
-                    if (errorMsg.isEmpty()) {
-                        loanNo.add(cell.toString());
-                    } else {
-                        break;
-                    }
-                }
-                if (!loanNo.isEmpty() && errorMsg.isEmpty()) {
-                    customerDetailsRepository.enableKycFlag(loanNo);
-                    errorMsg = "Successfully process.";
-                }
-            } else {
-                errorMsg = "File format is not matching";
-            }
-
-        } catch (Exception e) {
-            errorMsg = "failure:" + e;
-        }
-        return errorMsg;
-    }
-
-    /**
-     * @param loanNo
-     * @return
-     */
-    @Override
-    public CustomerDetails checkLoanNo(String loanNo) {
-
-        return this.customerDetailsRepository.findByLoanNumber(loanNo);
-    }
 
     /**
      * @param loanNo
@@ -241,11 +192,11 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
         CommonResponse commonResponse = new CommonResponse();
         try {
-            CustomerDetails customerDetails = customerDetailsRepository.findByLoanNumber(loanNo);
-            if (customerDetails != null) {
+            Optional<Customer> customer = customerRepository.findById(loanNo);
+            if (customer != null) {
                 try {
 
-                    customerDetailsRepository.updateKycFlag(loanNo);
+                    customerRepository.updateKycFlag(loanNo);
                     commonResponse.setMsg("Successfully");
                     commonResponse.setCode("0000");
                 } catch (Exception e) {
@@ -284,9 +235,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                         if (saveUpdatedDetails(inputAddress, applicationNO)) {
                             System.out.println("=== data has been updated in db ===");
                         }
-                    }
-                    else
-                    {
+                    } else {
                         System.out.println("=== DDFS file upload exception ===");
                         commonResponse.setCode("1111");
                         commonResponse.setMsg("File upload error.");

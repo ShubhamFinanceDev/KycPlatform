@@ -1,7 +1,7 @@
 package com.example.reKyc.Controller;
 
-import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Model.CommonResponse;
+import com.example.reKyc.Model.CustomerDataResponse;
 import com.example.reKyc.Model.OtpRequest;
 import com.example.reKyc.Model.JwtResponse;
 import com.example.reKyc.Repository.OtpDetailsRepository;
@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,9 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -87,8 +84,7 @@ public class User {
         } else {
             try {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(request.getLoanNo());
-//                this.doAuthenticate(request.getMobileNo(), request.getOtpCode());
-                CustomerDetails customerDetails = service.getCustomerDetail(request.getMobileNo(), request.getOtpCode(), request.getLoanNo());
+                CustomerDataResponse customerDetails = service.otpValidation(request.getMobileNo(), request.getOtpCode(), request.getLoanNo());
                 if (customerDetails.getLoanNumber() != null) {
 
                     String token = this.jwtHelper.generateToken(userDetails);
@@ -97,16 +93,9 @@ public class User {
                     jwtResponse.setMobileNo(customerDetails.getMobileNumber());
                     jwtResponse.setAddress(customerDetails.getAddressDetailsResidential());
                     jwtResponse.setName(customerDetails.getCustomerName());
-                    try {
+                    jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPanNumber()));
+                    jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadharNumber()));
 
-//                        if (customerDetails.getPan() != null) {
-                        jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPan()));
-//                        } else if (customerDetails.getAadhar() != null) {
-                        jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadhar()));
-//                        }
-                    } catch (Exception e) {
-                        System.out.println(e);
-                    }
                     jwtResponse.setLoanNo(customerDetails.getLoanNumber());
 
                 } else {
@@ -125,20 +114,6 @@ public class User {
         }
     }
 
-    @PostMapping("/invoke-kyc-process-flag")
-    public String invokeProcessFlag(@RequestParam("file") MultipartFile file) {
-        return service.enableProcessFlag(file);
-    }
 
-    @GetMapping("/getData")
-    public Map getData() {
-
-    Map<String,Object> data=null;
-    String sql="select * from new_customer_details where user_id='1'";
-    data=jdbcTemplate.queryForMap(sql);
-
-
-        return data;
-    }
 }
 

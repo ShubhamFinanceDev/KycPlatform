@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
-@Table(name="Updated_Details")
+@Table(name="ddfs_upload")
 public class DdfsUpload {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
