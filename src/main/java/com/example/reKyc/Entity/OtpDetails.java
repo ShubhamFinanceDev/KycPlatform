@@ -15,7 +15,7 @@ import java.util.Collection;
 public class OtpDetails {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="otp_id")
     private Long otpId;
     @Column(name="otp_code")
