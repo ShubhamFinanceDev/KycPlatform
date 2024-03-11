@@ -44,7 +44,7 @@ public class LoanNoAuthentication implements UserDetailsService {
             customerDataResponse.setLoanNumber(customerDetails.get(0).getLOAN_ACCOUNT_NO());
             customerDataResponse.setApplicationNumber(customerDetails.get(0).getApplication_Number());
             customerDataResponse.setMobileNumber(customerDetails.get(0).getPHONE_NUMBER());
-            customerDataResponse.setAddressDetailsResidential(customerDetails.get(0).getCustomer_Name());
+//            customerDataResponse.setAddressDetailsResidential(customerDetails.get(0).getCustomer_Name());
 
             for (CustomerDetails data : customerDetails) {
                 if (data.getIDENTIFICATION_TYPE().contains("PAN")) {
