@@ -199,6 +199,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                     customerRepository.updateKycFlag(loanNo);
                     commonResponse.setMsg("Successfully");
                     commonResponse.setCode("0000");
+
                 } catch (Exception e) {
                     commonResponse.setMsg("Flag did not updated.");
                     commonResponse.setCode("1111");
@@ -235,6 +236,9 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                         if (saveUpdatedDetails(inputAddress, applicationNO)) {
                             System.out.println("=== data has been updated in db ===");
                         }
+
+                        otpUtility.sendOtp(inputAddress.getMobileNo(),2); //otp send
+
                     } else {
                         System.out.println("=== DDFS file upload exception ===");
                         commonResponse.setCode("1111");

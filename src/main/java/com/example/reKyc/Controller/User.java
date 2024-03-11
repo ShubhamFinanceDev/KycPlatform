@@ -93,9 +93,23 @@ public class User {
                     jwtResponse.setMobileNo(customerDetails.getMobileNumber());
                     jwtResponse.setAddress(customerDetails.getAddressDetailsResidential());
                     jwtResponse.setName(customerDetails.getCustomerName());
+                    if(customerDetails.getPanNumber() !=null)
+                    {
                     jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPanNumber()));
-                    jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadharNumber()));
+                    }
+                    else
+                    {
+                        jwtResponse.setPanNo("NA");
 
+                    }
+                    if (customerDetails.getAadharNumber() !=null) {
+                        
+                    jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadharNumber()));
+                    }
+                    else
+                    {
+                        jwtResponse.setAadharNo("NA");
+                    }
                     jwtResponse.setLoanNo(customerDetails.getLoanNumber());
 
                 } else {

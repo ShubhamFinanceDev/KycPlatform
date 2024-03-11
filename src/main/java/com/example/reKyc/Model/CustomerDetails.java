@@ -17,7 +17,7 @@ public class CustomerDetails  {
     private String Application_Number;
     private String LOAN_ACCOUNT_NO;
     private String Customer_Name;
-//    private String ADDRESS_DETAILS_RESIDENTIAL;
+    private String RESIDENTIAL_ADDRESS;
     private String PHONE_NUMBER;
     private String IDENTIFICATION_NUMBER;
     private String IDENTIFICATION_TYPE;

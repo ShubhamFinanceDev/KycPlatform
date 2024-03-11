@@ -51,11 +51,24 @@ public class OtpUtility {
     public boolean sendOtp(String mobileNo, int otpCode)
     {
         boolean status=false;
-        String otpMsg="Your E-Nach Registration OTP is "+otpCode+" for Loan XXXXXXXXXXXXXX046174.\n" +
-                "Regards\n" +
-                "Shubham Housing Development Finance Company";
+        String smsBody;
+        if (otpCode==1)
+        {
+            smsBody=SmsTemplate.existingKyc;
+        } else {
+            if (otpCode == 2) {
+                smsBody = SmsTemplate.updationKyc;
+            }
+           else {
+                smsBody ="Your E-Nach Registration OTP is "+otpCode+" for Loan XXXXXXXXXXXXXX046174.\n" +
+                        "Regards\n" +
+                        "Shubham Housing Development Finance Company";
+            }
+        }
 
-        String apiUrl=otpUrl+"?method="+otpMethod+"&api_key="+otpKey+"&to="+mobileNo+"&sender="+otpSender+"&message="+otpMsg+"&format="+otpFormat;
+        System.out.println("sms case="+otpCode);
+
+        String apiUrl=otpUrl+"?method="+otpMethod+"&api_key="+otpKey+"&to="+mobileNo+"&sender="+otpSender+"&message="+smsBody+"&format="+otpFormat;
 
         RestTemplate restTemplate=new RestTemplate();
         HashMap<String,String> otpResponse=restTemplate.getForObject(apiUrl,HashMap.class);
@@ -63,6 +76,7 @@ public class OtpUtility {
         if(otpResponse.get("status").equals("OK"))
         {
             status=true;
+            System.out.println("Sms send successfully");
         }
         return status;
     }

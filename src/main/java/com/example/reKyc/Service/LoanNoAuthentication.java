@@ -40,17 +40,32 @@ public class LoanNoAuthentication implements UserDetailsService {
         try {
             List<CustomerDetails> customerDetails = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(CustomerDetails.class));
 
+            // customerDataResponse.setCustomerName(customerDetails.getCustomer_Name());
+            // customerDataResponse.setLoanNumber(customerDetails.getLOAN_ACCOUNT_NO());
+            // customerDataResponse.setApplicationNumber(customerDetails.getApplication_Number());
+            // customerDataResponse.setMobileNumber(customerDetails.getPHONE_NUMBER());
+            // customerDataResponse.setAddressDetailsResidential("none");
+            // if(customerDetails.getIDENTIFICATION_TYPE().contains("AAdhar_No"))
+            // {
+            // // customerDataResponse.setAadharNumber(customerDetails.getIDENTIFICATION_NUMBER());  //aadhar no
+            // customerDataResponse.setAadharNumber("390920211147");  //aadhar no
+
+            // }
+
             customerDataResponse.setCustomerName(customerDetails.get(0).getCustomer_Name());
             customerDataResponse.setLoanNumber(customerDetails.get(0).getLOAN_ACCOUNT_NO());
             customerDataResponse.setApplicationNumber(customerDetails.get(0).getApplication_Number());
-            customerDataResponse.setMobileNumber(customerDetails.get(0).getPHONE_NUMBER());
-//            customerDataResponse.setAddressDetailsResidential(customerDetails.get(0).getCustomer_Name());
+//            customerDataResponse.setMobileNumber(customerDetails.get(0).getPHONE_NUMBER());
+            customerDataResponse.setMobileNumber("8160041657");
+            customerDataResponse.setAddressDetailsResidential(customerDetails.get(0).getRESIDENTIAL_ADDRESS());
 
             for (CustomerDetails data : customerDetails) {
                 if (data.getIDENTIFICATION_TYPE().contains("PAN")) {
                     customerDataResponse.setPanNumber(data.getIDENTIFICATION_NUMBER());
-                } else if (data.getIDENTIFICATION_TYPE().contains("AADHAR_NO")) {
-                    customerDataResponse.setAadharNumber(data.getIDENTIFICATION_NUMBER());
+                } else if (data.getIDENTIFICATION_TYPE().contains("AAdhar_No")) {
+                    // customerDataResponse.setAadharNumber(data.getIDENTIFICATION_NUMBER());
+                    customerDataResponse.setAadharNumber("390920211147");
+
                 }
 
 
