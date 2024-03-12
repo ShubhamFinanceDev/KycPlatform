@@ -21,7 +21,7 @@ public class Admin {
 
     @Autowired
     private CustomerRepository customerRepository;
-
+    @CrossOrigin
     @PostMapping("/invoke-kyc-process-flag")
     public HashMap invokeProcessFlag(@RequestParam("file") MultipartFile file) {
 
