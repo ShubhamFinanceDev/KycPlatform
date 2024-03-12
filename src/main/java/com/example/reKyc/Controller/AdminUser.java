@@ -2,12 +2,15 @@ package com.example.reKyc.Controller;
 
 import com.example.reKyc.Entity.Admin;
 import com.example.reKyc.Entity.Customer;
+import com.example.reKyc.Model.AdminResponse;
 import com.example.reKyc.Model.CommonResponse;
 import com.example.reKyc.Repository.AdminRepository;
 import com.example.reKyc.Repository.CustomerRepository;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -93,33 +96,40 @@ public class AdminUser {
     }
 
     @PostMapping("/login")
-    public CommonResponse adminLogin(@RequestBody HashMap<String,String> input)
+    public ResponseEntity adminLogin(@RequestBody HashMap<String,String> input)
     {
         CommonResponse commonResponse=new CommonResponse();
+        AdminResponse adminResponse=new AdminResponse();
+
         try
         {
            String email=input.get("email");
            String password=input.get("password");
            Admin admin=adminRepository.adminAccount(email,password);
-            commonResponse.setCode("1111");
+
             if(admin==null)
            {
                commonResponse.setMsg("Credentials did not matched");
                commonResponse.setCode("1111");
+               return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+
            }
            else
            {
-               commonResponse.setMsg("Login successfully");
-               commonResponse.setCode("0000");
+               adminResponse.setMsg("Login successfully");
+               adminResponse.setCode("0000");
+               adminResponse.setUid(admin.getUid());
+               return new ResponseEntity<>(adminResponse, HttpStatus.OK);
+
            }
         }
         catch (Exception e)
         {
             commonResponse.setMsg("Technical error.");
             commonResponse.setCode("1111");
-        }
+            return new ResponseEntity<>(commonResponse, HttpStatus.OK);
 
-        return commonResponse;
+        }
     }
 }
 
