@@ -24,6 +24,8 @@ public class DdfsUtility {
     private String passcode;
     @Value("${ddfs.url}")
     private String ddfsUrl;
+    @Value("${neo.ip}")
+    private String neo_ip;
     RestTemplate restTemplate = new RestTemplate();
 
     public String generateDDFSKey() throws Exception {
@@ -31,7 +33,7 @@ public class DdfsUtility {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMddHHmmss");
         String formattedDate = dateFormat.format(new Date());
 
-        String plainText = formattedDate + "@" + "localhost";
+        String plainText = formattedDate + "@" +neo_ip;   // "localhost";
 //        System.out.println("Input: " + plainText);
         String encryptedText = encrypt(plainText, passcode);
         System.out.println("Encrypted Text: " +
@@ -100,6 +102,7 @@ public class DdfsUtility {
              status=false;
 
          }
+          System.out.println("ddfs response "+responseBody.getBody());
       }
       catch (Exception e)
       {

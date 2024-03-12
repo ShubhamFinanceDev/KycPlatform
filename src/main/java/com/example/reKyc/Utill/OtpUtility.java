@@ -48,28 +48,41 @@ public class OtpUtility {
     }
 
 
-    public boolean sendOtp(String mobileNo, int otpCode)
+    public void sendOtp(String mobileNo, String status)
     {
-        boolean status=false;
-        String smsBody;
-        if (otpCode==1)
+        String smsBody = null;
+        if (status.equals("upToDate"))
         {
             smsBody=SmsTemplate.existingKyc;
         } else {
-            if (otpCode == 2) {
+            if (status.equals("update")) {
                 smsBody = SmsTemplate.updationKyc;
-            }
-           else {
-                smsBody ="Your E-Nach Registration OTP is "+otpCode+" for Loan XXXXXXXXXXXXXX046174.\n" +
-                        "Regards\n" +
-                        "Shubham Housing Development Finance Company";
             }
         }
 
-        System.out.println("sms case="+otpCode);
+        System.out.println("sms case="+status);
 
         String apiUrl=otpUrl+"?method="+otpMethod+"&api_key="+otpKey+"&to="+mobileNo+"&sender="+otpSender+"&message="+smsBody+"&format="+otpFormat;
 
+        RestTemplate restTemplate=new RestTemplate();
+        HashMap<String,String> otpResponse=restTemplate.getForObject(apiUrl,HashMap.class);
+
+        if(otpResponse.get("status").equals("OK"))
+        {
+            System.out.println("Sms send successfully");
+        }
+    }
+
+
+    public boolean sendOtp(String mobileNo, int otpCode,String loanNo)
+    {
+        boolean status=false;
+
+            String smsBody ="Your E-Nach Registration OTP is "+otpCode+" for Loan XXXXXXXXXXXXXX"+loanNo+".\n" +
+                        "Regards\n" +
+                        "Shubham Housing Development Finance Company";
+
+        String apiUrl=otpUrl+"?method="+otpMethod+"&api_key="+otpKey+"&to="+mobileNo+"&sender="+otpSender+"&message="+smsBody+"&format="+otpFormat;
         RestTemplate restTemplate=new RestTemplate();
         HashMap<String,String> otpResponse=restTemplate.getForObject(apiUrl,HashMap.class);
 
@@ -80,5 +93,4 @@ public class OtpUtility {
         }
         return status;
     }
-
 }

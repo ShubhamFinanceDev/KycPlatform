@@ -117,7 +117,7 @@ public class Shubham {
         try {
             if (inputParam.containsKey("loanNo") && inputParam.containsKey("mobileNo")) {
                 commonResponse = service.updateCustomerKycFlag(inputParam.get("loanNo"));
-                otpUtility.sendOtp(inputParam.get("mobileNo"),1); //otp send
+                otpUtility.sendOtp(inputParam.get("mobileNo"),"upToDate"); //otp send
 
             } else {
                 commonResponse.setCode("1111");

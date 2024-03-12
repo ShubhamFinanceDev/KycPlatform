@@ -56,7 +56,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
     Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
-    public HashMap validateAndSendOtp(String loanNo) {
+    public HashMap<String,String> validateAndSendOtp(String loanNo) {
         HashMap<String, String> otpResponse = new HashMap<>();
         CustomerDataResponse customerDetails = new CustomerDataResponse();
         try {
@@ -237,7 +237,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                             System.out.println("=== data has been updated in db ===");
                         }
 
-                        otpUtility.sendOtp(inputAddress.getMobileNo(),2); //otp send
+                        otpUtility.sendOtp(inputAddress.getMobileNo(),"update"); //otp send
 
                     } else {
                         System.out.println("=== DDFS file upload exception ===");
