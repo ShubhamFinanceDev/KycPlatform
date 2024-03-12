@@ -1,10 +1,14 @@
 package com.example.reKyc.Controller;
 
+import com.example.reKyc.Entity.Admin;
 import com.example.reKyc.Entity.Customer;
+import com.example.reKyc.Model.CommonResponse;
+import com.example.reKyc.Repository.AdminRepository;
 import com.example.reKyc.Repository.CustomerRepository;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,11 +21,19 @@ import java.util.List;
 @RestController
 @RequestMapping("/admin")
 @CrossOrigin
-public class Admin {
+@Controller
+public class AdminUser {
 
     @Autowired
     private CustomerRepository customerRepository;
-    @CrossOrigin
+    @Autowired
+    private AdminRepository adminRepository;
+
+    @RequestMapping(value = "/", method = RequestMethod.GET)
+    public String demo(){
+
+        return "Hello programmer";
+    }
     @PostMapping("/invoke-kyc-process-flag")
     public HashMap invokeProcessFlag(@RequestParam("file") MultipartFile file) {
 
@@ -80,6 +92,35 @@ public class Admin {
         return response;
     }
 
+    @PostMapping("/login")
+    public CommonResponse adminLogin(@RequestBody HashMap<String,String> input)
+    {
+        CommonResponse commonResponse=new CommonResponse();
+        try
+        {
+           String email=input.get("email");
+           String password=input.get("password");
+           Admin admin=adminRepository.adminAccount(email,password);
+            commonResponse.setCode("1111");
+            if(admin==null)
+           {
+               commonResponse.setMsg("Credentials did not matched");
+               commonResponse.setCode("1111");
+           }
+           else
+           {
+               commonResponse.setMsg("Login successfully");
+               commonResponse.setCode("0000");
+           }
+        }
+        catch (Exception e)
+        {
+            commonResponse.setMsg("Technical error.");
+            commonResponse.setCode("1111");
+        }
+
+        return commonResponse;
+    }
 }
 
 
