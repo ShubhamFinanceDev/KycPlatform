@@ -5,7 +5,7 @@ public static final String loanQuery="SELECT distinct IC.\"Application Number\" 
         "        \r\n" + //
         "       IDE.\"LOAN_ACCOUNT_NO\",\r\n" + //
         "       IC.\"Customer Name\" As Customer_Name, \r\n" + //
-        "      AD.\"Address 1\" As RESIDENTIAL_ADDRESS,\r\n" + //
+        "      (AD.\"Address 1\" || ','|| AD.\"City\" || ','|| AD.\"State\" || ','|| AD.\"Pincode\") AS RESIDENTIAL_ADDRESS,\r\n" + //
         "       IDE.\"PHONE_NUMBER\",\r\n" + //
         "       IDE.IDENTIFICATION_NUMBER,\r\n" + //
         "       IDE.IDENTIFICATION_TYPE\r\n" + //
