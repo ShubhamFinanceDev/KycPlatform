@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -31,7 +32,12 @@ public class DdfsUtility {
     public String generateDDFSKey() throws Exception {
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMddHHmmss");
-        String formattedDate = dateFormat.format(new Date());
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.HOUR, 5);
+        calendar.add(Calendar.MINUTE, 30);
+        String formattedDate = dateFormat.format(calendar.getTime());
+//        String formattedDate = dateFormat.format(new Date());
 
         String plainText = formattedDate + "@" +neo_ip;   // "localhost";
 //        System.out.println("Input: " + plainText);
