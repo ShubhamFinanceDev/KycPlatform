@@ -93,21 +93,16 @@ public class User {
                     jwtResponse.setMobileNo(customerDetails.getMobileNumber());
                     jwtResponse.setAddress(customerDetails.getAddressDetailsResidential());
                     jwtResponse.setName(customerDetails.getCustomerName());
-                    if(customerDetails.getPanNumber() !=null)
-                    {
-                    jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPanNumber()));
-                    }
-                    else
-                    {
+                    if (customerDetails.getPanNumber() != null) {
+                        jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPanNumber()));
+                    } else {
                         jwtResponse.setPanNo("NA");
 
                     }
-                    if (customerDetails.getAadharNumber() !=null) {
-                        
-                    jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadharNumber()));
-                    }
-                    else
-                    {
+                    if (customerDetails.getAadharNumber() != null) {
+
+                        jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadharNumber()));
+                    } else {
                         jwtResponse.setAadharNo("NA");
                     }
                     jwtResponse.setLoanNo(customerDetails.getLoanNumber());
