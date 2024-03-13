@@ -65,7 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     return;
 
                 } catch (ExpiredJwtException e) {
-                    logger.info("Given jwt token is expired !!");
+                    logger.info("Session has been expired !!");
                     e.printStackTrace();
                     errorMsg.put("code", "1111");
                     errorMsg.put("msg", "Given jwt token is expired !!");

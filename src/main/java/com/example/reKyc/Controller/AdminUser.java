@@ -88,6 +88,11 @@ public class AdminUser {
                     }
                 }
             }
+            else
+            {
+                response.put("msg", "File format error");
+                response.put("code", "1111");
+            }
 
         } catch (Exception e) {
             errorMsg = "failure:" + e;
