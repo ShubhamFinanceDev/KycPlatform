@@ -5,6 +5,7 @@ import com.example.reKyc.Service.LoanNoAuthentication;
 import com.example.reKyc.Service.Service;
 import com.example.reKyc.Utill.MaskDocumentAndFile;
 import com.example.reKyc.Utill.OtpUtility;
+import com.example.reKyc.Utill.SmsTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -117,7 +118,7 @@ public class Shubham {
         try {
             if (inputParam.containsKey("loanNo") && inputParam.containsKey("mobileNo")) {
                 commonResponse = service.updateCustomerKycFlag(inputParam.get("loanNo"));
-                otpUtility.sendOtp(inputParam.get("mobileNo"),"upToDate"); //otp send
+                otpUtility.sendTextMsg(inputParam.get("mobileNo"), SmsTemplate.existingKyc); //otp send
 
             } else {
                 commonResponse.setCode("1111");

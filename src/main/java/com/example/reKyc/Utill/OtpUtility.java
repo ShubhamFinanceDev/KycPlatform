@@ -48,21 +48,10 @@ public class OtpUtility {
     }
 
 
-    public void sendOtp(String mobileNo, String status)
+    public void sendTextMsg(String mobileNo, String body)
     {
-        String smsBody = null;
-        if (status.equals("upToDate"))
-        {
-            smsBody=SmsTemplate.existingKyc;
-        } else {
-            if (status.equals("update")) {
-                smsBody = SmsTemplate.updationKyc;
-            }
-        }
 
-        System.out.println("sms case="+status);
-
-        String apiUrl=otpUrl+"?method="+otpMethod+"&api_key="+otpKey+"&to="+mobileNo+"&sender="+otpSender+"&message="+smsBody+"&format="+otpFormat;
+        String apiUrl=otpUrl+"?method="+otpMethod+"&api_key="+otpKey+"&to="+mobileNo+"&sender="+otpSender+"&message="+body+"&format="+otpFormat;
 
         RestTemplate restTemplate=new RestTemplate();
         HashMap<String,String> otpResponse=restTemplate.getForObject(apiUrl,HashMap.class);
@@ -74,23 +63,21 @@ public class OtpUtility {
     }
 
 
+
     public boolean sendOtp(String mobileNo, int otpCode,String loanNo)
     {
-        boolean status=false;
-
             String smsBody ="Your E-Nach Registration OTP is "+otpCode+" for Loan XXXXXXXXXXXXXX"+loanNo+".\n" +
                         "Regards\n" +
                         "Shubham Housing Development Finance Company";
+            try
+            {
+                sendTextMsg(mobileNo,smsBody);
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
 
-        String apiUrl=otpUrl+"?method="+otpMethod+"&api_key="+otpKey+"&to="+mobileNo+"&sender="+otpSender+"&message="+smsBody+"&format="+otpFormat;
-        RestTemplate restTemplate=new RestTemplate();
-        HashMap<String,String> otpResponse=restTemplate.getForObject(apiUrl,HashMap.class);
-
-        if(otpResponse.get("status").equals("OK"))
-        {
-            status=true;
-            System.out.println("Sms send successfully");
-        }
-        return status;
     }
 }

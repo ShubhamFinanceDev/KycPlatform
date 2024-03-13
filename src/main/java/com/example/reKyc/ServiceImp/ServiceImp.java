@@ -237,7 +237,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                             System.out.println("=== data has been updated in db ===");
                         }
 
-                        otpUtility.sendOtp(inputAddress.getMobileNo(),"update"); //otp send
+                        otpUtility.sendTextMsg(inputAddress.getMobileNo(),SmsTemplate.updationKyc); //otp send
 
                     } else {
                         System.out.println("=== DDFS file upload exception ===");

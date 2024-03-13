@@ -39,7 +39,7 @@ public class DdfsUtility {
         String formattedDate = dateFormat.format(calendar.getTime());
 //        String formattedDate = dateFormat.format(new Date());
 
-        String plainText = formattedDate + "@" +neo_ip;   // "localhost";
+        String plainText = formattedDate + "@" + neo_ip;   // "localhost";
 //        System.out.println("Input: " + plainText);
         String encryptedText = encrypt(plainText, passcode);
         System.out.println("Encrypted Text: " +
@@ -75,46 +75,40 @@ public class DdfsUtility {
     }
 
 
-    public Boolean callDDFSApi(String document,String applicationNo)
-    {
-     Boolean status=false;
-    MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-      try {
-          formData.add("token", generateDDFSKey());
-          formData.add("clientId", "SHUBHAM/OP");
-          formData.add("file", applicationNo);
-          formData.add("subPath", "2024/Aadhar");
-          formData.add("docCategory", "IdentityProofs");
-          formData.add("clientUserId", "06799");
-          formData.add("remarks", "aadhar");
-          formData.add("maker", "06799");
-          formData.add("path", "HOBR/APF under-Constructi");
-          formData.add("document",document);
+    public Boolean callDDFSApi(String document, String applicationNo) {
+        Boolean status = false;
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        try {
+            formData.add("token", generateDDFSKey());
+            formData.add("clientId", "SHUBHAM/OP");
+            formData.add("file", applicationNo);
+            formData.add("subPath", "2024/Aadhar");
+            formData.add("docCategory", "IdentityProofs");
+            formData.add("clientUserId", "06799");
+            formData.add("remarks", "aadhar");
+            formData.add("maker", "06799");
+            formData.add("path", "HOBR/APF under-Constructi");
+            formData.add("document", document);
 
-          HttpHeaders headers = new HttpHeaders();
-          headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-          HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formData, headers);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formData, headers);
 
-          ResponseEntity<HashMap> responseBody = restTemplate.postForEntity(ddfsUrl, requestEntity, HashMap.class);
+            ResponseEntity<HashMap> responseBody = restTemplate.postForEntity(ddfsUrl, requestEntity, HashMap.class);
 
-         if(responseBody.getStatusCode().toString().contains("200") && responseBody.getBody().get("status").toString().contains("SUCCESS"))
-         {
-             System.out.println("Response from the DDFS API: " + responseBody.getBody().get("status"));
-             status=true;
+            if (responseBody.getStatusCode().toString().contains("200") && responseBody.getBody().get("status").toString().contains("SUCCESS")) {
+                System.out.println("Response from the DDFS API: " + responseBody.getBody().get("status"));
+                status = true;
 
-         }
-         else
-         {
-             status=false;
+            } else {
+                status = false;
 
-         }
-          System.out.println("ddfs response "+responseBody.getBody());
-      }
-      catch (Exception e)
-      {
-          System.out.println("===exception while calling DDFS api ");
-          status=false;
-      }
+            }
+            System.out.println("ddfs response " + responseBody.getBody());
+        } catch (Exception e) {
+            System.out.println("===exception while calling DDFS api ");
+            status = false;
+        }
         return status;
     }
 
