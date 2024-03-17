@@ -49,32 +49,28 @@ public class Shubham {
 //                customerDetails = service.checkExtractedDocumentId(inputParam.getLoanNo(), inputParam.getDocumentId(), inputParam.getDocumentType());
                 customerDetails = loanNoAuthentication.getCustomerData(inputParam.getLoanNo());
 
-                if (customerDetails != null && ((inputParam.getDocumentType().contains("pan") && customerDetails.getPanNumber().equals(inputParam.getDocumentId())) || (inputParam.getDocumentType().contains("aadhar") && customerDetails.getAadharNumber().equals(inputParam.getDocumentId())))) {
-                    extractDetail = service.callFileExchangeServices(inputParam.getBase64Data(), inputParam.getDocumentType());      //convert file base 64 into url also extract details
+                if (customerDetails != null && ((inputParam.getDocumentType().contains("pan") && customerDetails.getPanNumber().equals(inputParam.getDocumentId())) || (inputParam.getDocumentType().contains("aadhar") && customerDetails.getAadharNumber().equals(inputParam.getDocumentId()))))
+                {
+                    extractDetail = service.callFileExchangeServices(inputParam, inputParam.getDocumentType());      //convert file base 64 into url also extract details
 
                     if (extractDetail.get("code").equals("0000")) {
-                        boolean equality = maskDocument.compareDocumentNumber(extractDetail.get("uid"), inputParam.getDocumentId(), inputParam.getDocumentType()); //check extracted documented with registered documenteid
-                        if (!equality) {
-                            extractDetail.clear();
-                            extractDetail.put("msg", "uploaded document is not matching with loan number.");
-                            extractDetail.put("code", "1111");
-                        }
+
                         boolean fileStatus = maskDocument.generateFileLocally(inputParam);        //create a file  in local system
                         if (!fileStatus) {
                             extractDetail.clear();
-                            extractDetail.put("msg", "something went wrong. please try again");
+                            extractDetail.put("msg", "Something went wrong. please try again");
                             extractDetail.put("code", "1111");
                         }
                     }
 
                 } else {
-                    extractDetail.put("msg", "Entered mention id not correct");
+                    extractDetail.put("msg", "The document ID number is incorrect");
                     extractDetail.put("code", "1111");
                 }
 
             } else {
                 extractDetail.put("code", "1111");
-                extractDetail.put("msg", "required field is empty.");
+                extractDetail.put("msg", "Required field is empty.");
             }
             return extractDetail;
 

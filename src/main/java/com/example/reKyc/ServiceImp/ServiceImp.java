@@ -56,7 +56,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
     Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
-    public HashMap<String,String> validateAndSendOtp(String loanNo) {
+    public HashMap<String, String> validateAndSendOtp(String loanNo) {
         HashMap<String, String> otpResponse = new HashMap<>();
         CustomerDataResponse customerDetails = new CustomerDataResponse();
         try {
@@ -136,26 +136,33 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     @Override
-    public HashMap callFileExchangeServices(List<InputBase64.Base64Data> inputBase64, String documentType) {
+    public HashMap callFileExchangeServices(InputBase64 inputBase64, String documentType) {
 
         HashMap<String, String> documentDetail = new HashMap<>();
         List<String> urls = new ArrayList<>();
+        try {
 
-        for (InputBase64.Base64Data base64 : inputBase64) {
 
-            documentDetail = singzyServices.convertBase64ToUrl(base64.getFileType(), base64.getBase64String());
-            if (documentDetail.containsKey("code")) {
-                break;
-            } else {
-                urls.add(documentDetail.get("fileUrl"));
+            for (InputBase64.Base64Data base64 : inputBase64.getBase64Data()) {
+
+                documentDetail = singzyServices.convertBase64ToUrl(base64.getFileType(), base64.getBase64String());
+                if (documentDetail.containsKey("code")) {
+                    break;
+                } else {
+                    urls.add(documentDetail.get("fileUrl"));
+                }
             }
-        }
-        if (!(urls.isEmpty())) {
-            if (documentType.equals("aadhar")) {
-                documentDetail = singzyServices.extractAadharDetails(urls);
-            } else {
-                documentDetail = singzyServices.extractPanDetails(urls);
+            if (!(urls.isEmpty())) {
+                if (documentType.equals("aadhar")) {
+                    documentDetail = singzyServices.extractAadharDetails(urls,inputBase64.getDocumentId());
+                } else {
+                    documentDetail = singzyServices.extractPanDetails(urls,inputBase64.getDocumentId());
+                }
             }
+        } catch (Exception e) {
+
+            documentDetail.put("code","1111");
+            documentDetail.put("msg","Technical issue");
         }
         return documentDetail;
     }
@@ -180,7 +187,6 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 //        return customerDetails;
 //
 //    }
-
 
 
     /**
@@ -237,7 +243,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                             System.out.println("=== data has been updated in db ===");
                         }
 
-                        otpUtility.sendTextMsg(inputAddress.getMobileNo(),SmsTemplate.updationKyc); //otp send
+                        otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc); //otp send
 
                     } else {
                         System.out.println("=== DDFS file upload exception ===");

@@ -37,6 +37,7 @@ public class MaskDocumentAndFile {
     public boolean compareDocumentNumber(String extractedId, String documentId, String documentType) {
 
         String subExtractedId = extractedId.substring(extractedId.length() - 4, extractedId.length());
+
         boolean comparison = false;
         if (documentType.equals("aadhar")) {
             String aadharNo = documentId.substring(documentId.length() - 4, documentId.length());
