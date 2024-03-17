@@ -27,8 +27,7 @@ public class LoanNoAuthentication implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String loanNo) throws UsernameNotFoundException {
 
-        Customer customerDetails= customerRepository.findById(loanNo).orElseThrow(() -> new RuntimeException("user not found"));
-        return customerDetails;
+        return customerRepository.findById(loanNo).orElseThrow(() -> new RuntimeException("user not found"));
 
     }
 
