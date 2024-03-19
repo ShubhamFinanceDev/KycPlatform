@@ -66,7 +66,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             System.out.println(customerDetails.getMobileNumber());
             int otpCode = otpUtility.generateOtp(customerDetails);
             try {
-                if (otpCode > 0) {
+                if (otpCode > 0 && customerDetails.getMobileNumber()!=null ) {
                     logger.info("otp generated successfully");
 //                if (otpUtility.sendOtp(customerDetails.getMobileNumber(), otpCode)) {  //stopped sms services
                     logger.info("otp sent on mobile");
@@ -89,7 +89,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 //                }
 
                 } else {
-                    otpResponse.put("msg", "Otp did not generated");
+                    otpResponse.put("msg", "Loan no not found");
                     otpResponse.put("code", "1111");
                 }
             } catch (Exception e) {

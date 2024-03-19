@@ -31,25 +31,12 @@ public class LoanNoAuthentication implements UserDetailsService {
 
     }
 
-    public CustomerDataResponse getCustomerData(String loanNo)
-    {
+    public CustomerDataResponse getCustomerData(String loanNo) {
         CustomerDataResponse customerDataResponse = new CustomerDataResponse();
 
-        String sql=Query.loanQuery.concat("'"+loanNo+"'");
+        String sql = Query.loanQuery.concat("'" + loanNo + "'");
         try {
             List<CustomerDetails> customerDetails = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(CustomerDetails.class));
-
-            // customerDataResponse.setCustomerName(customerDetails.getCustomer_Name());
-            // customerDataResponse.setLoanNumber(customerDetails.getLOAN_ACCOUNT_NO());
-            // customerDataResponse.setApplicationNumber(customerDetails.getApplication_Number());
-            // customerDataResponse.setMobileNumber(customerDetails.getPHONE_NUMBER());
-            // customerDataResponse.setAddressDetailsResidential("none");
-            // if(customerDetails.getIDENTIFICATION_TYPE().contains("AAdhar_No"))
-            // {
-            // // customerDataResponse.setAadharNumber(customerDetails.getIDENTIFICATION_NUMBER());  //aadhar no
-            // customerDataResponse.setAadharNumber("390920211147");  //aadhar no
-
-            // }
 
             customerDataResponse.setCustomerName(customerDetails.get(0).getCustomer_Name());
             customerDataResponse.setLoanNumber(customerDetails.get(0).getLOAN_ACCOUNT_NO());
@@ -66,13 +53,8 @@ public class LoanNoAuthentication implements UserDetailsService {
                     customerDataResponse.setAadharNumber("390920211147");
 
                 }
-
-
             }
-
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             System.out.println("exception while running main db query");
         }
         return customerDataResponse;
