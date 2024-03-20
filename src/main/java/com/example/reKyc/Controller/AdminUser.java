@@ -38,7 +38,7 @@ public class AdminUser {
         return "Hello programmer";
     }
     @PostMapping("/invoke-kyc-process-flag")
-    public HashMap invokeProcessFlag(@RequestParam("file") MultipartFile file) {
+    public HashMap<String,String> invokeProcessFlag(@RequestParam("file") MultipartFile file) {
 
         HashMap<String,String> response=new HashMap<>();
         String errorMsg = "";
@@ -101,7 +101,7 @@ public class AdminUser {
     }
 
     @PostMapping("/login")
-    public ResponseEntity adminLogin(@RequestBody HashMap<String,String> input)
+    public ResponseEntity<CommonResponse> adminLogin(@RequestBody HashMap<String,String> input)
     {
         CommonResponse commonResponse=new CommonResponse();
         AdminResponse adminResponse=new AdminResponse();
@@ -124,7 +124,7 @@ public class AdminUser {
                adminResponse.setMsg("Login successfully");
                adminResponse.setCode("0000");
                adminResponse.setUid(admin.getUid());
-               return new ResponseEntity<>(adminResponse, HttpStatus.OK);
+               return new ResponseEntity(adminResponse, HttpStatus.OK);
 
            }
         }

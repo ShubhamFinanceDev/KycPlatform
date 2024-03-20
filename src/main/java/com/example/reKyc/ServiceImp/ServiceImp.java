@@ -1,10 +1,12 @@
 package com.example.reKyc.ServiceImp;
 
 import com.example.reKyc.Entity.Customer;
+import com.example.reKyc.Entity.LoanDetails;
 import com.example.reKyc.Entity.OtpDetails;
 import com.example.reKyc.Entity.DdfsUpload;
 import com.example.reKyc.Model.*;
 import com.example.reKyc.Repository.CustomerRepository;
+import com.example.reKyc.Repository.LoanDetailsRepository;
 import com.example.reKyc.Repository.OtpDetailsRepository;
 import com.example.reKyc.Repository.DdfsUploadRepository;
 import com.example.reKyc.Service.LoanNoAuthentication;
@@ -32,6 +34,8 @@ import java.util.*;
 public class ServiceImp implements com.example.reKyc.Service.Service {
 
     @Autowired
+    private LoanDetailsRepository loanDetailsRepository;
+    @Autowired
     private LoanNoAuthentication loanNoAuthentication;
     @Autowired
     private CustomerRepository customerRepository;
@@ -58,49 +62,34 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
     public HashMap<String, String> validateAndSendOtp(String loanNo) {
         HashMap<String, String> otpResponse = new HashMap<>();
-        CustomerDataResponse customerDetails = new CustomerDataResponse();
+        CustomerDataResponse customerDetails;
         try {
 
             Customer customer = customerRepository.getCustomer(loanNo);
             customerDetails = loanNoAuthentication.getCustomerData(customer.getLoanNumber());
-            System.out.println(customerDetails.getMobileNumber());
-            int otpCode = otpUtility.generateOtp(customerDetails);
-            try {
-                if (otpCode > 0 && customerDetails.getMobileNumber()!=null ) {
-                    logger.info("otp generated successfully");
-//                if (otpUtility.sendOtp(customerDetails.getMobileNumber(), otpCode)) {  //stopped sms services
-                    logger.info("otp sent on mobile");
-                    OtpDetails otpDetails = new OtpDetails();
-                    otpDetails.setOtpCode(Long.valueOf(otpCode));
-                    System.out.println(otpCode);
-                    otpDetails.setMobileNo(customerDetails.getMobileNumber());
+            int otpCode = otpUtility.generateOtp(customerDetails.getMobileNumber());
 
-                    otpDetailsRepository.save(otpDetails);
-                    Long otpId = otpDetails.getOtpId();
-                    otpResponse.put("otpCode", String.valueOf(otpCode));
-                    otpResponse.put("otpId", String.valueOf(otpId));
-                    otpResponse.put("mobile", otpDetails.getMobileNo());
-                    otpResponse.put("msg", "Otp send.");
-                    otpResponse.put("code", "0000");
+            if (otpCode > 0 && saveOtpDetail(otpCode, customerDetails.getMobileNumber()) && saveCustomerDetails(customerDetails)) {
+
+//                if (otpUtility.sendOtp(customerDetails.getMobileNumber(), otpCode)) {  //stopped sms services
+                logger.info("otp sent on mobile");
+                otpResponse.put("otpCode", String.valueOf(otpCode));
+                otpResponse.put("mobile", customerDetails.getMobileNumber());
+                otpResponse.put("msg", "Otp send.");
+                otpResponse.put("code", "0000");
 
 //                } else {
 //                    otpResponse.put("msg", "Otp did not send, please try again");
 //                    otpResponse.put("code", "1111");
 //                }
 
-                } else {
-                    otpResponse.put("msg", "Loan no not found");
-                    otpResponse.put("code", "1111");
-                }
-            } catch (Exception e) {
-                System.out.println("==exception while saving otp detail==");
-                otpResponse.put("msg", "Technical issue");
+            } else {
+                otpResponse.put("msg", "Loan no not found");
                 otpResponse.put("code", "1111");
 
             }
-
         } catch (Exception e) {
-            System.out.println("==Loan not not found==");
+            System.out.println("==Loan no not found==");
             otpResponse.put("msg", "Loan no not found");
             otpResponse.put("code", "1111");
 
@@ -108,35 +97,68 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         return otpResponse;
     }
 
-    /**
-     * @param mobileNo
-     * @return
-     */
-    @Override
-    public CustomerDataResponse otpValidation(String mobileNo, String otpCode, String loanNo) {
+    private boolean saveOtpDetail(int otpCode, String mobileNo) {
 
-        CustomerDataResponse customerDetails = new CustomerDataResponse();
+        OtpDetails otpDetails = new OtpDetails();
+        otpDetails.setOtpCode(Long.valueOf(otpCode));
+        System.out.println(otpCode);
+        otpDetails.setMobileNo(mobileNo);
+        try {
+
+            otpDetailsRepository.save(otpDetails);
+            return true;
+        } catch (Exception e) {
+            System.out.println(e);
+            return false;
+        }
+    }
+
+    private boolean saveCustomerDetails(CustomerDataResponse customerDetails) {
+        LoanDetails loanDetails = new LoanDetails();
+
+        loanDetails.setLoanNumber(customerDetails.getLoanNumber());
+        loanDetails.setApplicationNumber(customerDetails.getApplicationNumber());
+        loanDetails.setAadhar(customerDetails.getAadharNumber());
+        loanDetails.setPan(customerDetails.getPanNumber());
+        loanDetails.setCustomerName(customerDetails.getCustomerName());
+        loanDetails.setAddressDetailsResidential(customerDetails.getAddressDetailsResidential());
+        loanDetails.setMobileNumber(customerDetails.getMobileNumber());
+        try {
+            loanDetailsRepository.save(loanDetails);
+            return true;
+
+        } catch (Exception e) {
+            System.out.println(e);
+            return false;
+
+        }
+
+    }
+
+
+    @Override
+    public LoanDetails otpValidation(String mobileNo, String otpCode, String loanNo) {
+
+        LoanDetails loanDetails = new LoanDetails();
         try {
             OtpDetails otpDetails = otpDetailsRepository.IsotpExpired(mobileNo, otpCode);
             Duration duration = Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now());
-//            customerDetails = (duration.toMinutes() > 50) ? customerDetails : customerDetailsRepository.findUserDetailByMobile(mobileNo, loanNo);
-            customerDetails = (duration.toMinutes() > 50) ? customerDetails : loanNoAuthentication.getCustomerData(loanNo);
+            loanDetails = (duration.toMinutes() > 50) ? loanDetails : loanDetailsRepository.getLoanDetail(loanNo);
 
         } catch (Exception e) {
             System.out.println("===Otp invalid==");
         }
-        return customerDetails;
+        return loanDetails;
 
     }
 
     /**
-     * @param inputBase64
-     * @return
+     *
      */
 
 
     @Override
-    public HashMap callFileExchangeServices(InputBase64 inputBase64, String documentType) {
+    public HashMap<String, String> callFileExchangeServices(InputBase64 inputBase64, String documentType) {
 
         HashMap<String, String> documentDetail = new HashMap<>();
         List<String> urls = new ArrayList<>();
@@ -154,15 +176,15 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             }
             if (!(urls.isEmpty())) {
                 if (documentType.equals("aadhar")) {
-                    documentDetail = singzyServices.extractAadharDetails(urls,inputBase64.getDocumentId());
+                    documentDetail = singzyServices.extractAadharDetails(urls, inputBase64.getDocumentId());
                 } else {
-                    documentDetail = singzyServices.extractPanDetails(urls,inputBase64.getDocumentId());
+                    documentDetail = singzyServices.extractPanDetails(urls, inputBase64.getDocumentId());
                 }
             }
         } catch (Exception e) {
 
-            documentDetail.put("code","1111");
-            documentDetail.put("msg","Technical issue");
+            documentDetail.put("code", "1111");
+            documentDetail.put("msg", "Technical issue");
         }
         return documentDetail;
     }
@@ -199,7 +221,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         CommonResponse commonResponse = new CommonResponse();
         try {
             Optional<Customer> customer = customerRepository.findById(loanNo);
-            if (customer != null) {
+            if (customer.isPresent()) {
                 try {
 
                     customerRepository.updateKycFlag(loanNo);
@@ -253,7 +275,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                     }
 
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    System.out.println(e);
                     commonResponse.setCode("1111");
                     commonResponse.setMsg("File upload error.");
                 }
@@ -262,6 +284,41 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
         }
         return commonResponse;
+    }
+
+    @Override
+    public HashMap<String, String> validateAndConfirmSendOtp(String loanNo) {
+        HashMap<String, String> otpResponse = new HashMap<>();
+        try {
+
+            LoanDetails loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
+            int otpCode = otpUtility.generateOtp(loanDetails.getLoanNumber());
+
+            if (otpCode > 0 && saveOtpDetail(otpCode, loanDetails.getMobileNumber())) {
+
+//                if (otpUtility.sendOtp(loanDetails.getMobileNumber(), otpCode,loanNo)) {  //stopped sms services
+                logger.info("otp sent on mobile");
+                otpResponse.put("otpCode", String.valueOf(otpCode));
+                otpResponse.put("mobile", loanDetails.getMobileNumber());
+                otpResponse.put("msg", "Otp send.");
+                otpResponse.put("code", "0000");
+
+//                } else {
+//                    otpResponse.put("msg", "Otp did not send, please try again");
+//                    otpResponse.put("code", "1111");
+//                }
+
+            } else {
+                otpResponse.put("msg", "Loan no not found");
+                otpResponse.put("code", "1111");
+            }
+        } catch (Exception e) {
+            System.out.println("==Loan no not found==");
+            otpResponse.put("msg", "Loan no not found");
+            otpResponse.put("code", "1111");
+        }
+
+        return otpResponse;
     }
 
     public boolean saveUpdatedDetails(UpdateAddress inputUpdateAddress, String fileName) {

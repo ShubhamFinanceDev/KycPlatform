@@ -29,13 +29,13 @@ public class OtpUtility {
     private OtpDetailsRepository otpDetailsRepository;
     private Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
-    public int generateOtp(CustomerDataResponse customerDetails)
+    public int generateOtp(String mobileNo)
     {
         try {
-            int count = otpDetailsRepository.countByMobile(customerDetails.getMobileNumber());
+            int count = otpDetailsRepository.countByMobile(mobileNo);
 
             if (count > 0) {
-                otpDetailsRepository.deletePreviousOtp(customerDetails.getMobileNumber());
+                otpDetailsRepository.deletePreviousOtp(mobileNo);
                 logger.info("previous otp deleted");
             }
             int randomNo = (int) (Math.random() * 900000) + 100000;

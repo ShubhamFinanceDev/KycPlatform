@@ -1,5 +1,6 @@
 package com.example.reKyc.Controller;
 
+import com.example.reKyc.Entity.LoanDetails;
 import com.example.reKyc.Model.CommonResponse;
 import com.example.reKyc.Model.CustomerDataResponse;
 import com.example.reKyc.Model.OtpRequest;
@@ -54,7 +55,7 @@ public class User {
     private Logger logger = LoggerFactory.getLogger(User.class);
 
     @PostMapping("/sendOtp")
-    public HashMap sendOtpOnRegisteredMobile(@RequestBody Map<String, String> inputParam) {
+    public HashMap<String,String> sendOtpOnRegisteredMobile(@RequestBody Map<String, String> inputParam) {
         String loanNo = inputParam.get("loanNo");
         HashMap<String, String> otpResponse = new HashMap<>();
 
@@ -84,28 +85,28 @@ public class User {
         } else {
             try {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(request.getLoanNo());
-                CustomerDataResponse customerDetails = service.otpValidation(request.getMobileNo(), request.getOtpCode(), request.getLoanNo());
-                if (customerDetails.getLoanNumber() != null) {
+                LoanDetails loanDetails = service.otpValidation(request.getMobileNo(), request.getOtpCode(), request.getLoanNo());
+                if (loanDetails.getLoanNumber() != null) {
 
                     String token = this.jwtHelper.generateToken(userDetails);
 
                     jwtResponse.setJwtToken(token);
-                    jwtResponse.setMobileNo(customerDetails.getMobileNumber());
-                    jwtResponse.setAddress(customerDetails.getAddressDetailsResidential());
-                    jwtResponse.setName(customerDetails.getCustomerName());
-                    if (customerDetails.getPanNumber() != null) {
-                        jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPanNumber()));
+                    jwtResponse.setMobileNo(loanDetails.getMobileNumber());
+                    jwtResponse.setAddress(loanDetails.getAddressDetailsResidential());
+                    jwtResponse.setName(loanDetails.getCustomerName());
+                    if (loanDetails.getPan()!= null) {
+                        jwtResponse.setPanNo(maskDocument.documentNoEncryption(loanDetails.getPan()));
                     } else {
                         jwtResponse.setPanNo("NA");
 
                     }
-                    if (customerDetails.getAadharNumber() != null) {
+                    if (loanDetails.getAadhar() != null) {
 
-                        jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadharNumber()));
+                        jwtResponse.setAadharNo(maskDocument.documentNoEncryption(loanDetails.getAadhar()));
                     } else {
                         jwtResponse.setAadharNo("NA");
                     }
-                    jwtResponse.setLoanNo(customerDetails.getLoanNumber());
+                    jwtResponse.setLoanNo(loanDetails.getLoanNumber());
 
                 } else {
                     commonResponse.setMsg("Otp is invalid or expired, please try again.");
@@ -123,6 +124,22 @@ public class User {
         }
     }
 
+    @PostMapping("/confirmSendOtp")
+    public HashMap<String,String> confirmSendOtp(@RequestBody Map<String, String> inputParam) {
+        String loanNo = inputParam.get("loanNo");
+        HashMap<String, String> otpResponse = new HashMap<>();
+
+        if (loanNo.isEmpty()) {
+            otpResponse.put("msg", "Loan number field is empty");
+            otpResponse.put("code", "1111");
+
+        } else {
+            otpResponse = service.validateAndConfirmSendOtp(loanNo);
+
+        }
+        return otpResponse;
+
+    }
 
 }
 

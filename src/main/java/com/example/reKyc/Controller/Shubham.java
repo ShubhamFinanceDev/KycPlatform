@@ -1,5 +1,6 @@
 package com.example.reKyc.Controller;
 
+import com.example.reKyc.Entity.LoanDetails;
 import com.example.reKyc.Model.*;
 import com.example.reKyc.Service.LoanNoAuthentication;
 import com.example.reKyc.Service.Service;
@@ -30,7 +31,7 @@ public class Shubham {
     private OtpUtility otpUtility;
 
     @PostMapping("/addressPreview")
-    public HashMap handleRequest(@RequestBody InputBase64 inputParam) {     //convert base64 into url
+    public HashMap<String,String> handleRequest(@RequestBody InputBase64 inputParam) {     //convert base64 into url
         HashMap<String, String> extractDetail = new HashMap<>();
         CustomerDataResponse customerDetails = new CustomerDataResponse();
 
@@ -84,28 +85,28 @@ public class Shubham {
 
     @PostMapping("/updateAddress")
     public ResponseEntity<CommonResponse> finalUpdate(@RequestBody UpdateAddress inputUpdateAddress) {
-        CustomerDataResponse customerDetails = new CustomerDataResponse();
+        LoanDetails loanDetails = new LoanDetails();
         CommonResponse commonResponse = new CommonResponse();
 
-        if ((inputUpdateAddress.getMobileNo().isBlank() || inputUpdateAddress.getMobileNo() == null) || (inputUpdateAddress.getOtpCode().isBlank() || inputUpdateAddress.getOtpCode() == null) || (inputUpdateAddress.getLoanNo().isBlank() || inputUpdateAddress.getLoanNo() == null) || (inputUpdateAddress.getDocumentType().isBlank() || inputUpdateAddress.getDocumentType() == null) || (inputUpdateAddress.getDocumentId().isBlank() || inputUpdateAddress.getDocumentId() == null)) {
+        if (inputUpdateAddress.getMobileNo().isBlank() || inputUpdateAddress.getOtpCode().isBlank() || inputUpdateAddress.getLoanNo().isBlank() || inputUpdateAddress.getDocumentType().isBlank() || inputUpdateAddress.getDocumentId().isBlank()) {
 
             commonResponse.setMsg("required field is empty.");
             commonResponse.setCode("1111");
         } else {
-            customerDetails = service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo());
+            loanDetails = service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo());
 
-            if (customerDetails.getLoanNumber() == null) {
+            if (loanDetails.getLoanNumber() == null) {
                 commonResponse.setMsg("otp invalid or expire. please try again.");
                 commonResponse.setCode("1111");
-                return new ResponseEntity(commonResponse, HttpStatus.OK);
+                return new ResponseEntity<>(commonResponse, HttpStatus.OK);
 
             } else {
 
-                commonResponse = service.callDdfsService(inputUpdateAddress, customerDetails.getApplicationNumber());
+                commonResponse = service.callDdfsService(inputUpdateAddress, loanDetails.getApplicationNumber());
 
             }
         }
-        return new ResponseEntity(commonResponse, HttpStatus.OK);
+        return new ResponseEntity<>(commonResponse, HttpStatus.OK);
     }
 
     @PostMapping("/disable-kyc-flag")
