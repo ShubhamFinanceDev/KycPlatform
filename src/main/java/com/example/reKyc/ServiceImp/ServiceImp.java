@@ -209,8 +209,10 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
         CommonResponse commonResponse = new CommonResponse();
         try {
-            try {
+            LoanDetails loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
+                try {
 
+                loanDetailsRepository.deleteById(loanDetails.getUserId());
                 customerRepository.updateKycFlag(loanNo);
                 commonResponse.setMsg("Successfully");
                 commonResponse.setCode("0000");
@@ -250,7 +252,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                         }
 
                         otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc); //otp send
-
+                        loanDetailsRepository.deleteById(loanId);  //delete loan detail
                     } else {
                         System.out.println("=== DDFS file upload exception ===");
                         commonResponse.setCode("1111");
