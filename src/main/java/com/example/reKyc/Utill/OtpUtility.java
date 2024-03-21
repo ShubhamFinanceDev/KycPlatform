@@ -48,20 +48,20 @@ public class OtpUtility {
     }
 
 
-    public void sendTextMsg(String mobileNo, String body)
-    {
+    public void sendTextMsg(String mobileNo, String body) {
 
-        String apiUrl=otpUrl+"?method="+otpMethod+"&api_key="+otpKey+"&to="+mobileNo+"&sender="+otpSender+"&message="+body+"&format="+otpFormat;
+        String apiUrl = otpUrl + "?method=" + otpMethod + "&api_key=" + otpKey + "&to=" + mobileNo + "&sender=" + otpSender + "&message=" + body + "&format=" + otpFormat;
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            HashMap<String, String> otpResponse = restTemplate.getForObject(apiUrl, HashMap.class);
 
-        RestTemplate restTemplate=new RestTemplate();
-        HashMap<String,String> otpResponse=restTemplate.getForObject(apiUrl,HashMap.class);
-
-        if(otpResponse.get("status").equals("OK"))
-        {
-            System.out.println("Sms send successfully");
+            if (otpResponse.get("status").equals("OK")) {
+                System.out.println("Sms send successfully");
+            }
+        } catch (Exception e) {
+            System.out.println("error while sending sms");
         }
     }
-
 
 
     public boolean sendOtp(String mobileNo, int otpCode,String loanNo)

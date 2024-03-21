@@ -33,14 +33,15 @@ public class AdminUser {
     private AdminRepository adminRepository;
 
     @RequestMapping(value = "/", method = RequestMethod.GET)
-    public String demo(){
+    public String demo() {
 
         return "Hello programmer";
     }
-    @PostMapping("/invoke-kyc-process-flag")
-    public HashMap<String,String> invokeProcessFlag(@RequestParam("file") MultipartFile file) {
 
-        HashMap<String,String> response=new HashMap<>();
+    @PostMapping("/invoke-kyc-process-flag")
+    public ResponseEntity<HashMap<String, String>> invokeProcessFlag(@RequestParam("file") MultipartFile file) {
+
+        HashMap<String, String> response = new HashMap<>();
         String errorMsg = "";
         try {
 
@@ -67,72 +68,58 @@ public class AdminUser {
                         customer.setKycFlag("Y");
                         customerList.add(customer);
                     } else {
-                        response.put("msg",errorMsg);
-                        response.put("code","1111");
+                        response.put("msg", errorMsg);
+                        response.put("code", "1111");
                         break;
                     }
 
                 }
-                if (errorMsg.isEmpty())
-                {
-                    try {
-                        customerRepository.saveAll(customerList);
-                        response.put("msg", "Successfully uploaded");
-                        response.put("code", "0000");
-                    }
-                    catch (Exception e)
-                    {
-                        response.put("msg", "Technical error");
-                        response.put("code", "1111");
-                    }
+                if (errorMsg.isEmpty()) {
+
+                    customerRepository.saveAll(customerList);
+                    response.put("msg", "Successfully uploaded");
+                    response.put("code", "0000");
                 }
-            }
-            else
-            {
+
+            } else {
                 response.put("msg", "File format error");
                 response.put("code", "1111");
             }
+            return new ResponseEntity<>(response, HttpStatus.OK);
 
         } catch (Exception e) {
             response.put("msg", "Technical issue");
             response.put("code", "1111");
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+
         }
-        return response;
     }
 
+
     @PostMapping("/login")
-    public ResponseEntity<CommonResponse> adminLogin(@RequestBody HashMap<String,String> input)
-    {
-        CommonResponse commonResponse=new CommonResponse();
-        AdminResponse adminResponse=new AdminResponse();
+    public ResponseEntity<CommonResponse> adminLogin(@RequestBody HashMap<String, String> input) {
+        CommonResponse commonResponse = new CommonResponse();
 
-        try
-        {
-           String email=input.get("email");
-           String password=input.get("password");
-           Admin admin=adminRepository.adminAccount(email,password);
+        try {
+            String email = input.get("email");
+            String password = input.get("password");
+            Admin admin = adminRepository.adminAccount(email, password);
 
-            if(admin==null)
-           {
-               commonResponse.setMsg("Credentials did not matched");
-               commonResponse.setCode("1111");
-               return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+            if (admin == null) {
+                commonResponse.setMsg("Credentials did not matched");
+                commonResponse.setCode("1111");
+                return new ResponseEntity<>(commonResponse, HttpStatus.UNAUTHORIZED);
 
-           }
-           else
-           {
-               adminResponse.setMsg("Login successfully");
-               adminResponse.setCode("0000");
-               adminResponse.setUid(admin.getUid());
-               return new ResponseEntity(adminResponse, HttpStatus.OK);
+            } else {
+                commonResponse.setMsg("Login successfully");
+                commonResponse.setCode("0000");
+                return new ResponseEntity<>(commonResponse, HttpStatus.OK);
 
-           }
-        }
-        catch (Exception e)
-        {
+            }
+        } catch (Exception e) {
             commonResponse.setMsg("Technical error.");
             commonResponse.setCode("1111");
-            return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+            return new ResponseEntity<>(commonResponse, HttpStatus.BAD_REQUEST);
 
         }
     }

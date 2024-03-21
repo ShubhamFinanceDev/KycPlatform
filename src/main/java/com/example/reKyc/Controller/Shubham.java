@@ -116,17 +116,19 @@ public class Shubham {
             if (inputParam.containsKey("loanNo") && inputParam.containsKey("mobileNo")) {
                 commonResponse = service.updateCustomerKycFlag(inputParam.get("loanNo"));
                 otpUtility.sendTextMsg(inputParam.get("mobileNo"), SmsTemplate.existingKyc); //otp send
+                return new ResponseEntity<>(commonResponse, HttpStatus.OK);
 
             } else {
                 commonResponse.setCode("1111");
                 commonResponse.setMsg("Required fields are empty");
+                return new ResponseEntity<>(commonResponse, HttpStatus.BAD_REQUEST);
             }
-            return new ResponseEntity<>(commonResponse, HttpStatus.OK);
         } catch (Exception e) {
             commonResponse.setCode("1111");
             commonResponse.setMsg("Something went wrong. please try again");
+            return new ResponseEntity<>(commonResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+
         }
-        return new ResponseEntity<>(commonResponse, HttpStatus.OK);
     }
 
 
