@@ -15,5 +15,4 @@ public interface Service {
     CommonResponse updateCustomerKycFlag(String loanNo);
     CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNo);
 
-    HashMap<String, String> validateAndConfirmSendOtp(String loanNo);
 }

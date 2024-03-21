@@ -124,22 +124,6 @@ public class User {
         }
     }
 
-    @PostMapping("/confirmSendOtp")
-    public HashMap<String,String> confirmSendOtp(@RequestBody Map<String, String> inputParam) {
-        String loanNo = inputParam.get("loanNo");
-        HashMap<String, String> otpResponse = new HashMap<>();
-
-        if (loanNo.isEmpty()) {
-            otpResponse.put("msg", "Loan number field is empty");
-            otpResponse.put("code", "1111");
-
-        } else {
-            otpResponse = service.validateAndConfirmSendOtp(loanNo);
-
-        }
-        return otpResponse;
-
-    }
 
 }
 
