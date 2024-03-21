@@ -1,19 +1,14 @@
 package com.example.reKyc.Utill;
 
 
-import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Model.InputBase64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Base64;
-import java.util.HashMap;
 
 @Component
 public class MaskDocumentAndFile {
@@ -42,6 +37,7 @@ public class MaskDocumentAndFile {
     public boolean compareDocumentNumber(String extractedId, String documentId, String documentType) {
 
         String subExtractedId = extractedId.substring(extractedId.length() - 4, extractedId.length());
+
         boolean comparison = false;
         if (documentType.equals("aadhar")) {
             String aadharNo = documentId.substring(documentId.length() - 4, documentId.length());

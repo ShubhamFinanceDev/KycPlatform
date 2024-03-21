@@ -1,7 +1,8 @@
 package com.example.reKyc.Controller;
 
-import com.example.reKyc.Entity.CustomerDetails;
+import com.example.reKyc.Entity.LoanDetails;
 import com.example.reKyc.Model.CommonResponse;
+import com.example.reKyc.Model.CustomerDataResponse;
 import com.example.reKyc.Model.OtpRequest;
 import com.example.reKyc.Model.JwtResponse;
 import com.example.reKyc.Repository.OtpDetailsRepository;
@@ -11,11 +12,11 @@ import com.example.reKyc.Utill.MaskDocumentAndFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -48,11 +49,13 @@ public class User {
 
     @Autowired
     private MaskDocumentAndFile maskDocument;
-
+    @Autowired
+    @Qualifier("oracleJdbcTemplate")
+    private JdbcTemplate jdbcTemplate;
     private Logger logger = LoggerFactory.getLogger(User.class);
 
     @PostMapping("/sendOtp")
-    public HashMap sendOtpOnRegisteredMobile(@RequestBody Map<String, String> inputParam) {
+    public HashMap<String,String> sendOtpOnRegisteredMobile(@RequestBody Map<String, String> inputParam) {
         String loanNo = inputParam.get("loanNo");
         HashMap<String, String> otpResponse = new HashMap<>();
 
@@ -72,65 +75,55 @@ public class User {
     @PostMapping("/otpVerification")
     public ResponseEntity<JwtResponse> login(@RequestBody OtpRequest request) {
 
-        CommonResponse commonResponse=new CommonResponse();
+        CommonResponse commonResponse = new CommonResponse();
         JwtResponse jwtResponse = new JwtResponse();
-        if(request.getMobileNo().isBlank() || request.getOtpCode().isBlank()) {
+        if (request.getMobileNo().isBlank() || request.getOtpCode().isBlank()) {
             commonResponse.setMsg("Required field is empty.");
             commonResponse.setCode("1111");
-            return new ResponseEntity(commonResponse,HttpStatus.OK);
+            return new ResponseEntity(commonResponse, HttpStatus.OK);
 
-        }
-        else
-        {
+        } else {
             try {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(request.getLoanNo());
-//                this.doAuthenticate(request.getMobileNo(), request.getOtpCode());
-                CustomerDetails customerDetails = service.getCustomerDetail(request.getMobileNo(), request.getOtpCode(),request.getLoanNo());
-                if (customerDetails.getLoanNumber() != null) {
+                LoanDetails loanDetails = service.otpValidation(request.getMobileNo(), request.getOtpCode(), request.getLoanNo());
+                if (loanDetails.getLoanNumber() != null) {
 
                     String token = this.jwtHelper.generateToken(userDetails);
 
                     jwtResponse.setJwtToken(token);
-                    jwtResponse.setMobileNo(customerDetails.getMobileNumber());
-                    jwtResponse.setAddress(customerDetails.getAddressDetailsResidential());
-                    jwtResponse.setName(customerDetails.getCustomerName());
-                    try {
+                    jwtResponse.setMobileNo(loanDetails.getMobileNumber());
+                    jwtResponse.setAddress(loanDetails.getAddressDetailsResidential());
+                    jwtResponse.setName(loanDetails.getCustomerName());
+                    if (loanDetails.getPan()!= null) {
+                        jwtResponse.setPanNo(maskDocument.documentNoEncryption(loanDetails.getPan()));
+                    } else {
+                        jwtResponse.setPanNo("NA");
 
-//                        if (customerDetails.getPan() != null) {
-                            jwtResponse.setPanNo(maskDocument.documentNoEncryption(customerDetails.getPan()));
-//                        } else if (customerDetails.getAadhar() != null) {
-                            jwtResponse.setAadharNo(maskDocument.documentNoEncryption(customerDetails.getAadhar()));
-//                        }
                     }
-                    catch (Exception e){
-                        System.out.println(e);
+                    if (loanDetails.getAadhar() != null) {
+
+                        jwtResponse.setAadharNo(maskDocument.documentNoEncryption(loanDetails.getAadhar()));
+                    } else {
+                        jwtResponse.setAadharNo("NA");
                     }
-                    jwtResponse.setLoanNo(customerDetails.getLoanNumber());
+                    jwtResponse.setLoanNo(loanDetails.getLoanNumber());
 
                 } else {
                     commonResponse.setMsg("Otp is invalid or expired, please try again.");
                     commonResponse.setCode("1111");
-                    return new ResponseEntity(commonResponse,HttpStatus.OK);
+                    return new ResponseEntity(commonResponse, HttpStatus.OK);
 
                 }
                 return new ResponseEntity(jwtResponse, HttpStatus.OK);
 
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 commonResponse.setMsg("Mobile Number is not valid.");
                 commonResponse.setCode("1111");
-                return new ResponseEntity(commonResponse,HttpStatus.OK);
+                return new ResponseEntity(commonResponse, HttpStatus.OK);
             }
         }
     }
 
-    @PostMapping("/invoke-kyc-process-flag")
-    public String invokeProcessFlag(@RequestParam("file") MultipartFile file)
-    {
-      return   service.enableProcessFlag(file);
-    }
 
 }
-
 

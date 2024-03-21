@@ -1,6 +1,6 @@
 package com.example.reKyc.Utill;
 
-import com.example.reKyc.Entity.CustomerDetails;
+import com.example.reKyc.Model.CustomerDataResponse;
 import com.example.reKyc.Repository.OtpDetailsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,13 +29,13 @@ public class OtpUtility {
     private OtpDetailsRepository otpDetailsRepository;
     private Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
-    public int generateOtp(CustomerDetails customerDetails)
+    public int generateOtp(String mobileNo)
     {
         try {
-            int count = otpDetailsRepository.countByMobile(customerDetails.getMobileNumber());
+            int count = otpDetailsRepository.countByMobile(mobileNo);
 
             if (count > 0) {
-                otpDetailsRepository.deletePreviousOtp(customerDetails.getMobileNumber());
+                otpDetailsRepository.deletePreviousOtp(mobileNo);
                 logger.info("previous otp deleted");
             }
             int randomNo = (int) (Math.random() * 900000) + 100000;
@@ -48,23 +48,37 @@ public class OtpUtility {
     }
 
 
-    public boolean sendOtp(String mobileNo, int otpCode)
+    public void sendTextMsg(String mobileNo, String body)
     {
-        boolean status=false;
-        String otpMsg="Your E-Nach Registration OTP is "+otpCode+" for Loan XXXXXXXXXXXXXX046174.\n" +
-                "Regards\n" +
-                "Shubham Housing Development Finance Company";
 
-        String apiUrl=otpUrl+"?method="+otpMethod+"&api_key="+otpKey+"&to="+mobileNo+"&sender="+otpSender+"&message="+otpMsg+"&format="+otpFormat;
+        String apiUrl=otpUrl+"?method="+otpMethod+"&api_key="+otpKey+"&to="+mobileNo+"&sender="+otpSender+"&message="+body+"&format="+otpFormat;
 
         RestTemplate restTemplate=new RestTemplate();
         HashMap<String,String> otpResponse=restTemplate.getForObject(apiUrl,HashMap.class);
 
         if(otpResponse.get("status").equals("OK"))
         {
-            status=true;
+            System.out.println("Sms send successfully");
         }
-        return status;
     }
 
+
+
+    public boolean sendOtp(String mobileNo, int otpCode,String loanNo)
+    {
+            String subStringLoanNo=loanNo.substring(loanNo.length()-5,loanNo.length());
+            String smsBody ="Your E-Nach Registration OTP is "+otpCode+" for Loan XXXXXXXXXXXXXX"+subStringLoanNo+".\n" +
+                        "Regards\n" +
+                        "Shubham Housing Development Finance Company";
+            try
+            {
+                sendTextMsg(mobileNo,smsBody);
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+
+    }
 }

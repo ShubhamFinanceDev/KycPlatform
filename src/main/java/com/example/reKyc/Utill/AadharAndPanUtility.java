@@ -2,6 +2,7 @@ package com.example.reKyc.Utill;
 
 
 import com.example.reKyc.Model.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -17,6 +18,8 @@ import java.util.Map;
 @Service
 public class AadharAndPanUtility {
 
+    @Autowired
+    private MaskDocumentAndFile maskDocumentAndFile;
     @Value("${singzy.fileExchange}")
     private String fileExchangeBase64Url;
 
@@ -77,7 +80,7 @@ public class AadharAndPanUtility {
         return urlResponse;
     }
 
-    public HashMap extractAadharDetails(List<String> urls) {
+    public HashMap extractAadharDetails(List<String> urls, String documentId) {
 
         HashMap<String, List> inputBody = new HashMap<>();
         inputBody.put("files", urls);
@@ -92,15 +95,18 @@ public class AadharAndPanUtility {
             aadharResponse = restTemplate.postForObject(extractAadharUrl, requestEntity, AadharResponse.class);
 
             if (!(aadharResponse.getResult().getUid().isBlank()) && !(aadharResponse.getResult().getName().isBlank()) && !(aadharResponse.getResult().getAddress().isBlank()) && aadharResponse.getResult().isValidBackAndFront()) {
-
-                System.out.println(aadharResponse);
-                addressPreview.put("code", "0000");
-                addressPreview.put("msg", "File extracted successfully");
-                addressPreview.put("name", aadharResponse.getResult().getName());
-                addressPreview.put("address", aadharResponse.getResult().getAddress());
-                addressPreview.put("dateOfBirth", aadharResponse.getResult().getDateOfBirth());
-                addressPreview.put("uid", aadharResponse.getResult().getUid());
-
+                if (maskDocumentAndFile.compareDocumentNumber(aadharResponse.getResult().getUid(), documentId, "aadhar")) {
+                    System.out.println(aadharResponse);
+                    addressPreview.put("code", "0000");
+                    addressPreview.put("msg", "File extracted successfully");
+                    addressPreview.put("name", aadharResponse.getResult().getName());
+                    addressPreview.put("address", aadharResponse.getResult().getAddress());
+                    addressPreview.put("dateOfBirth", aadharResponse.getResult().getDateOfBirth());
+                    addressPreview.put("uid", aadharResponse.getResult().getUid());
+                } else {
+                    addressPreview.put("msg", "The uploaded document does not match the loan number");
+                    addressPreview.put("code", "1111");
+                }
 
             } else {
                 addressPreview.put("code", "1111");
@@ -114,7 +120,7 @@ public class AadharAndPanUtility {
         return addressPreview;
     }
 
-    public HashMap extractPanDetails(List<String> urls) {
+    public HashMap extractPanDetails(List<String> urls, String documentId) {
 
         HashMap<String, Object> inputBody = new HashMap<>();
         inputBody.put("files", urls);
@@ -131,16 +137,20 @@ public class AadharAndPanUtility {
             ResponseEntity<PanCardResponse> extractPanResponse = restTemplate.postForEntity(extractPanUrl, requestEntity, PanCardResponse.class);
 
             if (extractPanResponse.getStatusCode().toString().contains("200")) {
+                if (maskDocumentAndFile.compareDocumentNumber(extractPanResponse.getBody().getResult().getNumber(), documentId, "pan")) {
 
-                System.out.println("Response-" + extractPanResponse.getBody().getResult());
-                System.out.println("staus" + extractPanResponse.getStatusCode());
-
-                panResponse.put("code", "0000");
-                panResponse.put("msg", "File extracted successfully");
-                panResponse.put("name", extractPanResponse.getBody().getResult().getName());
-//          panResponse.put("address", aadharResponse.getResult().getAddress());
-                panResponse.put("dateOfBirth", extractPanResponse.getBody().getResult().getDob());
-                panResponse.put("uid", extractPanResponse.getBody().getResult().getNumber());
+                    System.out.println("Response-" + extractPanResponse.getBody().getResult());
+                    System.out.println("staus" + extractPanResponse.getStatusCode());
+                    panResponse.put("code", "0000");
+                    panResponse.put("msg", "File extracted successfully");
+                    panResponse.put("name", extractPanResponse.getBody().getResult().getName());
+//                  panResponse.put("address", aadharResponse.getResult().getAddress());
+                    panResponse.put("dateOfBirth", extractPanResponse.getBody().getResult().getDob());
+                    panResponse.put("uid", extractPanResponse.getBody().getResult().getNumber());
+                } else {
+                    panResponse.put("code", "1111");
+                    panResponse.put("msg", "File did not extracted, please try again");
+                }
             }
 
         } catch (Exception e) {
