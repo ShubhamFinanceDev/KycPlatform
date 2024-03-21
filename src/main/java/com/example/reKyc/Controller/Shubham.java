@@ -102,7 +102,7 @@ public class Shubham {
 
             } else {
 
-                commonResponse = service.callDdfsService(inputUpdateAddress, loanDetails.getApplicationNumber());
+                commonResponse = service.callDdfsService(inputUpdateAddress, loanDetails.getApplicationNumber(),loanDetails.getUserId());
 
             }
         }

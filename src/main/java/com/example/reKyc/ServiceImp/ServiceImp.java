@@ -229,7 +229,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     @Override
-    public CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNO) {
+    public CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNO,Long loanId) {
         CommonResponse commonResponse = new CommonResponse();
 
         File folder = new File(file_path);
@@ -250,7 +250,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                         }
 
                         otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc); //otp send
-
+                        loanDetailsRepository.deleteById(loanId);  //delete loan detail
                     } else {
                         System.out.println("=== DDFS file upload exception ===");
                         commonResponse.setCode("1111");
