@@ -65,10 +65,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     return;
 
                 } catch (ExpiredJwtException e) {
-                    logger.info("Given jwt token is expired !!");
+                    logger.info("Session has been expired !!");
                     e.printStackTrace();
                     errorMsg.put("code", "1111");
-                    errorMsg.put("msg", "Given jwt token is expired !!");
+                    errorMsg.put("msg", "Session has been expired !!");
                     response.getWriter().write(objectMapper.writeValueAsString(errorMsg));
                     response.getWriter().flush();
                     return;
@@ -92,7 +92,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 logger.info("Authorisation required !! ");
                 errorMsg.put("code", "1111");
-                errorMsg.put("msg", "Invalid Header Value !!");
+                errorMsg.put("msg", "Authorisation required !!");
                 response.getWriter().write(objectMapper.writeValueAsString(errorMsg));
                 response.getWriter().flush();
 
