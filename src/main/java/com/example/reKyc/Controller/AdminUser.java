@@ -82,7 +82,6 @@ public class AdminUser {
                     }
                     catch (Exception e)
                     {
-                        System.out.println(e);
                         response.put("msg", "Technical error");
                         response.put("code", "1111");
                     }
@@ -95,7 +94,8 @@ public class AdminUser {
             }
 
         } catch (Exception e) {
-            errorMsg = "failure:" + e;
+            response.put("msg", "Technical issue");
+            response.put("code", "1111");
         }
         return response;
     }

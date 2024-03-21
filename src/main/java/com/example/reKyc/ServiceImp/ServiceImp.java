@@ -201,30 +201,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     }
 
 
-//    public CustomerDetails checkExtractedDocumentId(String loanNo, String documentId, String documentType) {
-//        CustomerDetails customerDetails = new CustomerDetails();
-//        try {
-//            if (documentType.equals("aadhar")) {
-//
-//                customerDetails = customerDetailsRepository.checkCustomerAadharNo(loanNo, documentId);
-//
-//            }
-//            if (documentType.equals("pan")) {
-//
-//                customerDetails = customerDetailsRepository.checkCustomerPanNo(loanNo, documentId);
-//            }
-//
-//        } catch (Exception e) {
-//            System.out.println(e);
-//        }
-//        return customerDetails;
-//
-//    }
-
-
     /**
-     * @param loanNo
-     * @return
      */
     @Override
     public CommonResponse updateCustomerKycFlag(String loanNo) {
@@ -252,9 +229,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         return commonResponse;
     }
 
-    /**
-     * @return
-     */
+
     @Override
     public CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNO) {
         CommonResponse commonResponse = new CommonResponse();
