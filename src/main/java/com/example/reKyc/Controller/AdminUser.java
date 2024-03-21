@@ -72,7 +72,6 @@ public class AdminUser {
                         response.put("code", "1111");
                         break;
                     }
-
                 }
                 if (errorMsg.isEmpty()) {
 
@@ -80,19 +79,17 @@ public class AdminUser {
                     response.put("msg", "Successfully uploaded");
                     response.put("code", "0000");
                 }
-
             } else {
                 response.put("msg", "File format error");
                 response.put("code", "1111");
             }
-            return new ResponseEntity<>(response, HttpStatus.OK);
 
         } catch (Exception e) {
             response.put("msg", "Technical issue");
             response.put("code", "1111");
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-
         }
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
     }
 
 
@@ -108,20 +105,18 @@ public class AdminUser {
             if (admin == null) {
                 commonResponse.setMsg("Credentials did not matched");
                 commonResponse.setCode("1111");
-                return new ResponseEntity<>(commonResponse, HttpStatus.UNAUTHORIZED);
 
             } else {
                 commonResponse.setMsg("Login successfully");
                 commonResponse.setCode("0000");
-                return new ResponseEntity<>(commonResponse, HttpStatus.OK);
-
             }
         } catch (Exception e) {
             commonResponse.setMsg("Technical error.");
             commonResponse.setCode("1111");
-            return new ResponseEntity<>(commonResponse, HttpStatus.BAD_REQUEST);
 
         }
+        return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+
     }
 }
 

@@ -9,6 +9,7 @@ import com.example.reKyc.Utill.OtpUtility;
 import com.example.reKyc.Utill.SmsTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +32,7 @@ public class Shubham {
     private OtpUtility otpUtility;
 
     @PostMapping("/addressPreview")
-    public HashMap<String,String> handleRequest(@RequestBody InputBase64 inputParam) {     //convert base64 into url
+    public HashMap<String, String> handleRequest(@RequestBody InputBase64 inputParam) {     //convert base64 into url
         HashMap<String, String> extractDetail = new HashMap<>();
         CustomerDataResponse customerDetails = new CustomerDataResponse();
 
@@ -50,8 +51,7 @@ public class Shubham {
 //                customerDetails = service.checkExtractedDocumentId(inputParam.getLoanNo(), inputParam.getDocumentId(), inputParam.getDocumentType());
                 customerDetails = loanNoAuthentication.getCustomerData(inputParam.getLoanNo());
 
-                if (customerDetails != null && ((inputParam.getDocumentType().contains("pan") && customerDetails.getPanNumber().equals(inputParam.getDocumentId())) || (inputParam.getDocumentType().contains("aadhar") && customerDetails.getAadharNumber().equals(inputParam.getDocumentId()))))
-                {
+                if (customerDetails != null && ((inputParam.getDocumentType().contains("pan") && customerDetails.getPanNumber().equals(inputParam.getDocumentId())) || (inputParam.getDocumentType().contains("aadhar") && customerDetails.getAadharNumber().equals(inputParam.getDocumentId())))) {
                     extractDetail = service.callFileExchangeServices(inputParam, inputParam.getDocumentType());      //convert file base 64 into url also extract details
 
                     if (extractDetail.get("code").equals("0000")) {
@@ -102,7 +102,7 @@ public class Shubham {
 
             } else {
 
-                commonResponse = service.callDdfsService(inputUpdateAddress, loanDetails.getApplicationNumber(),loanDetails.getUserId());
+                commonResponse = service.callDdfsService(inputUpdateAddress, loanDetails.getApplicationNumber(), loanDetails.getUserId());
 
             }
         }
@@ -116,19 +116,17 @@ public class Shubham {
             if (inputParam.containsKey("loanNo") && inputParam.containsKey("mobileNo")) {
                 commonResponse = service.updateCustomerKycFlag(inputParam.get("loanNo"));
                 otpUtility.sendTextMsg(inputParam.get("mobileNo"), SmsTemplate.existingKyc); //otp send
-                return new ResponseEntity<>(commonResponse, HttpStatus.OK);
 
             } else {
                 commonResponse.setCode("1111");
                 commonResponse.setMsg("Required fields are empty");
-                return new ResponseEntity<>(commonResponse, HttpStatus.BAD_REQUEST);
             }
         } catch (Exception e) {
             commonResponse.setCode("1111");
             commonResponse.setMsg("Something went wrong. please try again");
-            return new ResponseEntity<>(commonResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-
         }
+        return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+
     }
 
 
