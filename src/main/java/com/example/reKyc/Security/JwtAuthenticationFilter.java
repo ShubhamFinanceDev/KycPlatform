@@ -27,7 +27,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtHelper jwtHelper;
-    private Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
+    private final Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
 
     @Autowired
@@ -44,7 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String requestHeader = request.getHeader("Authorization");
             logger.info(" Header :  {}" + requestHeader);
             String username = null;
-            String token = null;
+            String token ;
             HashMap<String, Object> errorMsg = new HashMap<>();
             response.setContentType("application/json");
 
@@ -61,6 +61,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     errorMsg.put("code", "1111");
                     errorMsg.put("msg", "Illegal Argument while fetching the username !!");
                     response.getWriter().write(objectMapper.writeValueAsString(errorMsg));
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.getWriter().flush();
                     return;
 
@@ -70,6 +71,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     errorMsg.put("code", "1111");
                     errorMsg.put("msg", "Session has been expired !!");
                     response.getWriter().write(objectMapper.writeValueAsString(errorMsg));
+                    response.setStatus(HttpServletResponse.SC_REQUEST_TIMEOUT);
                     response.getWriter().flush();
                     return;
 
@@ -79,6 +81,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     errorMsg.put("code", "1111");
                     errorMsg.put("msg", "Some changed has done in token !! Invalid Token");
                     response.getWriter().write(objectMapper.writeValueAsString(errorMsg));
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.getWriter().flush();
                     return;
 
@@ -94,6 +97,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 errorMsg.put("code", "1111");
                 errorMsg.put("msg", "Authorisation required !!");
                 response.getWriter().write(objectMapper.writeValueAsString(errorMsg));
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().flush();
 
                 return;
