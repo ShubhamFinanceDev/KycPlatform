@@ -42,7 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (request.getRequestURI().startsWith("/shubham")) {
 
             String requestHeader = request.getHeader("Authorization");
-            logger.info(" Header :  {}" + requestHeader);
+            logInfo(" Header :  {}" + requestHeader);
             String username = null;
             String token ;
             HashMap<String, Object> errorMsg = new HashMap<>();
@@ -56,8 +56,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     username = this.jwtHelper.getUsernameFromToken(token);
 
                 } catch (IllegalArgumentException e) {
-                    logger.info("Illegal Argument while fetching the username !!");
-                    e.printStackTrace();
+                    logInfo("Illegal Argument while fetching the username !!");
+                    logger.error(e.toString());
                     errorMsg.put("code", "1111");
                     errorMsg.put("msg", "Illegal Argument while fetching the username !!");
                     response.getWriter().write(objectMapper.writeValueAsString(errorMsg));
@@ -66,8 +66,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     return;
 
                 } catch (ExpiredJwtException e) {
-                    logger.info("Session has been expired !!");
-                    e.printStackTrace();
+                    logInfo("Session has been expired !!");
+                    logger.error(e.toString());
                     errorMsg.put("code", "1111");
                     errorMsg.put("msg", "Session has been expired !!");
                     response.getWriter().write(objectMapper.writeValueAsString(errorMsg));
@@ -76,8 +76,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     return;
 
                 } catch (MalformedJwtException e) {
-                    logger.info("Some changed has done in token !! Invalid Token");
-                    e.printStackTrace();
+                    logInfo("Some changed has done in token !! Invalid Token");
+                    logger.error(e.toString());
                     errorMsg.put("code", "1111");
                     errorMsg.put("msg", "Some changed has done in token !! Invalid Token");
                     response.getWriter().write(objectMapper.writeValueAsString(errorMsg));
@@ -86,14 +86,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     return;
 
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error(e.toString());
+
 
                 }
 
 
             } else {
 
-                logger.info("Authorisation required !! ");
+                logInfo("Authorisation required !! ");
                 errorMsg.put("code", "1111");
                 errorMsg.put("msg", "Authorisation required !!");
                 response.getWriter().write(objectMapper.writeValueAsString(errorMsg));
@@ -119,7 +120,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
                 } else {
-                    logger.info("Validation fails !!");
+                    logInfo("Validation fails !!");
                 }
 
 
@@ -128,6 +129,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
 
+
+    }
+
+    private void logInfo(String msg)
+    {
+        logger.info(msg);
 
     }
 }
