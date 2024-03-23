@@ -26,9 +26,9 @@ public class SecurityConfig  {
                 .requestMatchers("/shubham/**").authenticated()
                 .anyRequest()
                 .authenticated().and()
+                .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
 //                .and().exceptionHandling(ex -> ex.authenticationEntryPoint(point))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        http.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

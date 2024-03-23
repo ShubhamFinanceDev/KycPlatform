@@ -39,8 +39,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
 
-        if (request.getRequestURI().startsWith("/shubham")) {
-
             String requestHeader = request.getHeader("Authorization");
             logInfo(" Header :  {}" + requestHeader);
             String username = null;
@@ -125,7 +123,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
             }
-        }
 
         filterChain.doFilter(request, response);
 
