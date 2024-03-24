@@ -1,6 +1,5 @@
 package com.example.reKyc.Utill;
 
-import com.example.reKyc.Model.CustomerDataResponse;
 import com.example.reKyc.Repository.OtpDetailsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +26,7 @@ public class OtpUtility {
 
     @Autowired
     private OtpDetailsRepository otpDetailsRepository;
-    private Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
+    private final Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
     public int generateOtp(String mobileNo)
     {
@@ -54,12 +53,21 @@ public class OtpUtility {
         String apiUrl=otpUrl+"?method="+otpMethod+"&api_key="+otpKey+"&to="+mobileNo+"&sender="+otpSender+"&message="+body+"&format="+otpFormat;
 
         RestTemplate restTemplate=new RestTemplate();
-        HashMap<String,String> otpResponse=restTemplate.getForObject(apiUrl,HashMap.class);
+      try {
 
-        if(otpResponse.get("status").equals("OK"))
-        {
-            System.out.println("Sms send successfully");
-        }
+
+          HashMap<String, String> otpResponse = restTemplate.getForObject(apiUrl, HashMap.class);
+
+          assert otpResponse != null;
+          if (otpResponse.get("status").equals("OK")) {
+              System.out.println("Sms send successfully");
+          }
+      }
+      catch (Exception e)
+      {
+          System.out.println(e);
+      }
+
     }
 
 
