@@ -70,17 +70,17 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 String phoneNo = saveCustomerDetails(customer.getLoanNumber());
                 int otpCode = otpUtility.generateOtp(phoneNo);
                 if (otpCode > 0 && saveOtpDetail(otpCode, phoneNo)) {
-                  if (otpUtility.sendOtp(phoneNo, otpCode,loanNo)) {  //stopped sms services
-                    logger.info("otp sent on mobile");
-                    otpResponse.put("otpCode", String.valueOf(otpCode));
-                    otpResponse.put("mobile", phoneNo);
-                    otpResponse.put("msg", "Otp send.");
-                    otpResponse.put("code", "0000");
+                    if (otpUtility.sendOtp(phoneNo, otpCode, loanNo)) {  //stopped sms services
+                        logger.info("otp sent on mobile");
+                        otpResponse.put("otpCode", String.valueOf(otpCode));
+                        otpResponse.put("mobile", phoneNo);
+                        otpResponse.put("msg", "Otp send.");
+                        otpResponse.put("code", "0000");
 
-                } else {
-                    otpResponse.put("msg", "Please try again");
-                    otpResponse.put("code", "1111");
-                }
+                    } else {
+                        otpResponse.put("msg", "Please try again");
+                        otpResponse.put("code", "1111");
+                    }
 
                 } else {
                     otpResponse.put("msg", "Please try again");
@@ -210,7 +210,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         CommonResponse commonResponse = new CommonResponse();
         try {
             LoanDetails loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
-                try {
+            try {
 
                 loanDetailsRepository.deleteById(loanDetails.getUserId());
                 customerRepository.updateKycFlag(loanNo);
@@ -231,13 +231,14 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     @Override
-    public CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNO,Long loanId) {
+    public CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNO, Long loanId) {
         CommonResponse commonResponse = new CommonResponse();
 
         File folder = new File(file_path);
         File[] listOfFiles = folder.listFiles();
         String base64String = null;
 
+        assert listOfFiles != null;
         for (File file : listOfFiles) {
             if (file.getName().contains(inputAddress.getLoanNo())) {
 
@@ -265,9 +266,12 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                     commonResponse.setCode("1111");
                     commonResponse.setMsg("File upload error.");
                 }
-                System.out.println(file.getName());
-            }
+                File fileToDelete = new File(file_path + file.getName());
+                if (fileToDelete.delete()) {
+                    System.out.println(file.getName() + "file removed from directory");
 
+                }
+            }
         }
         return commonResponse;
     }

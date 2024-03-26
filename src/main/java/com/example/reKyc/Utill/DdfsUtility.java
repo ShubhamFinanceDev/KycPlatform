@@ -77,10 +77,9 @@ public class DdfsUtility {
 
 
     public Boolean callDDFSApi(byte[] base64String, String applicationNo) {
-        Boolean status = false;
+        boolean status = false;
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         try {
-            String filePath = "src/main/resources/string.txt";
 
             formData.add("token", generateDDFSKey());
             formData.add("clientId", "SHUBHAM/OP");
@@ -101,9 +100,6 @@ public class DdfsUtility {
             if (responseBody.getStatusCode().toString().contains("200") && responseBody.getBody().get("status").toString().contains("SUCCESS")) {
                 System.out.println("Response from the DDFS API: " + responseBody.getBody().get("status"));
                 status = true;
-
-            } else {
-                status = false;
 
             }
             System.out.println("ddfs response " + responseBody.getBody());

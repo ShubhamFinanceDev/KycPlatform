@@ -110,7 +110,7 @@ public class AadharAndPanUtility {
 
             } else {
                 addressPreview.put("code", "1111");
-                addressPreview.put("msg", "File did not extracted, please try again");
+                addressPreview.put("msg", "Uploaded file is not valid, please try again");
             }
         } catch (Exception e) {
             System.out.println(e);

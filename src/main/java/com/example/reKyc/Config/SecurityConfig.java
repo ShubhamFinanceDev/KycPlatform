@@ -11,8 +11,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 @Configuration
-public class SecurityConfig  {
+public class SecurityConfig {
 
     @Autowired
     private JwtAuthenticationFilter filter;
@@ -20,25 +21,26 @@ public class SecurityConfig  {
     private UserDetailsService userDetailsService;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private ExceptionPoint point;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
+
         http.csrf(csrf -> csrf.disable())
-                .authorizeRequests()
-                .requestMatchers("/userKyc/**").permitAll()
-                .requestMatchers("/admin/**").permitAll()
-                .requestMatchers("/shubham/**").authenticated()
+                .authorizeRequests().
+                requestMatchers("/shubham").authenticated().requestMatchers("/userKyc/**", "/admin/**").permitAll()
                 .anyRequest()
-                .authenticated().and()
-//                .and().exceptionHandling(ex -> ex.authenticationEntryPoint(point))
+                .authenticated()
+                .and().exceptionHandling(ex -> ex.authenticationEntryPoint(point))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
-    public DaoAuthenticationProvider  daoAuthenticationProvider()
-    {
-        DaoAuthenticationProvider daoAuthenticationProvider=new DaoAuthenticationProvider();
+    public DaoAuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
         daoAuthenticationProvider().setUserDetailsService(userDetailsService);
 //        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
         return daoAuthenticationProvider;
