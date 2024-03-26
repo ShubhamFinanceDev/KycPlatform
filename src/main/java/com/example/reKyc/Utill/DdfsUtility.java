@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -75,7 +76,7 @@ public class DdfsUtility {
     }
 
 
-    public Boolean callDDFSApi(String base64String, String applicationNo) {
+    public Boolean callDDFSApi(byte[] base64String, String applicationNo) {
         Boolean status = false;
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         try {
@@ -90,7 +91,7 @@ public class DdfsUtility {
             formData.add("remarks", "aadhar");
             formData.add("maker", "06799");
             formData.add("path", "HOBR/APF under-Constructi");
-            formData.add("document",filePath);
+            formData.add("document", Base64.getEncoder().encodeToString(base64String));
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
