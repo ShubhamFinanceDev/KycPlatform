@@ -88,7 +88,7 @@ public class DdfsUtility {
             formData.add("remarks", "aadhar");
             formData.add("maker", "06799");
             formData.add("path", "HOBR/APF under-Constructi");
-            formData.add("document", document);
+            formData.add("document", "");
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
