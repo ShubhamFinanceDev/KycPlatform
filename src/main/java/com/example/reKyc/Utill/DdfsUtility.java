@@ -75,7 +75,7 @@ public class DdfsUtility {
     }
 
 
-    public Boolean callDDFSApi(String document, String applicationNo) {
+    public Boolean callDDFSApi(String base64String, String applicationNo) {
         Boolean status = false;
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         try {
@@ -88,7 +88,7 @@ public class DdfsUtility {
             formData.add("remarks", "aadhar");
             formData.add("maker", "06799");
             formData.add("path", "HOBR/APF under-Constructi");
-            formData.add("document", "");
+            formData.add("document",base64String);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
