@@ -243,9 +243,9 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
                 try {
                     byte[] fileBytes = Files.readAllBytes(Paths.get((file_path + file.getName())));
-                    base64String = Base64.getEncoder().encodeToString(fileBytes);
+//                    base64String = Base64.getEncoder().encodeToString(fileBytes);
 //                System.out.println("Base64 representation of the file:\n" + base64String);
-                    if (ddfsUtility.callDDFSApi(base64String, applicationNO)) {
+                    if (ddfsUtility.callDDFSApi(fileBytes, applicationNO)) {
 
                         if (saveUpdatedDetails(inputAddress, applicationNO)) {
                             System.out.println("=== data has been updated in db ===");

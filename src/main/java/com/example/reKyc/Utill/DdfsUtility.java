@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -75,10 +76,12 @@ public class DdfsUtility {
     }
 
 
-    public Boolean callDDFSApi(String document, String applicationNo) {
+    public Boolean callDDFSApi(byte[] base64String, String applicationNo) {
         Boolean status = false;
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         try {
+            String filePath = "src/main/resources/string.txt";
+
             formData.add("token", generateDDFSKey());
             formData.add("clientId", "SHUBHAM/OP");
             formData.add("file", applicationNo);
@@ -88,12 +91,12 @@ public class DdfsUtility {
             formData.add("remarks", "aadhar");
             formData.add("maker", "06799");
             formData.add("path", "HOBR/APF under-Constructi");
-            formData.add("document", document);
+            formData.add("document", Base64.getEncoder().encodeToString(base64String));
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
             HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formData, headers);
-
+            System.out.println("from-request-"+requestEntity);
             ResponseEntity<HashMap> responseBody = restTemplate.postForEntity(ddfsUrl, requestEntity, HashMap.class);
 
             if (responseBody.getStatusCode().toString().contains("200") && responseBody.getBody().get("status").toString().contains("SUCCESS")) {
