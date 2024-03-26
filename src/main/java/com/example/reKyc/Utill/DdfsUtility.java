@@ -79,6 +79,8 @@ public class DdfsUtility {
         Boolean status = false;
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         try {
+            String filePath = "src/main/resources/string.txt";
+
             formData.add("token", generateDDFSKey());
             formData.add("clientId", "SHUBHAM/OP");
             formData.add("file", applicationNo);
@@ -88,12 +90,12 @@ public class DdfsUtility {
             formData.add("remarks", "aadhar");
             formData.add("maker", "06799");
             formData.add("path", "HOBR/APF under-Constructi");
-            formData.add("document",base64String);
+            formData.add("document",filePath);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
             HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formData, headers);
-
+            System.out.println("from-request-"+requestEntity);
             ResponseEntity<HashMap> responseBody = restTemplate.postForEntity(ddfsUrl, requestEntity, HashMap.class);
 
             if (responseBody.getStatusCode().toString().contains("200") && responseBody.getBody().get("status").toString().contains("SUCCESS")) {
