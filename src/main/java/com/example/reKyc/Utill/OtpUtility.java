@@ -67,7 +67,7 @@ public class OtpUtility {
     public boolean sendOtp(String mobileNo, int otpCode,String loanNo)
     {
             String subStringLoanNo=loanNo.substring(loanNo.length()-5,loanNo.length());
-            String smsBody ="Your E-Nach Registration OTP is "+otpCode+" for Loan XXXXXXXXXXXXXX"+subStringLoanNo+".\n" +
+            String smsBody ="Dear Customer, Your Rekyc OTP is "+otpCode+" for Loan XXXXXXXXXXXXXX"+subStringLoanNo+".\n" +
                         "Regards\n" +
                         "Shubham Housing Development Finance Company";
             try
