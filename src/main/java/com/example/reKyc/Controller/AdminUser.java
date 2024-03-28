@@ -4,8 +4,10 @@ import com.example.reKyc.Entity.Admin;
 import com.example.reKyc.Entity.Customer;
 import com.example.reKyc.Model.AdminResponse;
 import com.example.reKyc.Model.CommonResponse;
+import com.example.reKyc.Model.KycCountUpload;
 import com.example.reKyc.Repository.AdminRepository;
 import com.example.reKyc.Repository.CustomerRepository;
+import com.example.reKyc.Service.Service;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,8 @@ import java.util.List;
 @Controller
 public class AdminUser {
 
+    @Autowired
+    private Service service;
     @Autowired
     private CustomerRepository customerRepository;
     @Autowired
@@ -136,6 +140,25 @@ public class AdminUser {
 
         }
     }
+
+    @GetMapping("/kycCount")
+    public ResponseEntity<KycCountUpload> kycCount(){
+
+        KycCountUpload count = new KycCountUpload();
+        CommonResponse commonResponse = new CommonResponse();
+
+        try {
+             count = service.kycCount();
+
+            return new ResponseEntity<>( count,HttpStatus.OK);
+        }
+        catch (Exception e){
+            commonResponse.setCode("1111");
+            commonResponse.setMsg("Something went wrong. please try again");
+        }
+        return new ResponseEntity( commonResponse,HttpStatus.OK);
+    }
+
 }
 
 

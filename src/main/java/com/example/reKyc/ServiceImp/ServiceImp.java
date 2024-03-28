@@ -295,4 +295,24 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         }
     }
 
+
+    @Override
+    public KycCountUpload kycCount() {
+
+        try {
+            KycCountUpload kycCount=new KycCountUpload();
+            Integer existingCount = customerRepository.getKycCountDetail();
+            Integer updatedCount=  updatedDetailsRepository.getUpdatedCount();
+            kycCount.setUpdatedKyc(updatedCount);
+            kycCount.setExistingKyc(existingCount);
+
+            return kycCount;
+
+        }catch (Exception e){
+            throw new RuntimeException("failed"+e);
+        }
+
+    }
+
+
 }

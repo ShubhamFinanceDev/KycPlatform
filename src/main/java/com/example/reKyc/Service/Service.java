@@ -14,5 +14,5 @@ public interface Service {
     HashMap<String,String> callFileExchangeServices(InputBase64 inputBase64,String documentType);
     CommonResponse updateCustomerKycFlag(String loanNo);
     CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNo,Long loanId);
-
+    KycCountUpload kycCount();
 }
