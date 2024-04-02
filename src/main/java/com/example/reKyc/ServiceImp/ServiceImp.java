@@ -252,26 +252,27 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                             System.out.println("=== data has been updated in db ===");
                         }
 
-                        otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc); //otp send
-                        loanDetailsRepository.deleteById(loanId);  //delete loan detail
                     } else {
                         System.out.println("=== DDFS file upload exception ===");
                         commonResponse.setCode("1111");
                         commonResponse.setMsg("File upload error.");
                         break;
                     }
-
+                    File fileToDelete = new File(file_path + file.getName());
+                    if (fileToDelete.delete()) {
+                        System.out.println(file.getName() + "file removed from directory");
+                    }
                 } catch (Exception e) {
                     System.out.println(e);
                     commonResponse.setCode("1111");
                     commonResponse.setMsg("File upload error.");
-                }
-                File fileToDelete = new File(file_path + file.getName());
-                if (fileToDelete.delete()) {
-                    System.out.println(file.getName() + "file removed from directory");
-
+                    break;
                 }
             }
+        }
+        if (commonResponse.getCode().equals("0000")) {
+            otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc); //otp send
+            loanDetailsRepository.deleteById(loanId);  //delete loan detail
         }
         return commonResponse;
     }
