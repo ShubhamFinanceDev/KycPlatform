@@ -20,8 +20,6 @@ public class SecurityConfig {
     @Autowired
     private UserDetailsService userDetailsService;
     @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
     private ExceptionPoint point;
 
     @Bean
@@ -39,10 +37,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    public DaoAuthenticationProvider daoAuthenticationProvider() {
-        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
-        daoAuthenticationProvider().setUserDetailsService(userDetailsService);
-//        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
-        return daoAuthenticationProvider;
-    }
+
+    
 }

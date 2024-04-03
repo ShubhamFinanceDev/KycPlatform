@@ -35,15 +35,7 @@ public class User {
     private UserDetailsService userDetailsService;
 
     @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
     private JwtHelper jwtHelper;
-    @Autowired
-    private OtpDetailsRepository otpDetailsRepo;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
     @Autowired
     private Service service;
 
