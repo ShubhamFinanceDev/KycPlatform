@@ -36,11 +36,6 @@ public class AdminUser {
     @Autowired
     private AdminRepository adminRepository;
 
-    @RequestMapping(value = "/", method = RequestMethod.GET)
-    public String demo(){
-
-        return "Hello programmer";
-    }
     @PostMapping("/invoke-kyc-process-flag")
     public HashMap<String,String> invokeProcessFlag(@RequestParam("file") MultipartFile file) {
 

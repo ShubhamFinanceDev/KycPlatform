@@ -33,7 +33,6 @@ public class Shubham {
     @PostMapping("/addressPreview")
     public HashMap<String,String> handleRequest(@RequestBody InputBase64 inputParam) {     //convert base64 into url
         HashMap<String, String> extractDetail = new HashMap<>();
-        CustomerDataResponse customerDetails = new CustomerDataResponse();
 
         try {
             if (!(inputParam.getLoanNo() == null || inputParam.getLoanNo().isBlank()) && !(inputParam.getDocumentId() == null || inputParam.getDocumentId().isBlank()) && !(inputParam.getDocumentType() == null || inputParam.getDocumentType().isBlank())) {
@@ -48,7 +47,7 @@ public class Shubham {
                 }
 
 //                customerDetails = service.checkExtractedDocumentId(inputParam.getLoanNo(), inputParam.getDocumentId(), inputParam.getDocumentType());
-                customerDetails = loanNoAuthentication.getCustomerData(inputParam.getLoanNo());
+                CustomerDataResponse     customerDetails = loanNoAuthentication.getCustomerData(inputParam.getLoanNo());
 
                 if (customerDetails != null && ((inputParam.getDocumentType().contains("pan") && customerDetails.getPanNumber().equals(inputParam.getDocumentId())) || (inputParam.getDocumentType().contains("aadhar") && customerDetails.getAadharNumber().equals(inputParam.getDocumentId()))))
                 {
@@ -85,7 +84,6 @@ public class Shubham {
 
     @PostMapping("/updateAddress")
     public ResponseEntity<CommonResponse> finalUpdate(@RequestBody UpdateAddress inputUpdateAddress) {
-        LoanDetails loanDetails = new LoanDetails();
         CommonResponse commonResponse = new CommonResponse();
 
         if (inputUpdateAddress.getMobileNo().isBlank() || inputUpdateAddress.getOtpCode().isBlank() || inputUpdateAddress.getLoanNo().isBlank() || inputUpdateAddress.getDocumentType().isBlank() || inputUpdateAddress.getDocumentId().isBlank()) {
@@ -93,7 +91,7 @@ public class Shubham {
             commonResponse.setMsg("required field is empty.");
             commonResponse.setCode("1111");
         } else {
-            loanDetails = service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo());
+            LoanDetails   loanDetails = service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo());
 
             if (loanDetails.getLoanNumber() == null) {
                 commonResponse.setMsg("otp invalid or expire. please try again.");

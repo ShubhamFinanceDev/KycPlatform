@@ -70,17 +70,17 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 String phoneNo = saveCustomerDetails(customer.getLoanNumber());
                 int otpCode = otpUtility.generateOtp(phoneNo);
                 if (otpCode > 0 && saveOtpDetail(otpCode, phoneNo)) {
-                    if (otpUtility.sendOtp(phoneNo, otpCode, loanNo)) {  //stopped sms services
+//                    if (otpUtility.sendOtp(phoneNo, otpCode, loanNo)) {  //stopped sms services
                         logger.info("otp sent on mobile");
                         otpResponse.put("otpCode", String.valueOf(otpCode));
                         otpResponse.put("mobile", phoneNo);
                         otpResponse.put("msg", "Otp send.");
                         otpResponse.put("code", "0000");
 
-                    } else {
-                        otpResponse.put("msg", "Please try again");
-                        otpResponse.put("code", "1111");
-                    }
+//                    } else {
+//                        otpResponse.put("msg", "Please try again");
+//                        otpResponse.put("code", "1111");
+//                    }
 
                 } else {
                     otpResponse.put("msg", "Please try again");
