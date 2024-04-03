@@ -57,7 +57,6 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     private DdfsUtility ddfsUtility;
     @Value("${file_path}")
     String file_path;
-    BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
     Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
     public HashMap<String, String> validateAndSendOtp(String loanNo) {
@@ -69,7 +68,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             if (customer != null) {
                 String phoneNo = saveCustomerDetails(customer.getLoanNumber());
                 int otpCode = otpUtility.generateOtp(phoneNo);
-                if (otpCode > 0 && saveOtpDetail(otpCode, phoneNo)) {
+                if ((otpCode > 0 && phoneNo!=null) && saveOtpDetail(otpCode, phoneNo)) {
+                    saveOtpDetail(otpCode, phoneNo);
 //                    if (otpUtility.sendOtp(phoneNo, otpCode, loanNo)) {  //stopped sms services
                         logger.info("otp sent on mobile");
                         otpResponse.put("otpCode", String.valueOf(otpCode));
@@ -133,6 +133,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 loanDetails1.setMobileNumber(customerDetails.getMobileNumber());
 
                 loanDetailsRepository.save(loanDetails1);
+                logger.info("customer details saved");
+
 
             } else {
                 phoneNo = loanDetails.getMobileNumber();
