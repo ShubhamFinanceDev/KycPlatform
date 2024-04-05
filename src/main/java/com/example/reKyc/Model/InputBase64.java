@@ -1,21 +1,28 @@
 package com.example.reKyc.Model;
 
 import com.fasterxml.jackson.databind.jsontype.impl.StdTypeResolverBuilder;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
 public class InputBase64 {
+    @NotNull
+    private String loanNo;
+    @NotNull
+    private String documentId;
+    @NotNull
+    private String documentType;
+    @NotNull
+    private List<Base64Data> base64Data;
 
-        private String loanNo;
-        private String documentId;
-        private String documentType;
-         private List<Base64Data> base64Data;
-@Data
+    @Data
     public static class Base64Data {
-    private String base64String;
-    private String fileType;
+        @NotNull
+        private String base64String;
+        @NotNull
+        private String fileType;
     }
-    }
+}
 
