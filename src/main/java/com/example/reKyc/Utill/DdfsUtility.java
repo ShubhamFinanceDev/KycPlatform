@@ -35,13 +35,11 @@ public class DdfsUtility {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMddHHmmss");
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
-        calendar.add(Calendar.HOUR, 5);
-        calendar.add(Calendar.MINUTE, 30);
+//        calendar.add(Calendar.HOUR, 5);
+//        calendar.add(Calendar.MINUTE, 30);
         String formattedDate = dateFormat.format(calendar.getTime());
-//        String formattedDate = dateFormat.format(new Date());
 
         String plainText = formattedDate + "@" + neo_ip;   // "localhost";
-//        System.out.println("Input: " + plainText);
         String encryptedText = encrypt(plainText, passcode);
         System.out.println("Encrypted Text: " +
                 encryptedText);
@@ -76,7 +74,7 @@ public class DdfsUtility {
     }
 
 
-    public Boolean callDDFSApi(byte[] base64String, String applicationNo) {
+    public Boolean callDDFSApi(String base64String, String applicationNo) {
         boolean status = false;
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         try {
@@ -90,7 +88,7 @@ public class DdfsUtility {
             formData.add("remarks", "aadhar");
             formData.add("maker", "06799");
             formData.add("path", "HOBR/APF under-Constructi");
-            formData.add("document", Base64.getEncoder().encodeToString(base64String));
+            formData.add("document", base64String);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
