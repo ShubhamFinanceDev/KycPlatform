@@ -83,16 +83,19 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 //                    }
 
                 } else {
+                    logger.info("Failed to generate OTP for loan number: " + loanNo);
                     otpResponse.put("msg", "Please try again");
                     otpResponse.put("code", "1111");
                 }
             } else {
+                logger.info("Loan number not found: " + loanNo);
                 System.out.println("==Loan no not found==");
                 otpResponse.put("msg", "Loan no not found");
                 otpResponse.put("code", "1111");
             }
 
         } catch (Exception e) {
+            logger.error("An error occurred during admin login: {}", e.getMessage(), e);
             System.out.println(e);
         }
         return otpResponse;
@@ -103,13 +106,16 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
         OtpDetails otpDetails = new OtpDetails();
         otpDetails.setOtpCode(Long.valueOf(otpCode));
+        logger.info("OTP code set: {}", otpCode); // Log OTP code
         System.out.println(otpCode);
         otpDetails.setMobileNo(mobileNo);
         try {
 
             otpDetailsRepository.save(otpDetails);
+            logger.info("OTP details saved successfully for mobile number: {}", mobileNo); // Log successful save
             return true;
         } catch (Exception e) {
+            logger.error("Error occurred while saving OTP details for mobile number: {}", mobileNo, e); // Log error
             System.out.println(e);
             return false;
         }
@@ -141,6 +147,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             }
             return phoneNo;
         } catch (Exception e) {
+            logger.error("An error occurred while saving customer details", e);
             System.out.println(e);
             return phoneNo;
 
@@ -159,6 +166,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             loanDetails = (duration.toMinutes() > 50) ? loanDetails : loanDetailsRepository.getLoanDetail(loanNo);
 
         } catch (Exception e) {
+            logger.error("An error occurred during OTP validation: {}", e.getMessage());
             System.out.println("===Otp invalid==");
         }
         return loanDetails;
@@ -218,15 +226,17 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 customerRepository.updateKycFlag(loanNo);
                 commonResponse.setMsg("Successfully");
                 commonResponse.setCode("0000");
-
+                logger.info("KYC flag updated successfully for loan number: {}", loanNo);
             } catch (Exception e) {
                 commonResponse.setMsg("Flag did not updated.");
                 commonResponse.setCode("1111");
+                logger.error("Failed to update KYC flag for loan number: {}. Error: {}", loanNo, e.getMessage());
             }
 
         } catch (Exception e) {
             commonResponse.setMsg("Loan is not valid, try again");
             commonResponse.setCode("1111");
+            logger.error("Failed to fetch loan details for loan number: {}. Error: {}", loanNo, e.getMessage());
         }
         return commonResponse;
     }
@@ -251,10 +261,12 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                     if (ddfsUtility.callDDFSApi(fileBytes, applicationNO)) {
 
                         if (saveUpdatedDetails(inputAddress, applicationNO)) {
+                            logger.info("Data has been updated in the database.");
                             System.out.println("=== data has been updated in db ===");
                         }
 
                     } else {
+                        logger.error("DDFS file upload exception.");
                         System.out.println("=== DDFS file upload exception ===");
                         commonResponse.setCode("1111");
                         commonResponse.setMsg("File upload error.");
@@ -262,9 +274,11 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                     }
                     File fileToDelete = new File(file_path + file.getName());
                     if (fileToDelete.delete()) {
+                        logger.info("{} file removed from directory", file.getName());
                         System.out.println(file.getName() + "file removed from directory");
                     }
                 } catch (Exception e) {
+                    logger.error("An error occurred during file processing: {}", e.getMessage());
                     System.out.println(e);
                     commonResponse.setCode("1111");
                     commonResponse.setMsg("File upload error.");
