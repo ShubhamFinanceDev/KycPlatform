@@ -151,7 +151,7 @@ public class AdminUser {
             commonResponse.setCode("1111");
             commonResponse.setMsg("Something went wrong. please try again");
         }
-        return new ResponseEntity( commonResponse,HttpStatus.OK);
+        return new ResponseEntity(commonResponse,HttpStatus.OK);
     }
 
 }

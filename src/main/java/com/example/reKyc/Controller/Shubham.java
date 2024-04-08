@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 
 @RestController
@@ -29,38 +30,36 @@ public class Shubham {
     private OtpUtility otpUtility;
 
     @PostMapping("/addressPreview")
-    public HashMap<String, String> handleRequest(@RequestBody @Valid InputBase64 inputParam) {     //convert base64 into url
+    public ResponseEntity<HashMap<String, String>> handleRequest(@RequestBody @Valid InputBase64 inputParam) {     //convert base64 into url
         HashMap<String, String> extractDetail = new HashMap<>();
 
         CustomerDataResponse customerDetails = loanNoAuthentication.getCustomerData(inputParam.getLoanNo());
         if (customerDetails != null && ((inputParam.getDocumentType().contains("pan") && customerDetails.getPanNumber().equals(inputParam.getDocumentId())) || (inputParam.getDocumentType().contains("aadhar") && customerDetails.getAadharNumber().equals(inputParam.getDocumentId())))) {
             extractDetail = service.callFileExchangeServices(inputParam, inputParam.getDocumentType());      //convert file base 64 into url also extract details
-
+            return new ResponseEntity<>(extractDetail, HttpStatus.OK);
         } else {
             extractDetail.put("msg", "The document ID number is incorrect");
             extractDetail.put("code", "1111");
+            return new ResponseEntity<>(extractDetail, HttpStatus.NOT_FOUND);
+
         }
 
-        return extractDetail;
     }
 
 
     @PostMapping("/updateAddress")
     public ResponseEntity<CommonResponse> finalUpdate(@RequestBody @Valid UpdateAddress inputUpdateAddress) {
         CommonResponse commonResponse = new CommonResponse();
-
-        LoanDetails loanDetails = service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo());
-
-        if (loanDetails.getLoanNumber() == null) {
-            commonResponse.setMsg("otp invalid or expire. please try again.");
+        try {
+            Optional<LoanDetails> loanDetails = service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo());
+            commonResponse = service.callDdfsService(inputUpdateAddress, loanDetails.get().getApplicationNumber(), loanDetails.get().getUserId());
+            return ResponseEntity.ok(commonResponse);
+        } catch (Exception e) {
+            commonResponse.setMsg("Invalid field Or Otp is not valid.");
             commonResponse.setCode("1111");
-            return new ResponseEntity<>(commonResponse, HttpStatus.OK);
-        } else {
+            return ResponseEntity.ok(commonResponse);
 
-            commonResponse = service.callDdfsService(inputUpdateAddress, loanDetails.getApplicationNumber(), loanDetails.getUserId());
         }
-
-        return new ResponseEntity<>(commonResponse, HttpStatus.OK);
     }
 
     @PostMapping("/disable-kyc-flag")

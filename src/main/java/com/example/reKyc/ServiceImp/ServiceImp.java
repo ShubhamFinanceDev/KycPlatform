@@ -65,7 +65,6 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 String phoneNo = saveCustomerDetails(customer.getLoanNumber());
                 int otpCode = otpUtility.generateOtp(phoneNo);
                 if ((otpCode > 0 && phoneNo != null) && saveOtpDetail(otpCode, phoneNo)) {
-                    saveOtpDetail(otpCode, phoneNo);
 //                    if (otpUtility.sendOtp(phoneNo, otpCode, loanNo)) {  //stopped sms services
                     logger.info("otp sent on mobile");
                     otpResponse.put("otpCode", String.valueOf(otpCode));
@@ -116,7 +115,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
         try {
             Optional<LoanDetails> loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
-            if (loanDetails.isPresent()) {
+            if (loanDetails.isEmpty()) {
                 LoanDetails loanDetails1 = new LoanDetails();
                 CustomerDataResponse customerDetails = loanNoAuthentication.getCustomerData(loanNo);
                 phoneNo = customerDetails.getMobileNumber();
@@ -208,18 +207,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         CommonResponse commonResponse = new CommonResponse();
         try {
            Optional<LoanDetails> loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
-            try {
-
-                loanDetailsRepository.deleteById(loanDetails.get().getUserId());
-                customerRepository.updateKycFlag(loanNo);
-                commonResponse.setMsg("Successfully");
-                commonResponse.setCode("0000");
-
-            } catch (Exception e) {
-                commonResponse.setMsg("Flag did not updated.");
-                commonResponse.setCode("1111");
-            }
-
+               customerRepository.updateKycFlag(loanDetails.get().getLoanNumber());
+               loanDetailsRepository.deleteById(loanDetails.get().getUserId());
         } catch (Exception e) {
             commonResponse.setMsg("Loan is not valid, try again");
             commonResponse.setCode("1111");
@@ -233,32 +222,41 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         CommonResponse commonResponse = new CommonResponse();
 
         List<DdfsUpload> ddfsUploads = ddfsUploadRepository.getImageUrl(inputAddress.getLoanNo());
-        for (DdfsUpload result : ddfsUploads) {
-            String imageUrl = result.getImageUrl();
-            try {
-                InputStream inputStream = new URL(imageUrl).openStream();
+        if(!ddfsUploads.isEmpty()) {
 
-                byte[] imageBytes = IOUtils.toByteArray(inputStream);
+            for (DdfsUpload result : ddfsUploads) {
+                String imageUrl = result.getImageUrl();
+                try {
+                    InputStream inputStream = new URL(imageUrl).openStream();
 
-                String base64String = Base64.encodeBase64String(imageBytes);
-                inputStream.close();
-                if (ddfsUtility.callDDFSApi(base64String, applicationNO)) {
-                    result.setFileName(applicationNO);
-                    result.setDdfsFlag("Y");
-                    ddfsUploadRepository.save(result);
-                } else {
+                    byte[] imageBytes = IOUtils.toByteArray(inputStream);
+
+                    String base64String = Base64.encodeBase64String(imageBytes);
+                    inputStream.close();
+                    if (ddfsUtility.callDDFSApi(base64String, applicationNO)) {
+                        result.setFileName(applicationNO);
+                        result.setDdfsFlag("Y");
+                        ddfsUploadRepository.save(result);
+                    } else {
+                        commonResponse.setCode("1111");
+                        commonResponse.setMsg("File upload error, try again");
+                        break;
+
+                    }
+
+                } catch (IOException e) {
+                    System.out.println(e);
                     commonResponse.setCode("1111");
                     commonResponse.setMsg("File upload error, try again");
-                    break;
 
                 }
-
-            } catch (IOException e) {
-                System.out.println(e);
-                commonResponse.setCode("1111");
-                commonResponse.setMsg("File upload error, try again");
-
             }
+        }
+        else
+        {
+            commonResponse.setCode("1111");
+            commonResponse.setMsg("File upload error, try again");
+            logger.info("file bucket url does not exist.");
         }
         return commonResponse;
     }

@@ -11,7 +11,7 @@ public class UpdateAddress {
     private  String documentId;
     @NotNull
     private String documentType;
-    @NotNull
+
     private String updatedAddress;
     @NotNull
     private String mobileNo;
