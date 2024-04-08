@@ -115,8 +115,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         String phoneNo = null;
 
         try {
-            LoanDetails loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
-            if (loanDetails == null) {
+            Optional<LoanDetails> loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
+            if (loanDetails.isPresent()) {
                 LoanDetails loanDetails1 = new LoanDetails();
                 CustomerDataResponse customerDetails = loanNoAuthentication.getCustomerData(loanNo);
                 phoneNo = customerDetails.getMobileNumber();
@@ -133,7 +133,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
             } else {
-                phoneNo = loanDetails.getMobileNumber();
+                phoneNo = loanDetails.get().getMobileNumber();
             }
             return phoneNo;
         } catch (Exception e) {
@@ -146,24 +146,15 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     @Override
-    public LoanDetails otpValidation(String mobileNo, String otpCode, String loanNo) {
+    public Optional<LoanDetails> otpValidation(String mobileNo, String otpCode, String loanNo) {
 
-        LoanDetails loanDetails = new LoanDetails();
-        try {
-            OtpDetails otpDetails = otpDetailsRepository.IsotpExpired(mobileNo, otpCode);
-            Duration duration = Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now());
-            loanDetails = (duration.toMinutes() > 50) ? loanDetails : loanDetailsRepository.getLoanDetail(loanNo);
-
-        } catch (Exception e) {
-            System.out.println("===Otp invalid==");
-        }
+        OtpDetails otpDetails = otpDetailsRepository.IsotpExpired(mobileNo, otpCode);
+        Duration duration = Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now());
+        Optional<LoanDetails> loanDetails = (duration.toMinutes() > 50) ? null : loanDetailsRepository.getLoanDetail(loanNo);
+        loanDetails.orElseThrow(() -> new RuntimeException("Otp not valid"));
         return loanDetails;
 
     }
-
-    /**
-     *
-     */
 
 
     @Override
@@ -182,8 +173,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                     urls.add(documentDetail.get("fileUrl"));
                 }
             }
-            if(!urls.isEmpty())
-                documentDetail= callExtractionService(urls,inputBase64);
+            if (!urls.isEmpty())
+                documentDetail = callExtractionService(urls, inputBase64);
         } catch (Exception e) {
 
             documentDetail.put("code", "1111");
@@ -193,7 +184,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     }
 
 
-    private HashMap<String,String> callExtractionService(List<String> urls, InputBase64 inputBase64) {
+    private HashMap<String, String> callExtractionService(List<String> urls, InputBase64 inputBase64) {
         HashMap<String, String> extractedDetails;
 
         if (inputBase64.getDocumentType().equals("aadhar")) {
@@ -216,10 +207,10 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
         CommonResponse commonResponse = new CommonResponse();
         try {
-            LoanDetails loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
+           Optional<LoanDetails> loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
             try {
 
-                loanDetailsRepository.deleteById(loanDetails.getUserId());
+                loanDetailsRepository.deleteById(loanDetails.get().getUserId());
                 customerRepository.updateKycFlag(loanNo);
                 commonResponse.setMsg("Successfully");
                 commonResponse.setCode("0000");
