@@ -18,15 +18,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("/admin")
 @CrossOrigin
-@Controller
 public class AdminUser {
 
     @Autowired
@@ -104,48 +100,31 @@ public class AdminUser {
     {
         CommonResponse commonResponse=new CommonResponse();
         AdminResponse adminResponse=new AdminResponse();
-
-        try
-        {
            String email=input.get("email");
            String password=input.get("password");
-           Admin admin=adminRepository.adminAccount(email,password);
+           Optional<Admin> admin=adminRepository.adminAccount(email,password);
 
-            if(admin==null)
-           {
-               commonResponse.setMsg("Credentials did not matched");
-               commonResponse.setCode("1111");
-               return new ResponseEntity<>(commonResponse, HttpStatus.OK);
-
-           }
-           else
+            if(admin.isPresent())
            {
                adminResponse.setMsg("Login successfully");
                adminResponse.setCode("0000");
-               adminResponse.setUid(admin.getUid());
+               adminResponse.setUid(admin.get().getUid());
                return new ResponseEntity(adminResponse, HttpStatus.OK);
-
            }
-        }
-        catch (Exception e)
-        {
-            commonResponse.setMsg("Technical error.");
-            commonResponse.setCode("1111");
-            return new ResponseEntity<>(commonResponse, HttpStatus.OK);
 
-        }
+        adminResponse.setMsg("Username password did not matched.");
+        adminResponse.setCode("0000");
+        return new ResponseEntity<>(commonResponse, HttpStatus.OK);
     }
 
     @GetMapping("/kycCount")
     public ResponseEntity<KycCountUpload> kycCount(){
 
-        KycCountUpload count = new KycCountUpload();
         CommonResponse commonResponse = new CommonResponse();
 
         try {
-             count = service.kycCount();
-
-            return new ResponseEntity<>( count,HttpStatus.OK);
+            KycCountUpload  count = service.kycCount();
+            return new ResponseEntity<>(count,HttpStatus.OK);
         }
         catch (Exception e){
             commonResponse.setCode("1111");
