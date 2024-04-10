@@ -13,8 +13,8 @@ public interface Service {
     HashMap<String, String> validateAndSendOtp(String loanNo);
    LoanDetails otpValidation(String mobileNo, String otpCode, String loanNo);
     HashMap<String,String> callFileExchangeServices(InputBase64 inputBase64,String documentType);
-    CommonResponse updateCustomerKycFlag(String loanNo);
-    CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNo,Long loanId);
+    CommonResponse updateCustomerKycFlag(String loanNo,String mobileNo);
+    CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNo,Long userId);
     KycCountUpload kycCount();
 
     LoanDetails loanDetails(String loanNo);

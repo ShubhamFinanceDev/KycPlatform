@@ -48,7 +48,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Autowired
     private AadharAndPanUtility singzyServices;
     @Autowired
-    AadharAndPanUtility externalApiServices;
+    private AadharAndPanUtility externalApiServices;
     @Autowired
     private DdfsUtility ddfsUtility;
     @Value("${file_path}")
@@ -200,14 +200,16 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
      *
      */
     @Override
-    public CommonResponse updateCustomerKycFlag(String loanNo) {
+    public CommonResponse updateCustomerKycFlag(String loanNo,String mobileNo) {
 
         CommonResponse commonResponse = new CommonResponse();
         try {
-                Optional<LoanDetails> loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
-                System.out.println(loanNo);
-               customerRepository.updateKycFlag(loanDetails.get().getLoanNumber());
-               loanDetailsRepository.deleteById(loanDetails.get().getUserId());
+            Optional<LoanDetails> loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
+            System.out.println(loanNo);
+            customerRepository.updateKycFlag(loanDetails.get().getLoanNumber());
+            loanDetailsRepository.deleteById(loanDetails.get().getUserId());
+            otpUtility.sendTextMsg(mobileNo, SmsTemplate.existingKyc); //otp send
+
         } catch (Exception e) {
             commonResponse.setMsg("Loan is not valid, try again");
             commonResponse.setCode("1111");
@@ -217,11 +219,11 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     @Override
-    public CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNO, Long loanId) {
+    public CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNO, Long userId) {
         CommonResponse commonResponse = new CommonResponse();
 
         List<DdfsUpload> ddfsUploads = ddfsUploadRepository.getImageUrl(inputAddress.getLoanNo());
-        if(!ddfsUploads.isEmpty()) {
+        if (!ddfsUploads.isEmpty()) {
 
             for (DdfsUpload result : ddfsUploads) {
                 String imageUrl = result.getImageUrl();
@@ -250,12 +252,15 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
                 }
             }
-        }
-        else
-        {
+        } else {
             commonResponse.setCode("1111");
             commonResponse.setMsg("File upload error, try again");
             logger.info("file bucket url does not exist.");
+        }
+        if (commonResponse.getCode().equals("0000")) {
+            customerRepository.deleteById(userId);
+            otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc);
+
         }
         return commonResponse;
     }

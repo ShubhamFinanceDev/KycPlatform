@@ -77,10 +77,7 @@ public class Shubham {
             return new ResponseEntity<>(commonResponse, HttpStatus.BAD_REQUEST);
 
         }
-        commonResponse = service.updateCustomerKycFlag(inputParam.get("loanNo"));
-
-        if (commonResponse.getCode().equals("0000"))
-            otpUtility.sendTextMsg(inputParam.get("mobileNo"), SmsTemplate.existingKyc); //otp send
+        commonResponse = service.updateCustomerKycFlag(inputParam.get("loanNo"),inputParam.get("mobileNo"));
 
         return new ResponseEntity<>(commonResponse, HttpStatus.OK);
     }
