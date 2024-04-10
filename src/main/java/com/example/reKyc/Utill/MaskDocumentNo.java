@@ -1,17 +1,10 @@
 package com.example.reKyc.Utill;
 
 
-import com.example.reKyc.Model.InputBase64;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Base64;
-
 @Component
-public class MaskDocumentAndFile {
+public class MaskDocumentNo {
 
 
 

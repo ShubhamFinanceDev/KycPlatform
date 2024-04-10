@@ -44,7 +44,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Autowired
     private OtpUtility otpUtility;
     @Autowired
-    private MaskDocumentAndFile maskDocumentAndFile;
+    private MaskDocumentNo maskDocumentAndFile;
     @Autowired
     private AadharAndPanUtility singzyServices;
     @Autowired

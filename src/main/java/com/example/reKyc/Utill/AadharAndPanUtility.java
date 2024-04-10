@@ -19,7 +19,7 @@ import java.util.Map;
 public class AadharAndPanUtility {
 
     @Autowired
-    private MaskDocumentAndFile maskDocumentAndFile;
+    private MaskDocumentNo maskDocumentAndFile;
     @Value("${singzy.fileExchange}")
     private String fileExchangeBase64Url;
 

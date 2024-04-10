@@ -35,8 +35,8 @@ public class DdfsUtility {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMddHHmmss");
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
-//        calendar.add(Calendar.HOUR, 5);
-//        calendar.add(Calendar.MINUTE, 30);
+        calendar.add(Calendar.HOUR, 5);
+        calendar.add(Calendar.MINUTE, 30);
         String formattedDate = dateFormat.format(calendar.getTime());
 
         String plainText = formattedDate + "@" + neo_ip;   // "localhost";

@@ -2,13 +2,11 @@ package com.example.reKyc.Controller;
 
 import com.example.reKyc.Entity.LoanDetails;
 import com.example.reKyc.Model.CommonResponse;
-import com.example.reKyc.Model.CustomerDataResponse;
 import com.example.reKyc.Model.OtpRequest;
 import com.example.reKyc.Model.JwtResponse;
-import com.example.reKyc.Repository.OtpDetailsRepository;
 import com.example.reKyc.Security.JwtHelper;
 import com.example.reKyc.Service.Service;
-import com.example.reKyc.Utill.MaskDocumentAndFile;
+import com.example.reKyc.Utill.MaskDocumentNo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,19 +14,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import jakarta.validation.Valid;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/userKyc")
@@ -44,7 +37,7 @@ public class User {
     private Service service;
 
     @Autowired
-    private MaskDocumentAndFile maskDocument;
+    private MaskDocumentNo maskDocument;
     @Autowired
     @Qualifier("oracleJdbcTemplate")
     private JdbcTemplate jdbcTemplate;
