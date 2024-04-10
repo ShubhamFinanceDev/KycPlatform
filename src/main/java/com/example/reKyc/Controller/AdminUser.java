@@ -1,7 +1,7 @@
 package com.example.reKyc.Controller;
 
 import com.example.reKyc.Entity.Admin;
-import com.example.reKyc.Entity.Customer;
+import com.example.reKyc.Entity.KycCustomer;
 import com.example.reKyc.Model.AdminResponse;
 import com.example.reKyc.Model.CommonResponse;
 import com.example.reKyc.Model.KycCountUpload;
@@ -13,7 +13,6 @@ import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,7 +38,7 @@ public class AdminUser {
         String errorMsg = "";
         try {
 
-            List<Customer> customerList = new ArrayList<>();
+            List<KycCustomer> customerList = new ArrayList<>();
             InputStream inputStream = file.getInputStream();
             ZipSecureFile.setMinInflateRatio(0);                //for zip bomb detected
             Workbook workbook = WorkbookFactory.create(inputStream);
@@ -50,7 +49,7 @@ public class AdminUser {
             if (headerRow.getCell(0).toString().equals("Loan-No")) {
 
                 while (rowIterator.hasNext()) {
-                    Customer customer = new Customer();
+                    KycCustomer customer = new KycCustomer();
 
                     Row row = rowIterator.next();
                     Cell cell = row.getCell(0);

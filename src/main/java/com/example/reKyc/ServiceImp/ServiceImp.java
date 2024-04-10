@@ -1,6 +1,6 @@
 package com.example.reKyc.ServiceImp;
 
-import com.example.reKyc.Entity.Customer;
+import com.example.reKyc.Entity.KycCustomer;
 import com.example.reKyc.Entity.LoanDetails;
 import com.example.reKyc.Entity.OtpDetails;
 import com.example.reKyc.Entity.DdfsUpload;
@@ -60,7 +60,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
         try {
 
-            Customer customer = customerRepository.getCustomer(loanNo);
+            KycCustomer customer = customerRepository.getCustomer(loanNo);
             if (customer != null) {
                 String phoneNo = saveCustomerDetails(customer.getLoanNumber());
                 int otpCode = otpUtility.generateOtp(phoneNo);
@@ -258,7 +258,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             logger.info("file bucket url does not exist.");
         }
         if (commonResponse.getCode().equals("0000")) {
-            customerRepository.deleteById(inputAddress.getLoanNo());
+            loanDetailsRepository.deleteById(inputAddress.getLoanNo());
             otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc);
 
         }
