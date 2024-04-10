@@ -204,9 +204,9 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
         CommonResponse commonResponse = new CommonResponse();
         try {
-           Optional<LoanDetails> loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
-               customerRepository.updateKycFlag(loanDetails.get().getLoanNumber());
-               loanDetailsRepository.deleteById(loanDetails.get().getUserId());
+                LoanDetails loanDetails = loanDetailsRepository.getLoanDetail(loanNo).orElseThrow(() -> new RuntimeException("Loan not valid"));
+               customerRepository.updateKycFlag(loanDetails.getLoanNumber());
+               loanDetailsRepository.deleteById(loanDetails.getUserId());
         } catch (Exception e) {
             commonResponse.setMsg("Loan is not valid, try again");
             commonResponse.setCode("1111");
