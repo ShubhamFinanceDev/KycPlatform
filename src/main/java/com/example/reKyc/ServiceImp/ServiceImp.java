@@ -207,7 +207,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             Optional<LoanDetails> loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
             System.out.println(loanNo);
             customerRepository.updateKycFlag(loanDetails.get().getLoanNumber());
-            loanDetailsRepository.deleteById(loanDetails.get().getUserId());
+            loanDetailsRepository.deleteById(loanDetails.get().getLoanNumber());
             otpUtility.sendTextMsg(mobileNo, SmsTemplate.existingKyc); //otp send
 
         } catch (Exception e) {
@@ -219,7 +219,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     @Override
-    public CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNO, Long userId) {
+    public CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNO) {
         CommonResponse commonResponse = new CommonResponse();
 
         List<DdfsUpload> ddfsUploads = ddfsUploadRepository.getImageUrl(inputAddress.getLoanNo());
@@ -258,7 +258,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             logger.info("file bucket url does not exist.");
         }
         if (commonResponse.getCode().equals("0000")) {
-            customerRepository.deleteById(userId);
+            customerRepository.deleteById(inputAddress.getLoanNo());
             otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc);
 
         }

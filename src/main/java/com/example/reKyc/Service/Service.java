@@ -14,7 +14,7 @@ public interface Service {
    LoanDetails otpValidation(String mobileNo, String otpCode, String loanNo);
     HashMap<String,String> callFileExchangeServices(InputBase64 inputBase64,String documentType);
     CommonResponse updateCustomerKycFlag(String loanNo,String mobileNo);
-    CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNo,Long userId);
+    CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNo);
     KycCountUpload kycCount();
 
     LoanDetails loanDetails(String loanNo);

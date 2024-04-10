@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
-public interface CustomerRepository extends JpaRepository<Customer,Long> {
+public interface CustomerRepository extends JpaRepository<Customer,String> {
    @Query("select cd from Customer cd where cd.loanNumber=:loanNo and cd.kycFlag='Y'")
    Customer getCustomer(String loanNo);
    @Transactional

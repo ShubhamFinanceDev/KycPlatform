@@ -7,14 +7,13 @@ import lombok.Data;
 @Table(name = "customer_details")
 @Data
 public class LoanDetails {
-    @Id
+
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long userId;
-
     @Column(name = "application_number")
     private String applicationNumber;
-
+    @Id
     @Column(name = "loan_number")
     private String loanNumber;
 
