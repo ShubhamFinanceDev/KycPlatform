@@ -12,7 +12,7 @@ public class GlobalException {
         @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<CommonResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
             CommonResponse commonResponse=new CommonResponse();
-            commonResponse.setMsg("One o more field required");
+            commonResponse.setMsg("One or more field required");
             commonResponse.setCode("400");
         return new ResponseEntity<>(commonResponse, HttpStatus.BAD_REQUEST);
     }
