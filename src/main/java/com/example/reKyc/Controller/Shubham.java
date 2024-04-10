@@ -32,17 +32,22 @@ public class Shubham {
     @PostMapping("/addressPreview")
     public ResponseEntity<HashMap<String, String>> handleRequest(@RequestBody @Valid InputBase64 inputParam) {     //convert base64 into url
         HashMap<String, String> extractDetail = new HashMap<>();
-
-        CustomerDataResponse customerDetails = loanNoAuthentication.getCustomerData(inputParam.getLoanNo());
-        if (customerDetails != null && ((inputParam.getDocumentType().contains("pan") && customerDetails.getPanNumber().equals(inputParam.getDocumentId())) || (inputParam.getDocumentType().contains("aadhar") && customerDetails.getAadharNumber().equals(inputParam.getDocumentId())))) {
-            extractDetail = service.callFileExchangeServices(inputParam, inputParam.getDocumentType());      //convert file base 64 into url also extract details
+        LoanDetails loanDetails;
+        try {
+            loanDetails = service.loanDetails(inputParam.getLoanNo());
+        } catch (Exception e) {
+            extractDetail.put("msg", "Loan no is not valid.");
+            extractDetail.put("code", "1111");
             return new ResponseEntity<>(extractDetail, HttpStatus.OK);
+        }
+
+        if ((inputParam.getDocumentType().contains("pan") && loanDetails.getPan().equals(inputParam.getDocumentId())) || (inputParam.getDocumentType().contains("aadhar") && loanDetails.getAadhar().equals(inputParam.getDocumentId()))) {
+            extractDetail = service.callFileExchangeServices(inputParam, inputParam.getDocumentType());      //convert file base 64 into url also extract details
         } else {
             extractDetail.put("msg", "The document ID number is incorrect");
             extractDetail.put("code", "1111");
-            return new ResponseEntity<>(extractDetail, HttpStatus.NOT_FOUND);
-
         }
+        return new ResponseEntity<>(extractDetail, HttpStatus.OK);
 
     }
 
@@ -51,8 +56,8 @@ public class Shubham {
     public ResponseEntity<CommonResponse> finalUpdate(@RequestBody @Valid UpdateAddress inputUpdateAddress) {
         CommonResponse commonResponse = new CommonResponse();
         try {
-            Optional<LoanDetails> loanDetails = service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo());
-            commonResponse = service.callDdfsService(inputUpdateAddress, loanDetails.get().getApplicationNumber(), loanDetails.get().getUserId());
+            LoanDetails loanDetails = service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo());
+            commonResponse = service.callDdfsService(inputUpdateAddress, loanDetails.getApplicationNumber(), loanDetails.getUserId());
             return ResponseEntity.ok(commonResponse);
         } catch (Exception e) {
             commonResponse.setMsg("Invalid field Or Otp is not valid.");

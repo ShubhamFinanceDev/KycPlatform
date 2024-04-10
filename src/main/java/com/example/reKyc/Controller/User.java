@@ -72,7 +72,7 @@ public class User {
         CommonResponse commonResponse = new CommonResponse();
         JwtResponse jwtResponse = new JwtResponse();
         String token = null;
-        Optional<LoanDetails> loanDetails;
+        LoanDetails loanDetails;
 
         try {
             UserDetails userDetails = userDetailsService.loadUserByUsername(request.getLoanNo());
@@ -85,12 +85,12 @@ public class User {
             return new ResponseEntity(commonResponse, HttpStatus.OK);
         }
         jwtResponse.setJwtToken(token);
-        jwtResponse.setMobileNo(loanDetails.get().getMobileNumber());
-        jwtResponse.setAddress(loanDetails.get().getAddressDetailsResidential());
-        jwtResponse.setName(loanDetails.get().getCustomerName());
-        jwtResponse.setPanNo(loanDetails.get().getPan() != null ? maskDocument.documentNoEncryption(loanDetails.get().getPan()) : "NA");
-        jwtResponse.setAadharNo(loanDetails.get().getAadhar() != null ? maskDocument.documentNoEncryption(loanDetails.get().getAadhar()) : "NA");
-        jwtResponse.setLoanNo(loanDetails.get().getLoanNumber());
+        jwtResponse.setMobileNo(loanDetails.getMobileNumber());
+        jwtResponse.setAddress(loanDetails.getAddressDetailsResidential());
+        jwtResponse.setName(loanDetails.getCustomerName());
+        jwtResponse.setPanNo(loanDetails.getPan() != null ? maskDocument.documentNoEncryption(loanDetails.getPan()) : "NA");
+        jwtResponse.setAadharNo(loanDetails.getAadhar() != null ? maskDocument.documentNoEncryption(loanDetails.getAadhar()) : "NA");
+        jwtResponse.setLoanNo(loanDetails.getLoanNumber());
         return new ResponseEntity(jwtResponse, HttpStatus.OK);
     }
 

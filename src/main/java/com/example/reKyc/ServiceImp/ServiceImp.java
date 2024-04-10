@@ -145,13 +145,11 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     @Override
-    public Optional<LoanDetails> otpValidation(String mobileNo, String otpCode, String loanNo) {
+    public LoanDetails otpValidation(String mobileNo, String otpCode, String loanNo) {
 
         OtpDetails otpDetails = otpDetailsRepository.IsotpExpired(mobileNo, otpCode);
         Duration duration = Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now());
-        Optional<LoanDetails> loanDetails = (duration.toMinutes() > 50) ? null : loanDetailsRepository.getLoanDetail(loanNo);
-        loanDetails.orElseThrow(() -> new RuntimeException("Otp not valid"));
-        return loanDetails;
+        return (duration.toMinutes() > 50) ? null : loanDetailsRepository.getLoanDetail(loanNo).orElseThrow(() -> new RuntimeException("Loan not valid"));
 
     }
 
@@ -293,6 +291,11 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             throw new RuntimeException("failed" + e);
         }
 
+    }
+
+    @Override
+    public LoanDetails loanDetails(String loanNo) {
+        return loanDetailsRepository.getLoanDetail(loanNo).orElseThrow(() -> new RuntimeException("Loan not valid"));
     }
 
 
