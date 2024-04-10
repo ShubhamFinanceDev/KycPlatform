@@ -9,7 +9,8 @@ import java.util.Optional;
 public interface LoanDetailsRepository extends JpaRepository<LoanDetails,Long> {
   @Query("select ld from LoanDetails ld where ld.loanNumber=:loanNo")
     Optional<LoanDetails> getLoanDetail(String loanNo);
-
+  @Query("select ld from LoanDetails ld where ld.loanNumber=:loanNo")
+  LoanDetails getLoanDetails(String loanNo);
   @Query("select count(ld) from LoanDetails ld where ld.loanNumber=:loanNo")
   int getCount(String loanNo);
 }
