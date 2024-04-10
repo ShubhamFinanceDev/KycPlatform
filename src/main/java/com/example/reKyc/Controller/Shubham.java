@@ -60,7 +60,7 @@ public class Shubham {
             commonResponse = service.callDdfsService(inputUpdateAddress, loanDetails.getApplicationNumber(), loanDetails.getUserId());
             return ResponseEntity.ok(commonResponse);
         } catch (Exception e) {
-            commonResponse.setMsg("Invalid field Or Otp is not valid.");
+            commonResponse.setMsg("Loan no Or Otp is not valid.");
             commonResponse.setCode("1111");
             return ResponseEntity.ok(commonResponse);
 
