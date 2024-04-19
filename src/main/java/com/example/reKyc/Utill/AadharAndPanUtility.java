@@ -56,12 +56,12 @@ public class AadharAndPanUtility {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", singzyAuthKey);
         HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(inputBody, headers);
-        System.out.println("request" + inputBody);
+//        System.out.println("request" + inputBody);
 
         try {
 
 
-            ResponseEntity<ResponseOfBase64> responseOfBase64 = restTemplate.postForEntity(fileExchangeBase64Ttl,inputBody, ResponseOfBase64.class);
+            ResponseEntity<ResponseOfBase64> responseOfBase64 = restTemplate.postForEntity(fileExchangeBase64Ttl,requestEntity, ResponseOfBase64.class);
 
             if (responseOfBase64.getStatusCode().toString().contains("200")) {
                 System.out.println(responseOfBase64.getBody().getFile().directURL);
