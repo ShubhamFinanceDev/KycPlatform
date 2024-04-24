@@ -87,14 +87,15 @@ public class DdfsUtility {
             formData.add("token", generateDDFSKey());
             formData.add("clientId", "SHUBHAM/OP");
             formData.add("file", applicationNo);
-            formData.add("subPath", "2024/Aadhar");
-//            formData.add("subPath",subPath);
+            formData.add("subPath", "DDFS prod");
+         //   formData.add("subPath",subPath);
             formData.add("docCategory", "IdentityProofs");
             formData.add("clientUserId", "06799");
             formData.add("remarks", "aadhar");
             formData.add("maker", "06799");
-            formData.add("path", "HOBR/APF under-Constructi");
-//            formData.add("path", path);
+          //  formData.add("path", "HOBR/APF under-Constructi");
+           formData.add("path", "DDFS prod");
+
             formData.add("document", base64String);
 
             HttpHeaders headers = new HttpHeaders();
