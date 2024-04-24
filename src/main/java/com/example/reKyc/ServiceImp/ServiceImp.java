@@ -240,7 +240,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                         ddfsUploadRepository.save(result);
                     } else {
                         commonResponse.setCode("1111");
-                        commonResponse.setMsg("File upload error, try again1");
+                        commonResponse.setMsg("File upload error, try again");
                         break;
 
                     }
@@ -248,13 +248,13 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 } catch (IOException e) {
                     System.out.println(e);
                     commonResponse.setCode("1111");
-                    commonResponse.setMsg("File upload error, try again2");
+                    commonResponse.setMsg("File upload error, try again");
 
                 }
             }
         } else {
             commonResponse.setCode("1111");
-            commonResponse.setMsg("File upload error, try again3");
+            commonResponse.setMsg("File upload error, try again");
             logger.info("file bucket url does not exist.");
         }
         if (commonResponse.getCode().equals("0000")) {
