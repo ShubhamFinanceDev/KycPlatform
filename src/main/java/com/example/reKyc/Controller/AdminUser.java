@@ -30,7 +30,7 @@ public class AdminUser {
     private CustomerRepository customerRepository;
     @Autowired
     private AdminRepository adminRepository;
-
+    @CrossOrigin
     @PostMapping("/invoke-kyc-process-flag")
     public HashMap<String,String> invokeProcessFlag(@RequestParam("file") MultipartFile file) {
 
