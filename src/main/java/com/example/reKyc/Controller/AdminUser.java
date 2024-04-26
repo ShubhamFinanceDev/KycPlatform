@@ -1,7 +1,7 @@
 package com.example.reKyc.Controller;
 
 import com.example.reKyc.Entity.Admin;
-import com.example.reKyc.Entity.Customer;
+import com.example.reKyc.Entity.KycCustomer;
 import com.example.reKyc.Model.AdminResponse;
 import com.example.reKyc.Model.CommonResponse;
 import com.example.reKyc.Model.KycCountUpload;
@@ -13,20 +13,15 @@ import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("/admin")
 @CrossOrigin
-@Controller
 public class AdminUser {
 
     @Autowired
@@ -35,7 +30,7 @@ public class AdminUser {
     private CustomerRepository customerRepository;
     @Autowired
     private AdminRepository adminRepository;
-
+    @CrossOrigin
     @PostMapping("/invoke-kyc-process-flag")
     public HashMap<String,String> invokeProcessFlag(@RequestParam("file") MultipartFile file) {
 
@@ -43,7 +38,7 @@ public class AdminUser {
         String errorMsg = "";
         try {
 
-            List<Customer> customerList = new ArrayList<>();
+            List<KycCustomer> customerList = new ArrayList<>();
             InputStream inputStream = file.getInputStream();
             ZipSecureFile.setMinInflateRatio(0);                //for zip bomb detected
             Workbook workbook = WorkbookFactory.create(inputStream);
@@ -54,7 +49,7 @@ public class AdminUser {
             if (headerRow.getCell(0).toString().equals("Loan-No")) {
 
                 while (rowIterator.hasNext()) {
-                    Customer customer = new Customer();
+                    KycCustomer customer = new KycCustomer();
 
                     Row row = rowIterator.next();
                     Cell cell = row.getCell(0);
@@ -104,54 +99,37 @@ public class AdminUser {
     {
         CommonResponse commonResponse=new CommonResponse();
         AdminResponse adminResponse=new AdminResponse();
-
-        try
-        {
            String email=input.get("email");
            String password=input.get("password");
-           Admin admin=adminRepository.adminAccount(email,password);
+           Optional<Admin> admin=adminRepository.adminAccount(email,password);
 
-            if(admin==null)
-           {
-               commonResponse.setMsg("Credentials did not matched");
-               commonResponse.setCode("1111");
-               return new ResponseEntity<>(commonResponse, HttpStatus.OK);
-
-           }
-           else
+            if(admin.isPresent())
            {
                adminResponse.setMsg("Login successfully");
                adminResponse.setCode("0000");
-               adminResponse.setUid(admin.getUid());
+               adminResponse.setUid(admin.get().getUid());
                return new ResponseEntity(adminResponse, HttpStatus.OK);
-
            }
-        }
-        catch (Exception e)
-        {
-            commonResponse.setMsg("Technical error.");
-            commonResponse.setCode("1111");
-            return new ResponseEntity<>(commonResponse, HttpStatus.OK);
 
-        }
+        adminResponse.setMsg("Username password did not matched.");
+        adminResponse.setCode("0000");
+        return new ResponseEntity<>(commonResponse, HttpStatus.OK);
     }
 
     @GetMapping("/kycCount")
     public ResponseEntity<KycCountUpload> kycCount(){
 
-        KycCountUpload count = new KycCountUpload();
         CommonResponse commonResponse = new CommonResponse();
 
         try {
-             count = service.kycCount();
-
-            return new ResponseEntity<>( count,HttpStatus.OK);
+            KycCountUpload  count = service.kycCount();
+            return new ResponseEntity<>(count,HttpStatus.OK);
         }
         catch (Exception e){
             commonResponse.setCode("1111");
             commonResponse.setMsg("Something went wrong. please try again");
         }
-        return new ResponseEntity( commonResponse,HttpStatus.OK);
+        return new ResponseEntity(commonResponse,HttpStatus.OK);
     }
 
 }

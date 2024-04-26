@@ -19,7 +19,7 @@ import java.util.Map;
 public class AadharAndPanUtility {
 
     @Autowired
-    private MaskDocumentAndFile maskDocumentAndFile;
+    private MaskDocumentNo maskDocumentAndFile;
     @Value("${singzy.fileExchange}")
     private String fileExchangeBase64Url;
 
@@ -42,59 +42,62 @@ public class AadharAndPanUtility {
     RestTemplate restTemplate = new RestTemplate();
     HttpHeaders headers = new HttpHeaders();
 
-    public HashMap convertBase64ToUrl(String documentType, String base64String) {
+    public HashMap<String,String> convertBase64ToUrl(String documentType, String base64String) {
 
 
         HashMap<String, String> inputBody = new HashMap<>();
         inputBody.put("base64String", base64String);
         inputBody.put("mimetype", documentType);
         inputBody.put("ttl", fileExchangeBase64Ttl);
-        inputBody.put("sizw", "20MB");
+        inputBody.put("sizw", "10MB");
         HashMap<String, String> urlResponse = new HashMap<>();
-        ResponseOfBase64 responseOfBase64 = new ResponseOfBase64();
+
+
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", singzyAuthKey);
+        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(inputBody, headers);
+//        System.out.println("request" + inputBody);
 
         try {
 
 
-            responseOfBase64 = restTemplate.postForObject(fileExchangeBase64Url, inputBody, ResponseOfBase64.class);
-            System.out.println(responseOfBase64.getFile().directURL);
-            String url = responseOfBase64.getFile().directURL;
+            ResponseEntity<ResponseOfBase64> responseOfBase64 = restTemplate.postForEntity(fileExchangeBase64Url,requestEntity, ResponseOfBase64.class);
 
-            if (responseOfBase64 != null) {
+            if (responseOfBase64.getStatusCode().toString().contains("200")) {
+                System.out.println(responseOfBase64.getBody().getFile().directURL);
+                String url = responseOfBase64.getBody().getFile().directURL;
                 urlResponse.put("fileUrl", url);
+
             } else {
                 urlResponse.put("code", "1111");
                 urlResponse.put("msg", "Technical issue, please try again");
 
             }
-
-
         } catch (Exception e) {
 
             System.out.println(e);
             urlResponse.put("code", "1111");
             urlResponse.put("msg", "Technical issue, please try again");
         }
-//urlResponse.get("file");
 
         return urlResponse;
     }
 
-    public HashMap extractAadharDetails(List<String> urls, String documentId) {
+    public HashMap<String,String> extractAadharDetails(List<String> urls, String documentId) {
 
         HashMap<String, List> inputBody = new HashMap<>();
         inputBody.put("files", urls);
         HashMap<String, String> addressPreview = new HashMap<>();
-        AadharResponse aadharResponse = new AadharResponse();
         try {
 
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Authorization", singzyAuthKey);
             HttpEntity<Map<String, List>> requestEntity = new HttpEntity<>(inputBody, headers);
 
-            aadharResponse = restTemplate.postForObject(extractAadharUrl, requestEntity, AadharResponse.class);
+            ResponseEntity<AadharResponse> aadharResponseBody = restTemplate.postForEntity(extractAadharUrl, requestEntity, AadharResponse.class);
 
-            if (!(aadharResponse.getResult().getUid().isBlank()) && !(aadharResponse.getResult().getName().isBlank()) && !(aadharResponse.getResult().getAddress().isBlank()) && aadharResponse.getResult().isValidBackAndFront()) {
+            AadharResponse aadharResponse = aadharResponseBody.getBody();
+            if (aadharResponse != null && !(aadharResponse.getResult().getUid().isBlank()) && !(aadharResponse.getResult().getName().isBlank()) && !(aadharResponse.getResult().getAddress().isBlank()) && aadharResponse.getResult().isValidBackAndFront()) {
                 if (maskDocumentAndFile.compareDocumentNumber(aadharResponse.getResult().getUid(), documentId, "aadhar")) {
                     System.out.println(aadharResponse);
                     addressPreview.put("code", "0000");
@@ -120,7 +123,7 @@ public class AadharAndPanUtility {
         return addressPreview;
     }
 
-    public HashMap extractPanDetails(List<String> urls, String documentId) {
+    public HashMap<String,String> extractPanDetails(List<String> urls, String documentId) {
 
         HashMap<String, Object> inputBody = new HashMap<>();
         inputBody.put("files", urls);

@@ -19,12 +19,12 @@ public class DdfsUpload {
     private String documentType;
     @Column(name="file_name")
     private String fileName;
-    @Column(name="mobile_no")
-    private String mobileNo;
     @Column(name="updated_date")
     private LocalDateTime updatedDate;
     @Column(name="ddfs_flag")
     private String ddfsFlag;
+    @Column(name = "image_url")
+    private String imageUrl;
     @PrePersist
     public void prePersist() {
         this.updatedDate = LocalDateTime.now();

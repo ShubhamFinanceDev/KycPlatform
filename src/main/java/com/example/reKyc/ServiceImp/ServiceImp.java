@@ -1,6 +1,6 @@
 package com.example.reKyc.ServiceImp;
 
-import com.example.reKyc.Entity.Customer;
+import com.example.reKyc.Entity.KycCustomer;
 import com.example.reKyc.Entity.LoanDetails;
 import com.example.reKyc.Entity.OtpDetails;
 import com.example.reKyc.Entity.DdfsUpload;
@@ -11,24 +11,22 @@ import com.example.reKyc.Repository.OtpDetailsRepository;
 import com.example.reKyc.Repository.DdfsUploadRepository;
 import com.example.reKyc.Service.LoanNoAuthentication;
 import com.example.reKyc.Utill.*;
-import org.apache.poi.openxml4j.util.ZipSecureFile;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.net.URL;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+
+import org.apache.commons.codec.binary.Base64;
 
 @Service
 public class ServiceImp implements com.example.reKyc.Service.Service {
@@ -42,17 +40,15 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Autowired
     private OtpDetailsRepository otpDetailsRepository;
     @Autowired
-    private DdfsUploadRepository updatedDetailsRepository;
+    private DdfsUploadRepository ddfsUploadRepository;
     @Autowired
     private OtpUtility otpUtility;
     @Autowired
-    private DateTimeUtility dateTimeUtility;
-    @Autowired
-    private MaskDocumentAndFile maskDocumentAndFile;
+    private MaskDocumentNo maskDocumentAndFile;
     @Autowired
     private AadharAndPanUtility singzyServices;
     @Autowired
-    AadharAndPanUtility externalApiServices;
+    private AadharAndPanUtility externalApiServices;
     @Autowired
     private DdfsUtility ddfsUtility;
     @Value("${file_path}")
@@ -64,18 +60,17 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
         try {
 
-            Customer customer = customerRepository.getCustomer(loanNo);
+            KycCustomer customer = customerRepository.getCustomer(loanNo);
             if (customer != null) {
                 String phoneNo = saveCustomerDetails(customer.getLoanNumber());
                 int otpCode = otpUtility.generateOtp(phoneNo);
-                if ((otpCode > 0 && phoneNo!=null) && saveOtpDetail(otpCode, phoneNo)) {
-                    saveOtpDetail(otpCode, phoneNo);
+                if ((otpCode > 0 && phoneNo != null) && saveOtpDetail(otpCode, phoneNo)) {
 //                    if (otpUtility.sendOtp(phoneNo, otpCode, loanNo)) {  //stopped sms services
-                        logger.info("otp sent on mobile");
-                        otpResponse.put("otpCode", String.valueOf(otpCode));
-                        otpResponse.put("mobile", phoneNo);
-                        otpResponse.put("msg", "Otp send.");
-                        otpResponse.put("code", "0000");
+                    logger.info("otp sent on mobile");
+                    otpResponse.put("otpCode", String.valueOf(otpCode));
+                    otpResponse.put("mobile", phoneNo);
+                    otpResponse.put("msg", "Otp send.");
+                    otpResponse.put("code", "0000");
 
 //                    } else {
 //                        otpResponse.put("msg", "Please try again");
@@ -119,8 +114,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         String phoneNo = null;
 
         try {
-            LoanDetails loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
-            if (loanDetails == null) {
+            Optional<LoanDetails> loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
+            if (loanDetails.isEmpty()) {
                 LoanDetails loanDetails1 = new LoanDetails();
                 CustomerDataResponse customerDetails = loanNoAuthentication.getCustomerData(loanNo);
                 phoneNo = customerDetails.getMobileNumber();
@@ -137,7 +132,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
             } else {
-                phoneNo = loanDetails.getMobileNumber();
+                phoneNo = loanDetails.get().getMobileNumber();
             }
             return phoneNo;
         } catch (Exception e) {
@@ -152,22 +147,11 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Override
     public LoanDetails otpValidation(String mobileNo, String otpCode, String loanNo) {
 
-        LoanDetails loanDetails = new LoanDetails();
-        try {
-            OtpDetails otpDetails = otpDetailsRepository.IsotpExpired(mobileNo, otpCode);
-            Duration duration = Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now());
-            loanDetails = (duration.toMinutes() > 50) ? loanDetails : loanDetailsRepository.getLoanDetail(loanNo);
-
-        } catch (Exception e) {
-            System.out.println("===Otp invalid==");
-        }
-        return loanDetails;
+        OtpDetails otpDetails = otpDetailsRepository.IsotpExpired(mobileNo, otpCode);
+        Duration duration = Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now());
+        return (duration.toMinutes() > 50) ? null : loanDetailsRepository.getLoanDetail(loanNo).orElseThrow(() -> new RuntimeException("Loan not valid"));
 
     }
-
-    /**
-     *
-     */
 
 
     @Override
@@ -177,23 +161,17 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         List<String> urls = new ArrayList<>();
         try {
 
-
             for (InputBase64.Base64Data base64 : inputBase64.getBase64Data()) {
-
                 documentDetail = singzyServices.convertBase64ToUrl(base64.getFileType(), base64.getBase64String());
                 if (documentDetail.containsKey("code")) {
+
                     break;
                 } else {
                     urls.add(documentDetail.get("fileUrl"));
                 }
             }
-            if (!(urls.isEmpty())) {
-                if (documentType.equals("aadhar")) {
-                    documentDetail = singzyServices.extractAadharDetails(urls, inputBase64.getDocumentId());
-                } else {
-                    documentDetail = singzyServices.extractPanDetails(urls, inputBase64.getDocumentId());
-                }
-            }
+            if (!urls.isEmpty())
+                documentDetail = callExtractionService(urls, inputBase64);
         } catch (Exception e) {
 
             documentDetail.put("code", "1111");
@@ -203,26 +181,34 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     }
 
 
+    private HashMap<String, String> callExtractionService(List<String> urls, InputBase64 inputBase64) {
+        HashMap<String, String> extractedDetails;
+
+        if (inputBase64.getDocumentType().equals("aadhar")) {
+            extractedDetails = singzyServices.extractAadharDetails(urls, inputBase64.getDocumentId());
+        } else {
+            extractedDetails = singzyServices.extractPanDetails(urls, inputBase64.getDocumentId());
+        }
+
+        if (extractedDetails.get("code").equals("0000")) urls.forEach(url -> {
+            saveUpdatedDetails(inputBase64, url);
+        });
+        return extractedDetails;
+    }
+
     /**
      *
      */
     @Override
-    public CommonResponse updateCustomerKycFlag(String loanNo) {
+    public CommonResponse updateCustomerKycFlag(String loanNo,String mobileNo) {
 
         CommonResponse commonResponse = new CommonResponse();
         try {
-            LoanDetails loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
-            try {
-
-                loanDetailsRepository.deleteById(loanDetails.getUserId());
-                customerRepository.updateKycFlag(loanNo);
-                commonResponse.setMsg("Successfully");
-                commonResponse.setCode("0000");
-
-            } catch (Exception e) {
-                commonResponse.setMsg("Flag did not updated.");
-                commonResponse.setCode("1111");
-            }
+            Optional<LoanDetails> loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
+            System.out.println(loanNo);
+            customerRepository.updateKycFlag(loanDetails.get().getLoanNumber());
+            loanDetailsRepository.deleteById(loanDetails.get().getLoanNumber());
+            otpUtility.sendTextMsg(mobileNo, SmsTemplate.existingKyc); //otp send
 
         } catch (Exception e) {
             commonResponse.setMsg("Loan is not valid, try again");
@@ -233,68 +219,64 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     @Override
-    public CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNO, Long loanId) {
+    public CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNO) {
         CommonResponse commonResponse = new CommonResponse();
 
-        File folder = new File(file_path);
-        File[] listOfFiles = folder.listFiles();
-        String base64String = null;
+        List<DdfsUpload> ddfsUploads = ddfsUploadRepository.getImageUrl(inputAddress.getLoanNo());
+        if (!ddfsUploads.isEmpty()) {
 
-        assert listOfFiles != null;
-        for (File file : listOfFiles) {
-            if (file.getName().contains(inputAddress.getLoanNo())) {
-
+            for (DdfsUpload result : ddfsUploads) {
+                String imageUrl = result.getImageUrl();
                 try {
-                    byte[] fileBytes = Files.readAllBytes(Paths.get((file_path + file.getName())));
-//                    base64String = Base64.getEncoder().encodeToString(fileBytes);
-//                System.out.println("Base64 representation of the file:\n" + base64String);
-                    if (ddfsUtility.callDDFSApi(fileBytes, applicationNO)) {
+                    InputStream inputStream = new URL(imageUrl).openStream();
 
-                        if (saveUpdatedDetails(inputAddress, applicationNO)) {
-                            System.out.println("=== data has been updated in db ===");
-                        }
+                    byte[] imageBytes = IOUtils.toByteArray(inputStream);
 
+                    String base64String = Base64.encodeBase64String(imageBytes);
+                    inputStream.close();
+                    if (ddfsUtility.callDDFSApi(base64String, applicationNO)) {
+                        result.setFileName(applicationNO);
+                        result.setDdfsFlag("Y");
+                        ddfsUploadRepository.save(result);
                     } else {
-                        System.out.println("=== DDFS file upload exception ===");
                         commonResponse.setCode("1111");
-                        commonResponse.setMsg("File upload error.");
+                        commonResponse.setMsg("File upload error, try again");
                         break;
+
                     }
-                    File fileToDelete = new File(file_path + file.getName());
-                    if (fileToDelete.delete()) {
-                        System.out.println(file.getName() + "file removed from directory");
-                    }
-                } catch (Exception e) {
+
+                } catch (IOException e) {
                     System.out.println(e);
                     commonResponse.setCode("1111");
-                    commonResponse.setMsg("File upload error.");
-                    break;
+                    commonResponse.setMsg("File upload error, try again");
+
                 }
             }
+        } else {
+            commonResponse.setCode("1111");
+            commonResponse.setMsg("File upload error, try again");
+            logger.info("file bucket url does not exist.");
         }
         if (commonResponse.getCode().equals("0000")) {
-            otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc); //otp send
-            loanDetailsRepository.deleteById(loanId);  //delete loan detail
+            loanDetailsRepository.deleteById(inputAddress.getLoanNo());
+            otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc);
+
         }
         return commonResponse;
     }
 
-
-    public boolean saveUpdatedDetails(UpdateAddress inputUpdateAddress, String fileName) {
+    public void saveUpdatedDetails(InputBase64 inputUpdatedDetails, String url) {
         DdfsUpload updatedDetails = new DdfsUpload();
-        updatedDetails.setMobileNo(inputUpdateAddress.getMobileNo());
-        updatedDetails.setLoanNo(inputUpdateAddress.getLoanNo());
-        updatedDetails.setFileName(fileName);
-        updatedDetails.setDocumentType(inputUpdateAddress.getDocumentType());
-        updatedDetails.setDdfsFlag("Y");
+        updatedDetails.setLoanNo(inputUpdatedDetails.getLoanNo());
+        updatedDetails.setDocumentType(inputUpdatedDetails.getDocumentType());
+        updatedDetails.setDdfsFlag("N");
+        updatedDetails.setImageUrl(url);
 
         try {
-            updatedDetailsRepository.save(updatedDetails);
-            return true;
+            ddfsUploadRepository.save(updatedDetails);
 
         } catch (Exception e) {
-            return false;
-
+            System.out.println(e);
         }
     }
 
@@ -303,18 +285,23 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     public KycCountUpload kycCount() {
 
         try {
-            KycCountUpload kycCount=new KycCountUpload();
+            KycCountUpload kycCount = new KycCountUpload();
             Integer existingCount = customerRepository.getKycCountDetail();
-            Integer updatedCount=  updatedDetailsRepository.getUpdatedCount();
+            Integer updatedCount = ddfsUploadRepository.getUpdatedCount();
             kycCount.setUpdatedKyc(updatedCount);
             kycCount.setExistingKyc(existingCount);
 
             return kycCount;
 
-        }catch (Exception e){
-            throw new RuntimeException("failed"+e);
+        } catch (Exception e) {
+            throw new RuntimeException("failed" + e);
         }
 
+    }
+
+    @Override
+    public LoanDetails loanDetails(String loanNo) {
+        return loanDetailsRepository.getLoanDetail(loanNo).orElseThrow(() -> new RuntimeException("Loan not valid"));
     }
 
 

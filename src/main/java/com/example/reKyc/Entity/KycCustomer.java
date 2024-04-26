@@ -10,7 +10,7 @@ import java.util.Collection;
 @Entity
 @Data
 @Table(name="kyc_customer")
-public class Customer implements UserDetails {
+public class KycCustomer implements UserDetails {
     @Id
     @Column(name = "loan_number")
     private String loanNumber;

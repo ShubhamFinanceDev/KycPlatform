@@ -1,6 +1,5 @@
 package com.example.reKyc.Service;
 
-import com.example.reKyc.Entity.Customer;
 import com.example.reKyc.Model.CustomerDataResponse;
 import com.example.reKyc.Model.CustomerDetails;
 import com.example.reKyc.Repository.CustomerRepository;
