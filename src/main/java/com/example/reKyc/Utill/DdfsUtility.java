@@ -1,12 +1,16 @@
 package com.example.reKyc.Utill;
 
+import com.example.reKyc.Entity.GenerateDDFSKey;
 import com.example.reKyc.Model.PanCardResponse;
+import com.example.reKyc.Repository.GenerateDDFSKeyRepository;
 import org.openxmlformats.schemas.drawingml.x2006.chart.CTRotY;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -30,12 +34,17 @@ public class DdfsUtility {
     private String neo_ip;
     @Value("${ddfs.path}")
     private String path;
-
     @Value("${ddfs.subpath}")
     private String subPath;
     RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    private GenerateDDFSKeyRepository generateDDFSKeyRepository;
 
-    public String generateDDFSKey() throws Exception {
+    // @Scheduled(initialDelay = 1000,fixedDelay = 10000)
+    @Scheduled(cron = "*/10 * * * * *")
+    public void generateDDFSKey() throws Exception {
+
+        GenerateDDFSKey generateDDFSKey = new GenerateDDFSKey();
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMddHHmmss");
         Calendar calendar = Calendar.getInstance();
@@ -51,7 +60,12 @@ public class DdfsUtility {
         String decryptedText = decrypt(encryptedText, passcode);
         System.out.println("Decrypted Text: " +
                 decryptedText);
-        return encryptedText;
+
+        generateDDFSKey.setKeyId(1l);
+        generateDDFSKey.setGenratedKey(encryptedText);
+        generateDDFSKeyRepository.saveAndFlush(generateDDFSKey);
+        System.out.println("Save DDFS Genrated Key in DB"+ new Date() +"KEY : "+encryptedText);
+
     }
 
     public static String encrypt(String plainText, String secretKey) throws Exception {
@@ -84,16 +98,21 @@ public class DdfsUtility {
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         try {
 
-            formData.add("token", generateDDFSKey());
-//            formData.add("clientId", "SHUBHAM/OP");
+            String generateDDFSKey = generateDDFSKeyRepository.getGeneratedKye();
+            System.out.println("Get DDFS Genrated Key From DB"+generateDDFSKey);
+
+            formData.add("token", generateDDFSKey);
+          //formData.add("token", generateDDFSKey());
+          //formData.add("clientId", "SHUBHAM/OP");
             formData.add("clientId", "SHUBHAM/FIN");
             formData.add("file", applicationNo);
-           formData.add("subPath","2024/Aadhar");
+            formData.add("subPath","2024/Aadhar");
             formData.add("docCategory", "IdentityProofs");
             formData.add("clientUserId", "06799");
             formData.add("remarks", "aadhar");
             formData.add("maker", "06799");
-           formData.add("path", "HOBR/APF under-Constructi");
+           //formData.add("path", "HOBR/APF under-Constructi");
+            formData.add("path", "REKYC");
             formData.add("document", base64String);
 
             HttpHeaders headers = new HttpHeaders();
