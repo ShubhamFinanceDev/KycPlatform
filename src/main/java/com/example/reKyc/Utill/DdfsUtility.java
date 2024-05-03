@@ -93,7 +93,7 @@ public class DdfsUtility {
             formData.add("clientUserId", "06799");
             formData.add("remarks", "aadhar");
             formData.add("maker", "06799");
-           formData.add("path", "HOBR/APF under-Constructi");
+           formData.add("path", "REKYC");
             formData.add("document", base64String);
 
             HttpHeaders headers = new HttpHeaders();
