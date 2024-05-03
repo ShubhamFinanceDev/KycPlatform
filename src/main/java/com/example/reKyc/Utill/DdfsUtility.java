@@ -85,7 +85,8 @@ public class DdfsUtility {
         try {
 
             formData.add("token", generateDDFSKey());
-            formData.add("clientId", "SHUBHAM/OP");
+            
+             formData.add("clientId", "SHUBHAM/FIN");
             formData.add("file", applicationNo);
            formData.add("subPath","2024/Aadhar");
             formData.add("docCategory", "IdentityProofs");
