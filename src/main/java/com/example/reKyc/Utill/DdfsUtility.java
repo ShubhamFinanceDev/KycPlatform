@@ -86,16 +86,21 @@ public class DdfsUtility {
 
             formData.add("token", generateDDFSKey());
             
-             formData.add("clientId", "SHUBHAM/FIN");
+             formData.add("clientId", "SHUBHAM/REKYC");
             formData.add("file", applicationNo);
-           formData.add("subPath","2024/Aadhar");
-            formData.add("docCategory", "IdentityProofs");
+           formData.add("subPath","2024/APR");
+            formData.add("docCategory", "Co App Identity Proofs");
             formData.add("clientUserId", "06799");
-            formData.add("remarks", "aadhar");
+            formData.add("remarks", "");
             formData.add("maker", "06799");
            formData.add("path", "REKYC");
             formData.add("document", base64String);
-
+//            formData.add("clientId", "SHUBHAM/FIN");
+//            formData.add("file", applicationNo);
+//            formData.add("subPath","2024/Aadhar");
+//            formData.add("docCategory", "IdentityProofs");
+//            formData.add("clientUserId", "06799");
+//            formData.add("remarks", "aadhar");
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
             HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formData, headers);
