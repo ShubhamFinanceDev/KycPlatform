@@ -101,6 +101,7 @@ public class DdfsUtility {
 //            formData.add("docCategory", "IdentityProofs");
 //            formData.add("clientUserId", "06799");
 //            formData.add("remarks", "aadhar");
+            System.out.println("url"+ddfsUrl);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
             HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formData, headers);
