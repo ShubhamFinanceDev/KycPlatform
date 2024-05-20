@@ -249,6 +249,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                     System.out.println(e);
                     commonResponse.setCode("1111");
                     commonResponse.setMsg("File upload error, try again");
+                    break;
 
                 }
             }
@@ -273,7 +274,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             previousData.forEach(data ->{
                 ddfsUploadRepository.deleteById(data.getUpdatedId());
             });
-            
+
             updatedDetails.setLoanNo(inputUpdatedDetails.getLoanNo());
             updatedDetails.setDocumentType(inputUpdatedDetails.getDocumentType());
             updatedDetails.setDdfsFlag("N");
