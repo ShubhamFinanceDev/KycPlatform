@@ -267,17 +267,17 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
     public void saveUpdatedDetails(InputBase64 inputUpdatedDetails, String url) {
         DdfsUpload updatedDetails = new DdfsUpload();
-        updatedDetails.setLoanNo(inputUpdatedDetails.getLoanNo());
-        updatedDetails.setDocumentType(inputUpdatedDetails.getDocumentType());
-        updatedDetails.setDdfsFlag("N");
-        updatedDetails.setImageUrl(url);
 
         try {
             List<DdfsUpload> previousData=ddfsUploadRepository.deletePreviousDetail();
             previousData.forEach(data ->{
                 ddfsUploadRepository.deleteById(data.getUpdatedId());
             });
-
+            
+            updatedDetails.setLoanNo(inputUpdatedDetails.getLoanNo());
+            updatedDetails.setDocumentType(inputUpdatedDetails.getDocumentType());
+            updatedDetails.setDdfsFlag("N");
+            updatedDetails.setImageUrl(url);
             ddfsUploadRepository.save(updatedDetails);
 
         } catch (Exception e) {
