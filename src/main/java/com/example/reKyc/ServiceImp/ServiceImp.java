@@ -273,6 +273,11 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         updatedDetails.setImageUrl(url);
 
         try {
+            List<DdfsUpload> previousData=ddfsUploadRepository.deletePreviousDetail();
+            previousData.forEach(data ->{
+                ddfsUploadRepository.deleteById(data.getUpdatedId());
+            });
+
             ddfsUploadRepository.save(updatedDetails);
 
         } catch (Exception e) {
