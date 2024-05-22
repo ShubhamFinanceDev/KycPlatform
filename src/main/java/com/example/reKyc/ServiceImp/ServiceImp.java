@@ -190,9 +190,13 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             extractedDetails = singzyServices.extractPanDetails(urls, inputBase64.getDocumentId());
         }
 
-        if (extractedDetails.get("code").equals("0000")) urls.forEach(url -> {
-            saveUpdatedDetails(inputBase64, url);
-        });
+        if (extractedDetails.get("code").equals("0000")) {
+            deleteUnProcessRecord(inputBase64.getLoanNo());
+            urls.forEach(url -> {
+                saveUpdatedDetails(inputBase64, url);
+
+            });
+        }
         return extractedDetails;
     }
 
@@ -200,7 +204,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
      *
      */
     @Override
-    public CommonResponse updateCustomerKycFlag(String loanNo,String mobileNo) {
+    public CommonResponse updateCustomerKycFlag(String loanNo, String mobileNo) {
 
         CommonResponse commonResponse = new CommonResponse();
         try {
@@ -266,14 +270,18 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         return commonResponse;
     }
 
+    public void deleteUnProcessRecord(String loanNo)
+    {
+        List<DdfsUpload> previousData = ddfsUploadRepository.deletePreviousDetail(loanNo);
+        previousData.forEach(data -> {
+            ddfsUploadRepository.deleteById(data.getUpdatedId());
+        });
+    }
+
     public void saveUpdatedDetails(InputBase64 inputUpdatedDetails, String url) {
         DdfsUpload updatedDetails = new DdfsUpload();
 
         try {
-            List<DdfsUpload> previousData=ddfsUploadRepository.deletePreviousDetail(inputUpdatedDetails.getLoanNo());
-            previousData.forEach(data ->{
-                ddfsUploadRepository.deleteById(data.getUpdatedId());
-            });
 
             updatedDetails.setLoanNo(inputUpdatedDetails.getLoanNo());
             updatedDetails.setDocumentType(inputUpdatedDetails.getDocumentType());
