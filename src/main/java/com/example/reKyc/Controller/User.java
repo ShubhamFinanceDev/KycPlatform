@@ -45,9 +45,11 @@ public class User {
 
     @PostMapping("/sendOtp")
     public ResponseEntity<HashMap<String, String>> sendOtpOnRegisteredMobile(@RequestBody @Valid Map<String, String> inputParam) {
+        logger.info("Received request to send OTP with input parameters : {}", inputParam);
         HashMap<String, String> otpResponse = new HashMap<>();
 
         if (!inputParam.containsKey("loanNo") && inputParam.get("loanNo") == null) {
+            logger.warn("Request to send OTP failed due to mussing loanNo");
             otpResponse.put("msg", "One or more field is required");
             otpResponse.put("code", "400");
             return new ResponseEntity<>(otpResponse, HttpStatus.BAD_REQUEST);

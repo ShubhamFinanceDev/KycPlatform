@@ -270,7 +270,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         DdfsUpload updatedDetails = new DdfsUpload();
 
         try {
-            List<DdfsUpload> previousData=ddfsUploadRepository.deletePreviousDetail();
+            List<DdfsUpload> previousData=ddfsUploadRepository.deletePreviousDetail(inputUpdatedDetails.getLoanNo());
             previousData.forEach(data ->{
                 ddfsUploadRepository.deleteById(data.getUpdatedId());
             });
