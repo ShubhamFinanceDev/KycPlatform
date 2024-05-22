@@ -107,7 +107,7 @@ public class AadharAndPanUtility {
                     addressPreview.put("dateOfBirth", aadharResponse.getResult().getDateOfBirth());
                     addressPreview.put("uid", aadharResponse.getResult().getUid());
                 } else {
-                    addressPreview.put("msg", "The uploaded document does not match the loan number");
+                    addressPreview.put("msg", "The uploaded document does not match with the loan number");
                     addressPreview.put("code", "1111");
                 }
 
