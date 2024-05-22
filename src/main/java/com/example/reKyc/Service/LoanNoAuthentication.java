@@ -34,7 +34,6 @@ public class LoanNoAuthentication implements UserDetailsService {
         CustomerDataResponse customerDataResponse = new CustomerDataResponse();
 
         String sql = Query.loanQuery.concat("'" + loanNo + "'");
-        System.out.println(sql);
         try {
             List<CustomerDetails> customerDetails = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(CustomerDetails.class));
 

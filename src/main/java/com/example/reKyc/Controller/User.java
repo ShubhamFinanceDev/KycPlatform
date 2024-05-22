@@ -62,7 +62,7 @@ public class User {
 
 
     @PostMapping("/otpVerification")
-    public ResponseEntity<JwtResponse> login(@RequestBody @Valid OtpRequest request) {
+    public ResponseEntity<?> login(@RequestBody @Valid OtpRequest request) {
 
         CommonResponse commonResponse = new CommonResponse();
         JwtResponse jwtResponse = new JwtResponse();
@@ -77,7 +77,7 @@ public class User {
         } catch (Exception e) {
             commonResponse.setMsg("Mobile Number Or Otp is not valid.");
             commonResponse.setCode("1111");
-            return new ResponseEntity(commonResponse, HttpStatus.OK);
+            return ResponseEntity.ok(commonResponse);
         }
         jwtResponse.setJwtToken(token);
         jwtResponse.setMobileNo(loanDetails.getMobileNumber());
@@ -86,7 +86,7 @@ public class User {
         jwtResponse.setPanNo(loanDetails.getPan() != null ? maskDocument.documentNoEncryption(loanDetails.getPan()) : "NA");
         jwtResponse.setAadharNo(loanDetails.getAadhar() != null ? maskDocument.documentNoEncryption(loanDetails.getAadhar()) : "NA");
         jwtResponse.setLoanNo(loanDetails.getLoanNumber());
-        return new ResponseEntity(jwtResponse, HttpStatus.OK);
+        return  ResponseEntity.ok(jwtResponse);
     }
 
 
