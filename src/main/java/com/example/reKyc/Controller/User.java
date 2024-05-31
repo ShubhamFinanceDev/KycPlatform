@@ -55,24 +55,37 @@ public class User {
             return new ResponseEntity<>(otpResponse, HttpStatus.BAD_REQUEST);
 
         }
-        otpResponse = service.validateAndSendOtp(inputParam.get("loanNo"));
-        return new ResponseEntity<>(otpResponse, HttpStatus.OK);
-
+        try {
+            otpResponse = service.validateAndSendOtp(inputParam.get("loanNo"));   //validate the Loan No and send OTP
+            logger.info("OTP sent successfully for loanNo: {}", inputParam.get("loanNo"));
+            return new ResponseEntity<>(otpResponse, HttpStatus.OK);
+        }catch (Exception e) {
+            logger.error("Error occured while sending OTP for loanNo: {}", inputParam.get("loanNo"));
+            otpResponse.put("msg", "Internal Server Error");
+            otpResponse.put("code", "500");
+            return new ResponseEntity<>(otpResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 
     @PostMapping("/otpVerification")
     public ResponseEntity<?> login(@RequestBody @Valid OtpRequest request) {
 
+        logger.info("Received request to login with input parameters : {}", request);
         CommonResponse commonResponse = new CommonResponse();
         JwtResponse jwtResponse = new JwtResponse();
         String token = null;
         LoanDetails loanDetails;
 
         try {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(request.getLoanNo());
+            UserDetails userDetails = userDetailsService.loadUserByUsername(request.getLoanNo());   //load user details and( here userDetail interface is used)
+            logger.info("User found with username : {}", request.getLoanNo());
+
             loanDetails = service.otpValidation(request.getMobileNo(), request.getOtpCode(), request.getLoanNo());
+            logger.info("OTP validation successfully for mobileNo: {}", request.getLoanNo());
+
             token = this.jwtHelper.generateToken(userDetails);
+            logger.info("JWT generated successfully for mobileNo: {}", request.getLoanNo());
 
         } catch (Exception e) {
             commonResponse.setMsg("Mobile Number Or Otp is not valid.");

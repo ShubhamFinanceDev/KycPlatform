@@ -34,7 +34,7 @@ public class Shubham {
         HashMap<String, String> extractDetail = new HashMap<>();
         LoanDetails loanDetails;
         try {
-            loanDetails = service.loanDetails(inputParam.getLoanNo());
+            loanDetails = service.loanDetails(inputParam.getLoanNo()); //validate document type and ID
         } catch (Exception e) {
             extractDetail.put("msg", "Loan no is not valid.");
             extractDetail.put("code", "1111");
@@ -56,8 +56,8 @@ public class Shubham {
     public ResponseEntity<CommonResponse> finalUpdate(@RequestBody @Valid UpdateAddress inputUpdateAddress) {
         CommonResponse commonResponse = new CommonResponse();
         try {
-            LoanDetails loanDetails = service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo());
-            commonResponse = service.callDdfsService(inputUpdateAddress, loanDetails.getApplicationNumber());
+            LoanDetails loanDetails = service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo());   //Validate OTP and loan Number
+            commonResponse = service.callDdfsService(inputUpdateAddress, loanDetails.getApplicationNumber());   // calls a service to update the address details
             return ResponseEntity.ok(commonResponse);
         } catch (Exception e) {
             commonResponse.setMsg("Loan no Or Otp is not valid.");
@@ -71,13 +71,13 @@ public class Shubham {
     public ResponseEntity<CommonResponse> disableKycFlag(@RequestBody Map<String, String> inputParam) {
         CommonResponse commonResponse = new CommonResponse();
 
-        if ((!inputParam.containsKey("loanNo") && inputParam.get("loanNo") == null) && (!inputParam.containsKey("mobileNo") && inputParam.get("mobileNo") == null)) {
+        if ((!inputParam.containsKey("loanNo") && inputParam.get("loanNo") == null) && (!inputParam.containsKey("mobileNo") && inputParam.get("mobileNo") == null)) {    //validate input parameters
             commonResponse.setMsg("One or more field is required");
             commonResponse.setCode("400");
             return new ResponseEntity<>(commonResponse, HttpStatus.BAD_REQUEST);
 
         }
-        commonResponse = service.updateCustomerKycFlag(inputParam.get("loanNo"),inputParam.get("mobileNo"));
+        commonResponse = service.updateCustomerKycFlag(inputParam.get("loanNo"),inputParam.get("mobileNo"));            //update the KYC flag for the customer
 
         return new ResponseEntity<>(commonResponse, HttpStatus.OK);
     }

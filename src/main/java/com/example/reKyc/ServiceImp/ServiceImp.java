@@ -56,6 +56,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
     public HashMap<String, String> validateAndSendOtp(String loanNo) {
+        logger.info("validating and sending OTO for loanNo: {}",loanNo);
         HashMap<String, String> otpResponse = new HashMap<>();
 
         try {
@@ -78,16 +79,19 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 //                    }
 
                 } else {
+                    logger.warn("Failed to send OTP for loanNo: {}",loanNo);
                     otpResponse.put("msg", "Please try again");
                     otpResponse.put("code", "1111");
                 }
             } else {
+                logger.warn("Loan number {} not found", loanNo);
                 System.out.println("==Loan no not found==");
                 otpResponse.put("msg", "Loan no not found");
                 otpResponse.put("code", "1111");
             }
 
         } catch (Exception e) {
+            logger.error("Error while sending OTP for loanNo: {}",loanNo,e);
             System.out.println(e);
         }
         return otpResponse;
@@ -147,6 +151,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Override
     public LoanDetails otpValidation(String mobileNo, String otpCode, String loanNo) {
 
+        logger.info("Performing OTP validation for loanNo: {}, mobileNo: {}, otpCode: {}",loanNo,mobileNo,otpCode);
         OtpDetails otpDetails = otpDetailsRepository.IsotpExpired(mobileNo, otpCode);
         Duration duration = Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now());
         return (duration.toMinutes() > 50) ? null : loanDetailsRepository.getLoanDetail(loanNo).orElseThrow(() -> new RuntimeException("Loan not valid"));
@@ -206,6 +211,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Override
     public CommonResponse updateCustomerKycFlag(String loanNo, String mobileNo) {
 
+        logger.info("Updating customer KYC flag for loanNo: {}", loanNo);
         CommonResponse commonResponse = new CommonResponse();
         try {
             Optional<LoanDetails> loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
@@ -213,8 +219,10 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             customerRepository.updateKycFlag(loanDetails.get().getLoanNumber());
             loanDetailsRepository.deleteById(loanDetails.get().getLoanNumber());
             otpUtility.sendTextMsg(mobileNo, SmsTemplate.existingKyc); //otp send
+            logger.info("Customer KYC flag updated successfully for loanNo: {}", loanNo);
 
         } catch (Exception e) {
+            logger.error("Error occurred while updating customer KYC flag for loanNo: {}", loanNo, e);
             commonResponse.setMsg("Loan is not valid, try again");
             commonResponse.setCode("1111");
         }
@@ -224,6 +232,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
     @Override
     public CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNO) {
+        logger.info("Calling ddfs service for applicationNO: {}", applicationNO);
         CommonResponse commonResponse = new CommonResponse();
 
         List<DdfsUpload> ddfsUploads = ddfsUploadRepository.getImageUrl(inputAddress.getLoanNo());
@@ -248,8 +257,10 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                         break;
 
                     }
+                    logger.info("DDFS service call successfully for applicationNO: {}", applicationNO);
 
                 } catch (IOException e) {
+                    logger.error("Error occurred while calling ddfs service for applicationNO: {}", applicationNO, e);
                     System.out.println(e);
                     commonResponse.setCode("1111");
                     commonResponse.setMsg("File upload error, try again");
@@ -272,13 +283,16 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
     public void deleteUnProcessRecord(String loanNo)
     {
+        logger.info("Deleting unprocess record for loanNo: {}", loanNo);
         List<DdfsUpload> previousData = ddfsUploadRepository.deletePreviousDetail(loanNo);
         previousData.forEach(data -> {
             ddfsUploadRepository.deleteById(data.getUpdatedId());
         });
+        logger.info("Unprrocessed record for loanNo: {}", loanNo);
     }
 
     public void saveUpdatedDetails(InputBase64 inputUpdatedDetails, String url) {
+        logger.info("saving updated details for url: {}", inputUpdatedDetails.getLoanNo());
         DdfsUpload updatedDetails = new DdfsUpload();
 
         try {
@@ -288,8 +302,10 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             updatedDetails.setDdfsFlag("N");
             updatedDetails.setImageUrl(url);
             ddfsUploadRepository.save(updatedDetails);
+            logger.info("Updated details saved successfully for loanNo: {}", inputUpdatedDetails.getLoanNo());
 
         } catch (Exception e) {
+            logger.error("Error occurred while saving updated details for loanNo: {}", inputUpdatedDetails.getLoanNo(), e);
             System.out.println(e);
         }
     }
@@ -297,6 +313,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
     @Override
     public KycCountUpload kycCount() {
+        logger.info("Fetching KYC count");
 
         try {
             KycCountUpload kycCount = new KycCountUpload();
@@ -304,10 +321,12 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             Integer updatedCount = ddfsUploadRepository.getUpdatedCount();
             kycCount.setUpdatedKyc(updatedCount);
             kycCount.setExistingKyc(existingCount);
+            logger.info("KYC count fetched successfully: Existing KYC count: {}, Updated KYC count: {}", existingCount, updatedCount);
 
             return kycCount;
 
         } catch (Exception e) {
+            logger.error("Error occurred while fetching KYC count", e);
             throw new RuntimeException("failed" + e);
         }
 
@@ -315,6 +334,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
     @Override
     public LoanDetails loanDetails(String loanNo) {
+        logger.info("Fetching loan details for loanNo: {}", loanNo);
         return loanDetailsRepository.getLoanDetail(loanNo).orElseThrow(() -> new RuntimeException("Loan not valid"));
     }
 

@@ -101,7 +101,7 @@ public class AdminUser {
         AdminResponse adminResponse=new AdminResponse();
            String email=input.get("email");
            String password=input.get("password");
-           Optional<Admin> admin=adminRepository.adminAccount(email,password);
+           Optional<Admin> admin=adminRepository.adminAccount(email,password);   //check for email and password
 
             if(admin.isPresent())
            {
@@ -122,7 +122,7 @@ public class AdminUser {
         CommonResponse commonResponse = new CommonResponse();
 
         try {
-            KycCountUpload  count = service.kycCount();
+            KycCountUpload  count = service.kycCount();   //to fetch and update KYC count
             return new ResponseEntity<>(count,HttpStatus.OK);
         }
         catch (Exception e){
