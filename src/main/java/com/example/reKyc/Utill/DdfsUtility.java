@@ -89,7 +89,7 @@ public class DdfsUtility {
             formData.add("clientId", "SHUBHAM/REKYC");
             formData.add("file", applicationNo);
             formData.add("subPath", "2024/APR");
-            formData.add("docCategory", "Co App Identity Proofs");
+            formData.add("docCategory", "Rekyc Document");
             formData.add("clientUserId", "06799");
             formData.add("remarks", "");
             formData.add("maker", "06799");
