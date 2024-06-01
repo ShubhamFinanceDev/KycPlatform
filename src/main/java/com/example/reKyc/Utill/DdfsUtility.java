@@ -2,6 +2,8 @@ package com.example.reKyc.Utill;
 
 import com.example.reKyc.Model.PanCardResponse;
 import org.openxmlformats.schemas.drawingml.x2006.chart.CTRotY;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -34,6 +37,9 @@ public class DdfsUtility {
     @Value("${ddfs.subpath}")
     private String subPath;
     RestTemplate restTemplate = new RestTemplate();
+
+    private final Logger logger = LoggerFactory.getLogger(DdfsUtility.class);
+
 
     public String generateDDFSKey() throws Exception {
 
@@ -85,7 +91,6 @@ public class DdfsUtility {
         try {
 
             formData.add("token", generateDDFSKey());
-
             formData.add("clientId", "SHUBHAM/REKYC");
             formData.add("file", applicationNo);
             formData.add("subPath", "2024/APR");
@@ -95,27 +100,22 @@ public class DdfsUtility {
             formData.add("maker", "06799");
             formData.add("path", "REKYC");
             formData.add("document", base64String);
-//            formData.add("clientId", "SHUBHAM/FIN");
-//            formData.add("file", applicationNo);
-//            formData.add("subPath","2024/Aadhar");
-//            formData.add("docCategory", "IdentityProofs");
-//            formData.add("clientUserId", "06799");
-//            formData.add("remarks", "aadhar");
-            System.out.println("url" + ddfsUrl);
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
             HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formData, headers);
             ResponseEntity<HashMap> responseBody = restTemplate.postForEntity(ddfsUrl, requestEntity, HashMap.class);
 
             if (responseBody.getStatusCode().toString().contains("200") && responseBody.getBody().get("status").toString().contains("SUCCESS")) {
-                System.out.println("Response from the DDFS API: " + responseBody.getBody().get("status"));
+//                System.out.println("Response from the DDFS API: " + responseBody.getBody().get("status"));
+                logger.info("DDFS API Call Success");
                 status = true;
 
             }
             System.out.println("ddfs response " + responseBody.getBody());
         } catch (Exception e) {
-            System.out.println("===exception while calling DDFS api ");
-            status = false;
+            System.out.println("==Error in DDFS api call");
+            logger.error("DDFS API Call Error{}", e.getMessage());
         }
         return status;
     }

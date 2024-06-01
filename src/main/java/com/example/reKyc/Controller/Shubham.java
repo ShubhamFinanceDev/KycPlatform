@@ -29,7 +29,7 @@ public class Shubham {
     @Autowired
     private OtpUtility otpUtility;
 
-    @PostMapping("/addressPreview")
+    @PostMapping("/uploadPreview")
     public ResponseEntity<HashMap<String, String>> handleRequest(@RequestBody @Valid InputBase64 inputParam) {     //convert base64 into url
         HashMap<String, String> extractDetail = new HashMap<>();
         LoanDetails loanDetails;
@@ -52,7 +52,7 @@ public class Shubham {
     }
 
 
-    @PostMapping("/updateAddress")
+    @PostMapping("/uploadKyc")
     public ResponseEntity<CommonResponse> finalUpdate(@RequestBody @Valid UpdateAddress inputUpdateAddress) {
         CommonResponse commonResponse = new CommonResponse();
         try {

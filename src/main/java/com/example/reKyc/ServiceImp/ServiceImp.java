@@ -288,7 +288,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         previousData.forEach(data -> {
             ddfsUploadRepository.deleteById(data.getUpdatedId());
         });
-        logger.info("Unprrocessed record for loanNo: {}", loanNo);
+        logger.info("Unprocessed record for loanNo: {}", loanNo);
     }
 
     public void saveUpdatedDetails(InputBase64 inputUpdatedDetails, String url) {

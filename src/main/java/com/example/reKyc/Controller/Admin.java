@@ -1,6 +1,5 @@
 package com.example.reKyc.Controller;
 
-import com.example.reKyc.Entity.Admin;
 import com.example.reKyc.Entity.KycCustomer;
 import com.example.reKyc.Model.AdminResponse;
 import com.example.reKyc.Model.CommonResponse;
@@ -22,7 +21,7 @@ import java.util.*;
 @RestController
 @RequestMapping("/admin")
 @CrossOrigin
-public class AdminUser {
+public class Admin {
 
     @Autowired
     private Service service;
@@ -95,20 +94,20 @@ public class AdminUser {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<CommonResponse> adminLogin(@RequestBody HashMap<String,String> input)
+    public ResponseEntity<?> adminLogin(@RequestBody HashMap<String,String> input)
     {
         CommonResponse commonResponse=new CommonResponse();
         AdminResponse adminResponse=new AdminResponse();
            String email=input.get("email");
            String password=input.get("password");
-           Optional<Admin> admin=adminRepository.adminAccount(email,password);   //check for email and password
+           Optional<com.example.reKyc.Entity.Admin> admin=adminRepository.adminAccount(email,password);   //check for email and password
 
             if(admin.isPresent())
            {
                adminResponse.setMsg("Login successfully");
                adminResponse.setCode("0000");
                adminResponse.setUid(admin.get().getUid());
-               return new ResponseEntity(adminResponse, HttpStatus.OK);
+               return new ResponseEntity<>(adminResponse, HttpStatus.OK);
            }
 
         adminResponse.setMsg("Username password did not matched.");
@@ -117,7 +116,7 @@ public class AdminUser {
     }
 
     @GetMapping("/kycCount")
-    public ResponseEntity<KycCountUpload> kycCount(){
+    public ResponseEntity<?> kycCount(){
 
         CommonResponse commonResponse = new CommonResponse();
 
@@ -129,7 +128,7 @@ public class AdminUser {
             commonResponse.setCode("1111");
             commonResponse.setMsg("Something went wrong. please try again");
         }
-        return new ResponseEntity(commonResponse,HttpStatus.OK);
+        return new ResponseEntity<>(commonResponse,HttpStatus.OK);
     }
 
 }
