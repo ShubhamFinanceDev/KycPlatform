@@ -43,7 +43,7 @@ public class User {
     private JdbcTemplate jdbcTemplate;
     private final Logger logger = LoggerFactory.getLogger(User.class);
 
-    @PostMapping("/sendOtp")
+    @PostMapping("/send-otp")
     public ResponseEntity<HashMap<String, String>> sendOtpOnRegisteredMobile(@RequestBody @Valid Map<String, String> inputParam) {
         logger.info("Received request to send OTP with input parameters : {}", inputParam);
         HashMap<String, String> otpResponse = new HashMap<>();
@@ -68,7 +68,7 @@ public class User {
     }
 
 
-    @PostMapping("/otpVerification")
+    @PostMapping("/otp-verification")
     public ResponseEntity<?> login(@RequestBody @Valid OtpRequest request) {
 
         logger.info("Received request to login with input parameters : {}", request);
