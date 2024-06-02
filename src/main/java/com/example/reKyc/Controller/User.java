@@ -25,7 +25,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/userKyc")
-@CrossOrigin
+@CrossOrigin("*")
 @Validated
 public class User {
     @Autowired
