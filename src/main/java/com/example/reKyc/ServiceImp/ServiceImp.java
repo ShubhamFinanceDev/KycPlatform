@@ -51,8 +51,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     private AadharAndPanUtility externalApiServices;
     @Autowired
     private DdfsUtility ddfsUtility;
-    @Value("${file_path}")
-    String file_path;
+
     Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
     public HashMap<String, String> validateAndSendOtp(String loanNo) {

@@ -31,11 +31,8 @@ public class DdfsUtility {
     private String ddfsUrl;
     @Value("${neo.ip}")
     private String neo_ip;
-    @Value("${ddfs.path}")
-    private String path;
 
-    @Value("${ddfs.subpath}")
-    private String subPath;
+
     RestTemplate restTemplate = new RestTemplate();
 
     private final Logger logger = LoggerFactory.getLogger(DdfsUtility.class);
