@@ -19,7 +19,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/shubham")
-@CrossOrigin
+@CrossOrigin("*")
 public class Shubham {
 
     @Autowired
