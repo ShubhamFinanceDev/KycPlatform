@@ -111,7 +111,7 @@ public class Admin {
            }
 
         adminResponse.setMsg("Username password did not matched.");
-        adminResponse.setCode("0000");
+        adminResponse.setCode("1111");
         return new ResponseEntity<>(commonResponse, HttpStatus.OK);
     }
 
