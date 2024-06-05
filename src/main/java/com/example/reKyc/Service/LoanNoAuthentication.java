@@ -58,7 +58,7 @@ public class LoanNoAuthentication implements UserDetailsService {
                 }
             }
         } catch (Exception e) {
-            System.out.println("exception while running main db query");
+            System.out.println("exception while running main db query :"+e.getMessage());
             logger.error(e.getMessage());
         }
         return customerDataResponse;
