@@ -110,8 +110,8 @@ public class Admin {
                return new ResponseEntity<>(adminResponse, HttpStatus.OK);
            }
 
-        adminResponse.setMsg("Username password did not matched.");
-        adminResponse.setCode("1111");
+        commonResponse.setMsg("Username password did not matched.");
+        commonResponse.setCode("1111");
         return new ResponseEntity<>(commonResponse, HttpStatus.OK);
     }
 
