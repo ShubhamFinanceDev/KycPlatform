@@ -55,7 +55,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
     public HashMap<String, String> validateAndSendOtp(String loanNo) {
-        logger.info("validating and sending OTO for loanNo: {}",loanNo);
+        logger.info("validating and sending OTP for loanNo: {}",loanNo);
         HashMap<String, String> otpResponse = new HashMap<>();
 
         try {
