@@ -67,7 +67,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 if ((otpCode > 0 && phoneNo != null) && saveOtpDetail(otpCode, phoneNo)) {
 //                    if (otpUtility.sendOtp(phoneNo, otpCode, loanNo)) {  //stopped sms services
                     logger.info("otp sent on mobile");
-                    otpResponse.put("otpCode", String.valueOf(otpCode));
+//                    otpResponse.put("otpCode", String.valueOf(otpCode));
                     otpResponse.put("mobile", phoneNo);
                     otpResponse.put("msg", "Otp send.");
                     otpResponse.put("code", "0000");
