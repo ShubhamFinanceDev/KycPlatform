@@ -44,27 +44,19 @@ public class User {
     private final Logger logger = LoggerFactory.getLogger(User.class);
 
     @PostMapping("/send-otp")
-    public ResponseEntity<HashMap<String, String>> sendOtpOnRegisteredMobile(@RequestBody @Valid Map<String, String> inputParam) {
+    public ResponseEntity<HashMap> sendOtpOnRegisteredMobile(@RequestBody @Valid Map<String, String> inputParam) {
         logger.info("Received request to send OTP with input parameters : {}", inputParam);
         HashMap<String, String> otpResponse = new HashMap<>();
-
-        if (!inputParam.containsKey("loanNo") && inputParam.get("loanNo") == null) {
+        String loanNo = inputParam.get("loanNo");
+        if (loanNo.isEmpty() || loanNo==null) {
             logger.warn("Request to send OTP failed due to mussing loanNo");
             otpResponse.put("msg", "One or more field is required");
             otpResponse.put("code", "400");
             return new ResponseEntity<>(otpResponse, HttpStatus.BAD_REQUEST);
 
         }
-        try {
-            otpResponse = service.validateAndSendOtp(inputParam.get("loanNo"));   //validate the Loan No and send OTP
-            logger.info("OTP sent successfully for loanNo: {}", inputParam.get("loanNo"));
-            return new ResponseEntity<>(otpResponse, HttpStatus.OK);
-        }catch (Exception e) {
-            logger.error("Error occured while sending OTP for loanNo: {}", inputParam.get("loanNo"));
-            otpResponse.put("msg", "Internal Server Error");
-            otpResponse.put("code", "500");
-            return new ResponseEntity<>(otpResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        otpResponse = service.validateAndSendOtp(loanNo);
+        return ResponseEntity.ok(otpResponse);
     }
 
 
@@ -99,7 +91,7 @@ public class User {
         jwtResponse.setPanNo(loanDetails.getPan() != null ? maskDocument.documentNoEncryption(loanDetails.getPan()) : "NA");
         jwtResponse.setAadharNo(loanDetails.getAadhar() != null ? maskDocument.documentNoEncryption(loanDetails.getAadhar()) : "NA");
         jwtResponse.setLoanNo(loanDetails.getLoanNumber());
-        return  ResponseEntity.ok(jwtResponse);
+        return ResponseEntity.ok(jwtResponse);
     }
 
 

@@ -30,25 +30,30 @@ public class Shubham {
     private OtpUtility otpUtility;
 
     @PostMapping("/upload-preview")
-    public ResponseEntity<HashMap<String, String>> handleRequest(@RequestBody @Valid InputBase64 inputParam) {     //convert base64 into url
+    public HashMap handleRequest(@RequestBody @Valid InputBase64 inputParam) {     //convert base64 into url
         HashMap<String, String> extractDetail = new HashMap<>();
         LoanDetails loanDetails;
+        boolean isValidDocument;
         try {
             loanDetails = service.loanDetails(inputParam.getLoanNo()); //validate document type and ID
+            String documentType = inputParam.getDocumentType();
+            String documentId = inputParam.getDocumentId();
+             isValidDocument = (documentType.contains("pan") && loanDetails.getPan().equals(documentId)) ||
+                    (documentType.contains("aadhar") && loanDetails.getAadhar().equals(documentId));
+
         } catch (Exception e) {
             extractDetail.put("msg", "Loan no is not valid.");
             extractDetail.put("code", "1111");
-            return new ResponseEntity<>(extractDetail, HttpStatus.OK);
+            return extractDetail;
         }
 
-        if ((inputParam.getDocumentType().contains("pan") && loanDetails.getPan().equals(inputParam.getDocumentId())) || (inputParam.getDocumentType().contains("aadhar") && loanDetails.getAadhar().equals(inputParam.getDocumentId()))) {
-            extractDetail = service.callFileExchangeServices(inputParam, inputParam.getDocumentType());      //convert file base 64 into url also extract details
+        if (isValidDocument) {
+            extractDetail = service.callFileExchangeServices(inputParam);
         } else {
             extractDetail.put("msg", "The document ID number is incorrect");
             extractDetail.put("code", "1111");
         }
-        return new ResponseEntity<>(extractDetail, HttpStatus.OK);
-
+        return extractDetail;
     }
 
 
@@ -77,7 +82,7 @@ public class Shubham {
             return new ResponseEntity<>(commonResponse, HttpStatus.BAD_REQUEST);
 
         }
-        commonResponse = service.updateCustomerKycFlag(inputParam.get("loanNo"),inputParam.get("mobileNo"));            //update the KYC flag for the customer
+        commonResponse = service.updateCustomerKycFlag(inputParam.get("loanNo"), inputParam.get("mobileNo"));            //update the KYC flag for the customer
 
         return new ResponseEntity<>(commonResponse, HttpStatus.OK);
     }
