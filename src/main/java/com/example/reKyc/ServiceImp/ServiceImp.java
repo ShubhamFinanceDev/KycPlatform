@@ -76,7 +76,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 otpUtility.sendOtp(mobileNo, otpResponse.get("otpCode"), loanNo);
                 logger.info("otp sent on mobile");
                 otpResponse.clear();
-//                    otpResponse.put("otpCode", String.valueOf(otpCode));
+//                otpResponse.put("otpCode", String.valueOf(otpResponse.get("otpCode")));
                 otpResponse.put("mobile", mobileNo);
                 otpResponse.put("msg", "Otp send successfully.");
                 otpResponse.put("code", "0000");
@@ -226,11 +226,9 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
     public void deleteUnProcessRecord(String loanNo) {
         logger.info("Deleting unprocessed record for loanNo: {}", loanNo);
-        List<DdfsUpload> previousData = ddfsUploadRepository.deletePreviousDetail(loanNo);
-        previousData.forEach(data -> {
+        ddfsUploadRepository.deletePreviousDetail(loanNo).forEach(data -> {
             ddfsUploadRepository.deleteById(data.getUpdatedId());
         });
-        logger.info("Unprocessed record for loanNo: {}", loanNo);
     }
 
     public void saveUpdatedDetails(InputBase64 inputUpdatedDetails, String url) {

@@ -59,12 +59,15 @@ public class OtpUtility {
 
         System.out.println(body);
         String apiUrl = otpUrl + "?method=" + otpMethod + "&api_key=" + otpKey + "&to=" + mobileNo + "&sender=" + otpSender + "&message=" + body + "&format=" + otpFormat + "&unicode=auto";
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            HashMap<String, String> otpResponse = restTemplate.getForObject(apiUrl, HashMap.class);
 
-        RestTemplate restTemplate = new RestTemplate();
-        HashMap<String, String> otpResponse = restTemplate.getForObject(apiUrl, HashMap.class);
-
-        if (otpResponse.get("status").equals("OK")) {
-            System.out.println("Sms send successfully");
+            if (otpResponse.get("status").equals("OK")) {
+                logger.info("Otp send successfully");
+            }
+        } catch (Exception e) {
+            logger.error("Error while sending otp on mobile.");
         }
     }
 
