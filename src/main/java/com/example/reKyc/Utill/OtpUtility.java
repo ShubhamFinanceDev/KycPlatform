@@ -31,7 +31,7 @@ public class OtpUtility {
     private OtpDetailsRepository otpDetailsRepository;
     private Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
-    public boolean generateOtp(String mobileNo, HashMap<String, String> otpResponse) {
+    public void generateOtp(String mobileNo,HashMap<String,String> otpResponse) {
         try {
             int count = otpDetailsRepository.countByMobile(mobileNo);
 
@@ -40,7 +40,7 @@ public class OtpUtility {
 
                 logger.info("previous otp deleted");
             }
-            int otpCode = (int) (Math.random() * 900000) + 100000;
+           int otpCode = ((int) (Math.random() * 900000) + 100000);
 
             OtpDetails otpDetails = new OtpDetails();
             otpDetails.setOtpCode(Long.valueOf(otpCode));
@@ -48,13 +48,14 @@ public class OtpUtility {
             otpDetails.setMobileNo(mobileNo);
             otpDetailsRepository.save(otpDetails);
             otpResponse.put("otpCode", String.valueOf(otpCode));
-            return true;
         } catch (Exception e) {
-            return false;
+            otpResponse.put("msg","Please try again.");
+            otpResponse.put("code","1111");
+            logger.info("Error while generating otp.");
         }
     }
 
-
+    @Async
     public void sendTextMsg(String mobileNo, String body) {
 
         System.out.println(body);
@@ -71,10 +72,15 @@ public class OtpUtility {
         }
     }
 
-    @Async
-    public void sendOtp(String mobileNo, String otpCode, String loanNo) {
+    public HashMap<String,String> sendOtp(String mobileNo, String otpCode, String loanNo) {
         String subStringLoanNo = loanNo.substring(loanNo.length() - 5, loanNo.length());
         String smsBody = "Dear Customer, Your Rekyc OTP is " + otpCode + " for Loan XXXXXXXXXXXXXXX" + subStringLoanNo + ".\\n\\nRegards\\nShubham Housing Development Finance Company";
         sendTextMsg(mobileNo, smsBody);
+        HashMap<String,String> otpResponse= new HashMap<>();
+        otpResponse.put("mobile", mobileNo);
+        otpResponse.put("msg", "Otp send successfully.");
+        otpResponse.put("code", "0000");
+        logger.info("otp sent on mobile");
+    return  otpResponse;
     }
 }

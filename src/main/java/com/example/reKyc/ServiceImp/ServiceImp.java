@@ -70,17 +70,13 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 return otpResponse;
             }
             mobileNo = loanDetailsRepository.findById(loanNo).map(LoanDetails::getMobileNumber).orElse(loanNoAuthentication.getCustomerData(loanNo));
-            boolean otpCode = otpUtility.generateOtp(mobileNo, otpResponse);
 
-            if (otpCode) {
-                otpUtility.sendOtp(mobileNo, otpResponse.get("otpCode"), loanNo);
-                logger.info("otp sent on mobile");
-                otpResponse.clear();
-//                otpResponse.put("otpCode", String.valueOf(otpResponse.get("otpCode")));
-                otpResponse.put("mobile", mobileNo);
-                otpResponse.put("msg", "Otp send successfully.");
-                otpResponse.put("code", "0000");
-
+            if (!mobileNo.isEmpty() && mobileNo != null) {
+                otpUtility.generateOtp(mobileNo, otpResponse);
+                if (!otpResponse.containsKey("otpCode")) {
+                    return otpResponse;
+                }
+                return otpUtility.sendOtp(mobileNo, otpResponse.get("otpCode"), loanNo);
             } else {
                 logger.warn("Failed to send OTP for loanNo: {}", loanNo);
                 otpResponse.put("msg", "Please try again");
