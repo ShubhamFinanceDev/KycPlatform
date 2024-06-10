@@ -72,7 +72,7 @@ public class User {
         try {
             UserDetails userDetails = userDetailsService.loadUserByUsername(request.getLoanNo());   //load user details and( here userDetail interface is used)
             loanDetails = service.otpValidation(request.getMobileNo(), request.getOtpCode(), request.getLoanNo());
-            if (loanDetails != null) {
+            if (loanDetails == null) {
                 commonResponse.setMsg("Otp is expired or invalid.");
                 commonResponse.setCode("1111");
                 return ResponseEntity.ok(commonResponse);
