@@ -32,7 +32,7 @@ public class LoanNoAuthentication implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String loanNo) throws UsernameNotFoundException {
 
-        return loanDetailsRepository.findById(loanNo).orElseThrow(() -> new RuntimeException("user not found"));
+        return loanDetailsRepository.getLoanDetail(loanNo).orElseThrow(() -> new RuntimeException("user not found"));
 
     }
 
@@ -78,11 +78,11 @@ public class LoanNoAuthentication implements UserDetailsService {
             loanDetails.setCustomerName(customerDataResponse.getCustomerName());
             loanDetails.setMobileNumber(customerDataResponse.getMobileNumber());
             loanDetailsRepository.save(loanDetails);
-            logger.info("Loan-detail save temporary.{}");
+            logger.info("Loan-detail save temporary.");
 
         }
         catch (Exception e) {
-            logger.info("Error while saving temporary Loan detail.{}"+e.getMessage());
+            logger.error("Error while saving temporary Loan detail.{}", e.getMessage());
         }
     }
 }

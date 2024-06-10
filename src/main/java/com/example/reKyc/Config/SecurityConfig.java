@@ -20,7 +20,7 @@ public class SecurityConfig {
     @Autowired
     private UserDetailsService userDetailsService;
     @Autowired
-    private ExceptionPoint point;
+    private GlobalException point;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

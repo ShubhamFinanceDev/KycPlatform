@@ -29,7 +29,7 @@ public class OtpUtility {
 
     @Autowired
     private OtpDetailsRepository otpDetailsRepository;
-    private Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
+    private final Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
     public void generateOtp(String mobileNo,HashMap<String,String> otpResponse) {
         try {
@@ -51,7 +51,7 @@ public class OtpUtility {
         } catch (Exception e) {
             otpResponse.put("msg","Please try again.");
             otpResponse.put("code","1111");
-            logger.info("Error while generating otp.");
+            logger.error("Error while generating otp.");
         }
     }
 

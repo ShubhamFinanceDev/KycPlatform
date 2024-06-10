@@ -13,11 +13,11 @@ import java.util.Collection;
 public class LoanDetails implements UserDetails {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
     @Column(name = "user_id")
     private Long userId;
     @Column(name = "application_number")
     private String applicationNumber;
-    @Id
     @Column(name = "loan_number")
     private String loanNumber;
 

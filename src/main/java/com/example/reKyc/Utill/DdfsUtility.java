@@ -9,6 +9,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -81,7 +82,7 @@ public class DdfsUtility {
         return decryptedText;
     }
 
-
+    @Async
     public Boolean callDDFSApi(String base64String, String applicationNo) {
         boolean status = false;
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
