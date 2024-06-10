@@ -48,7 +48,7 @@ public class User {
         logger.info("Received request to send OTP with input parameters : {}", inputParam);
         HashMap<String, String> otpResponse = new HashMap<>();
         String loanNo = inputParam.get("loanNo");
-        if (loanNo.isEmpty() || loanNo==null) {
+        if (loanNo.isEmpty() || loanNo == null) {
             logger.warn("Request to send OTP failed due to mussing loanNo");
             otpResponse.put("msg", "One or more field is required");
             otpResponse.put("code", "400");
@@ -71,27 +71,27 @@ public class User {
 
         try {
             UserDetails userDetails = userDetailsService.loadUserByUsername(request.getLoanNo());   //load user details and( here userDetail interface is used)
-            logger.info("User found with username : {}", request.getLoanNo());
-
             loanDetails = service.otpValidation(request.getMobileNo(), request.getOtpCode(), request.getLoanNo());
-            logger.info("OTP validation successfully for mobileNo: {}", request.getLoanNo());
-
+            if (loanDetails != null) {
+                commonResponse.setMsg("Otp is expired or invalid.");
+                commonResponse.setCode("1111");
+                return ResponseEntity.ok(commonResponse);
+            }
             token = this.jwtHelper.generateToken(userDetails);
-            logger.info("JWT generated successfully for mobileNo: {}", request.getLoanNo());
-
+            jwtResponse.setJwtToken(token);
+            jwtResponse.setMobileNo(loanDetails.getMobileNumber());
+            jwtResponse.setAddress(loanDetails.getAddressDetailsResidential());
+            jwtResponse.setName(loanDetails.getCustomerName());
+            jwtResponse.setPanNo(loanDetails.getPan() != null ? maskDocument.documentNoEncryption(loanDetails.getPan()) : "NA");
+            jwtResponse.setAadharNo(loanDetails.getAadhar() != null ? maskDocument.documentNoEncryption(loanDetails.getAadhar()) : "NA");
+            jwtResponse.setLoanNo(loanDetails.getLoanNumber());
+            return ResponseEntity.ok(jwtResponse);
         } catch (Exception e) {
-            commonResponse.setMsg("Mobile Number Or Otp is not valid.");
+            commonResponse.setMsg("Loan no not found.");
             commonResponse.setCode("1111");
             return ResponseEntity.ok(commonResponse);
         }
-        jwtResponse.setJwtToken(token);
-        jwtResponse.setMobileNo(loanDetails.getMobileNumber());
-        jwtResponse.setAddress(loanDetails.getAddressDetailsResidential());
-        jwtResponse.setName(loanDetails.getCustomerName());
-        jwtResponse.setPanNo(loanDetails.getPan() != null ? maskDocument.documentNoEncryption(loanDetails.getPan()) : "NA");
-        jwtResponse.setAadharNo(loanDetails.getAadhar() != null ? maskDocument.documentNoEncryption(loanDetails.getAadhar()) : "NA");
-        jwtResponse.setLoanNo(loanDetails.getLoanNumber());
-        return ResponseEntity.ok(jwtResponse);
+
     }
 
 

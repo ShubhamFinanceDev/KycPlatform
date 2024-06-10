@@ -25,23 +25,6 @@ public class GlobalException implements AuthenticationEntryPoint{
 
     CommonResponse commonResponse = new CommonResponse();
 
-    @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<CommonResponse> handleUserNotFoundException(UsernameNotFoundException ex) {
-        logger.error(ex.getMessage());
-        commonResponse.setCode("401");
-        commonResponse.setMsg(ex.getMessage());
-        return new ResponseEntity<>(commonResponse, HttpStatus.NOT_FOUND);
-    }
-
-    // You can add more exception handlers for different exceptions here
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<CommonResponse> handleRuntimeException(RuntimeException ex) {
-        logger.error(ex.getMessage());
-        commonResponse.setCode("500");
-        commonResponse.setMsg(ex.getMessage());
-        return new ResponseEntity<>(commonResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<CommonResponse> handleGlobalException(Exception ex) {
         logger.error(ex.getMessage());
@@ -62,7 +45,6 @@ public class GlobalException implements AuthenticationEntryPoint{
         PrintWriter writer=response.getWriter();
         writer.print(gson.toJson(commonResponse));
         writer.flush();
-
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
