@@ -82,7 +82,7 @@ public class DdfsUtility {
         return decryptedText;
     }
 
-    @Async
+
     public Boolean callDDFSApi(String base64String, String applicationNo) {
         boolean status = false;
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
