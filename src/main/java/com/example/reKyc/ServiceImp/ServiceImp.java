@@ -71,7 +71,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             }
             LoanDetails loanDetails=loanDetailsRepository.getLoanDetails(loanNo);
             mobileNo=(loanDetails !=null) ? loanDetails.getMobileNumber() : loanNoAuthentication.getCustomerData(loanNo);
-            if (!mobileNo.isEmpty()) {
+            if (mobileNo !=null && !mobileNo.isEmpty()) {
                 otpUtility.generateOtp(mobileNo, otpResponse);
                 if (!otpResponse.containsKey("otpCode")) {
                     return otpResponse;
