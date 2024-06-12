@@ -1,11 +1,13 @@
 package com.example.reKyc.Utill;
 
+import com.example.reKyc.Entity.OtpDetails;
 import com.example.reKyc.Model.CustomerDataResponse;
 import com.example.reKyc.Repository.OtpDetailsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -27,57 +29,58 @@ public class OtpUtility {
 
     @Autowired
     private OtpDetailsRepository otpDetailsRepository;
-    private Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
+    private final Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
-    public int generateOtp(String mobileNo)
-    {
+    public void generateOtp(String mobileNo,HashMap<String,String> otpResponse) {
         try {
             int count = otpDetailsRepository.countByMobile(mobileNo);
 
             if (count > 0) {
                 otpDetailsRepository.deletePreviousOtp(mobileNo);
+
                 logger.info("previous otp deleted");
             }
-            int randomNo = (int) (Math.random() * 900000) + 100000;
-            return randomNo;
-        }
-        catch (Exception e)
-        {
-            return 0;
-        }
-    }
+           int otpCode = ((int) (Math.random() * 900000) + 100000);
 
-
-    public void sendTextMsg(String mobileNo, String body)
-    {
-
-        System .out.println(body);
-        String apiUrl=otpUrl+"?method="+otpMethod+"&api_key="+otpKey+"&to="+mobileNo+"&sender="+otpSender+"&message="+body+"&format="+otpFormat+"&unicode=auto";
-
-        RestTemplate restTemplate=new RestTemplate();
-        HashMap<String,String> otpResponse=restTemplate.getForObject(apiUrl,HashMap.class);
-
-        if(otpResponse.get("status").equals("OK"))
-        {
-            System.out.println("Sms send successfully");
+            OtpDetails otpDetails = new OtpDetails();
+            otpDetails.setOtpCode(Long.valueOf(otpCode));
+            System.out.println(otpCode);
+            otpDetails.setMobileNo(mobileNo);
+            otpDetailsRepository.save(otpDetails);
+            otpResponse.put("otpCode", String.valueOf(otpCode));
+        } catch (Exception e) {
+            otpResponse.put("msg","Please try again.");
+            otpResponse.put("code","1111");
+            logger.error("Error while generating otp.");
         }
     }
 
+    @Async
+    public void sendTextMsg(String mobileNo, String body) {
 
+        System.out.println(body);
+        String apiUrl = otpUrl + "?method=" + otpMethod + "&api_key=" + otpKey + "&to=" + mobileNo + "&sender=" + otpSender + "&message=" + body + "&format=" + otpFormat + "&unicode=auto";
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            HashMap<String, String> otpResponse = restTemplate.getForObject(apiUrl, HashMap.class);
 
-    public boolean sendOtp(String mobileNo, int otpCode,String loanNo)
-    {
-            String subStringLoanNo=loanNo.substring(loanNo.length()-5,loanNo.length());
-            String smsBody ="Dear Customer, Your Rekyc OTP is "+otpCode+" for Loan XXXXXXXXXXXXXXX"+subStringLoanNo+".\\n\\nRegards\\nShubham Housing Development Finance Company";
-            try
-            {
-                sendTextMsg(mobileNo,smsBody);
-                return true;
+            if (otpResponse.get("status").equals("OK")) {
+                logger.info("Otp send successfully");
             }
-            catch (Exception e)
-            {
-                return false;
-            }
+        } catch (Exception e) {
+            logger.error("Error while sending otp on mobile.");
+        }
+    }
 
+    public HashMap<String,String> sendOtp(String mobileNo, String otpCode, String loanNo) {
+        String subStringLoanNo = loanNo.substring(loanNo.length() - 5, loanNo.length());
+        String smsBody = "Dear Customer, Your Rekyc OTP is " + otpCode + " for Loan XXXXXXXXXXXXXXX" + subStringLoanNo + ".\\n\\nRegards\\nShubham Housing Development Finance Company";
+        sendTextMsg(mobileNo, smsBody);
+        HashMap<String,String> otpResponse= new HashMap<>();
+        otpResponse.put("mobile", mobileNo);
+        otpResponse.put("msg", "Otp send successfully.");
+        otpResponse.put("code", "0000");
+        logger.info("otp sent on mobile");
+    return  otpResponse;
     }
 }
