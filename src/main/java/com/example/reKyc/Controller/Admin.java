@@ -29,14 +29,17 @@ public class Admin {
     private CustomerRepository customerRepository;
     @Autowired
     private AdminRepository adminRepository;
+
     @CrossOrigin
     @PostMapping("/invoke-kyc-process-flag")
-    public HashMap<String,String> invokeProcessFlag(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<?> invokeProcessFlag(@RequestParam("file") MultipartFile file, @RequestParam("uid") Long uid) {
 
-        HashMap<String,String> response=new HashMap<>();
+        HashMap<String, String> response = new HashMap<>();
         String errorMsg = "";
         try {
-
+            if (adminRepository.findById(uid).isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
             List<KycCustomer> customerList = new ArrayList<>();
             InputStream inputStream = file.getInputStream();
             ZipSecureFile.setMinInflateRatio(0);                //for zip bomb detected
@@ -60,28 +63,23 @@ public class Admin {
                         customer.setKycFlag("Y");
                         customerList.add(customer);
                     } else {
-                        response.put("msg",errorMsg);
-                        response.put("code","1111");
+                        response.put("msg", errorMsg);
+                        response.put("code", "1111");
                         break;
                     }
 
                 }
-                if (errorMsg.isEmpty())
-                {
+                if (errorMsg.isEmpty()) {
                     try {
                         customerRepository.saveAll(customerList);
                         response.put("msg", "Successfully uploaded");
                         response.put("code", "0000");
-                    }
-                    catch (Exception e)
-                    {
+                    } catch (Exception e) {
                         response.put("msg", "Technical error");
                         response.put("code", "1111");
                     }
                 }
-            }
-            else
-            {
+            } else {
                 response.put("msg", "File format error");
                 response.put("code", "1111");
             }
@@ -90,25 +88,23 @@ public class Admin {
             response.put("msg", "Technical issue");
             response.put("code", "1111");
         }
-        return response;
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> adminLogin(@RequestBody HashMap<String,String> input)
-    {
-        CommonResponse commonResponse=new CommonResponse();
-        AdminResponse adminResponse=new AdminResponse();
-           String email=input.get("email");
-           String password=input.get("password");
-           Optional<com.example.reKyc.Entity.Admin> admin=adminRepository.adminAccount(email,password);   //check for email and password
+    public ResponseEntity<?> adminLogin(@RequestBody HashMap<String, String> input) {
+        CommonResponse commonResponse = new CommonResponse();
+        AdminResponse adminResponse = new AdminResponse();
+        String email = input.get("email");
+        String password = input.get("password");
+        Optional<com.example.reKyc.Entity.Admin> admin = adminRepository.adminAccount(email, password);   //check for email and password
 
-            if(admin.isPresent())
-           {
-               adminResponse.setMsg("Login successfully");
-               adminResponse.setCode("0000");
-               adminResponse.setUid(admin.get().getUid());
-               return new ResponseEntity<>(adminResponse, HttpStatus.OK);
-           }
+        if (admin.isPresent()) {
+            adminResponse.setMsg("Login successfully");
+            adminResponse.setCode("0000");
+            adminResponse.setUid(admin.get().getUid());
+            return new ResponseEntity<>(adminResponse, HttpStatus.OK);
+        }
 
         commonResponse.setMsg("Username password did not matched.");
         commonResponse.setCode("1111");
@@ -116,19 +112,13 @@ public class Admin {
     }
 
     @GetMapping("/kycCount")
-    public ResponseEntity<?> kycCount(){
+    public ResponseEntity<?> kycCount(@RequestParam("uid") Long uid) {
 
-        CommonResponse commonResponse = new CommonResponse();
-
-        try {
-            KycCountUpload  count = service.kycCount();   //to fetch and update KYC count
-            return new ResponseEntity<>(count,HttpStatus.OK);
+        if (adminRepository.findById(uid).isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-        catch (Exception e){
-            commonResponse.setCode("1111");
-            commonResponse.setMsg("Something went wrong. please try again");
-        }
-        return new ResponseEntity<>(commonResponse,HttpStatus.OK);
+        KycCountUpload count = service.kycCount();   //to fetch and update KYC count
+        return ResponseEntity.ok(count);
     }
 
 }
