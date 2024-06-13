@@ -46,16 +46,16 @@ public class LoanNoAuthentication implements UserDetailsService {
             customerDataResponse.setCustomerName(customerDetails.get(0).getCustomer_Name());
             customerDataResponse.setLoanNumber(customerDetails.get(0).getLOAN_ACCOUNT_NO());
             customerDataResponse.setApplicationNumber(customerDetails.get(0).getApplication_Number());
-//            customerDataResponse.setMobileNumber(customerDetails.get(0).getPHONE_NUMBER());
-            customerDataResponse.setMobileNumber("8160041657");
+            customerDataResponse.setMobileNumber(customerDetails.get(0).getPHONE_NUMBER());
+//            customerDataResponse.setMobileNumber("8160041657");
             customerDataResponse.setAddressDetailsResidential(customerDetails.get(0).getRESIDENTIAL_ADDRESS());
 
             for (CustomerDetails data : customerDetails) {
                 if (data.getIDENTIFICATION_TYPE().contains("PAN")) {
                     customerDataResponse.setPanNumber(data.getIDENTIFICATION_NUMBER());
                 } else if (data.getIDENTIFICATION_TYPE().contains("AAdhar_No")) {
-                    // customerDataResponse.setAadharNumber(data.getIDENTIFICATION_NUMBER());
-                    customerDataResponse.setAadharNumber("390920211147");
+                    customerDataResponse.setAadharNumber(data.getIDENTIFICATION_NUMBER());
+//                    customerDataResponse.setAadharNumber("390920211147");
 
                 }
             }
