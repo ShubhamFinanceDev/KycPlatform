@@ -32,6 +32,8 @@ public class DdfsUtility {
     private String ddfsUrl;
     @Value("${neo.ip}")
     private String neo_ip;
+    @Value("${ddfs.path}")
+    private String path;
 
 
     RestTemplate restTemplate = new RestTemplate();
@@ -96,7 +98,7 @@ public class DdfsUtility {
             formData.add("clientUserId", "06799");
             formData.add("remarks", "");
             formData.add("maker", "06799");
-            formData.add("path", "REKYC");
+            formData.add("path", path);
             formData.add("document", base64String);
 
             HttpHeaders headers = new HttpHeaders();
