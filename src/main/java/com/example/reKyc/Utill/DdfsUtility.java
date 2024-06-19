@@ -2,15 +2,19 @@ package com.example.reKyc.Utill;
 
 import com.example.reKyc.Model.PanCardResponse;
 import org.openxmlformats.schemas.drawingml.x2006.chart.CTRotY;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -28,7 +32,14 @@ public class DdfsUtility {
     private String ddfsUrl;
     @Value("${neo.ip}")
     private String neo_ip;
+    @Value("${ddfs.path}")
+    private String path;
+
+
     RestTemplate restTemplate = new RestTemplate();
+
+    private final Logger logger = LoggerFactory.getLogger(DdfsUtility.class);
+
 
     public String generateDDFSKey() throws Exception {
 
@@ -38,10 +49,8 @@ public class DdfsUtility {
         calendar.add(Calendar.HOUR, 5);
         calendar.add(Calendar.MINUTE, 30);
         String formattedDate = dateFormat.format(calendar.getTime());
-//        String formattedDate = dateFormat.format(new Date());
 
         String plainText = formattedDate + "@" + neo_ip;   // "localhost";
-//        System.out.println("Input: " + plainText);
         String encryptedText = encrypt(plainText, passcode);
         System.out.println("Encrypted Text: " +
                 encryptedText);
@@ -76,21 +85,21 @@ public class DdfsUtility {
     }
 
 
-    public Boolean callDDFSApi(byte[] base64String, String applicationNo) {
+    public Boolean callDDFSApi(String base64String, String applicationNo) {
         boolean status = false;
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         try {
 
             formData.add("token", generateDDFSKey());
-            formData.add("clientId", "SHUBHAM/OP");
+            formData.add("clientId", "SHUBHAM/REKYC");
             formData.add("file", applicationNo);
-            formData.add("subPath", "2024/Aadhar");
-            formData.add("docCategory", "IdentityProofs");
+            formData.add("subPath", "2024/APR");
+            formData.add("docCategory", "Rekyc Document");
             formData.add("clientUserId", "06799");
-            formData.add("remarks", "aadhar");
+            formData.add("remarks", "");
             formData.add("maker", "06799");
-            formData.add("path", "HOBR/APF under-Constructi");
-            formData.add("document", Base64.getEncoder().encodeToString(base64String));
+            formData.add("path", path);
+            formData.add("document", base64String);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
@@ -98,14 +107,15 @@ public class DdfsUtility {
             ResponseEntity<HashMap> responseBody = restTemplate.postForEntity(ddfsUrl, requestEntity, HashMap.class);
 
             if (responseBody.getStatusCode().toString().contains("200") && responseBody.getBody().get("status").toString().contains("SUCCESS")) {
-                System.out.println("Response from the DDFS API: " + responseBody.getBody().get("status"));
+//                System.out.println("Response from the DDFS API: " + responseBody.getBody().get("status"));
+                logger.info("DDFS API Call Success");
                 status = true;
 
             }
             System.out.println("ddfs response " + responseBody.getBody());
         } catch (Exception e) {
-            System.out.println("===exception while calling DDFS api ");
-            status = false;
+            System.out.println("==Error in DDFS api call");
+            logger.error("DDFS API Call Error{}", e.getMessage());
         }
         return status;
     }

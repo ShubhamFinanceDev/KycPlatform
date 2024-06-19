@@ -20,7 +20,7 @@ public class SecurityConfig {
     @Autowired
     private UserDetailsService userDetailsService;
     @Autowired
-    private ExceptionPoint point;
+    private GlobalException point;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -28,7 +28,7 @@ public class SecurityConfig {
 
         http.csrf(csrf -> csrf.disable())
                 .authorizeRequests().
-                requestMatchers("/shubham").authenticated().requestMatchers("/userKyc/**", "/admin/**","/actuator/**").permitAll()
+                requestMatchers("/shubham").authenticated().requestMatchers("/userKyc/**", "/admin/**","/actuator/health").permitAll()
                 .anyRequest()
                 .authenticated()
                 .and().exceptionHandling(ex -> ex.authenticationEntryPoint(point))

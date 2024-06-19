@@ -1,6 +1,6 @@
 package com.example.reKyc.ServiceImp;
 
-import com.example.reKyc.Entity.Customer;
+import com.example.reKyc.Entity.KycCustomer;
 import com.example.reKyc.Entity.LoanDetails;
 import com.example.reKyc.Entity.OtpDetails;
 import com.example.reKyc.Entity.DdfsUpload;
@@ -11,24 +11,24 @@ import com.example.reKyc.Repository.OtpDetailsRepository;
 import com.example.reKyc.Repository.DdfsUploadRepository;
 import com.example.reKyc.Service.LoanNoAuthentication;
 import com.example.reKyc.Utill.*;
-import org.apache.poi.openxml4j.util.ZipSecureFile;
-import org.apache.poi.ss.usermodel.*;
+import lombok.Value;
+import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.net.URL;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+
+import org.apache.commons.codec.binary.Base64;
 
 @Service
 public class ServiceImp implements com.example.reKyc.Service.Service {
@@ -42,166 +42,86 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Autowired
     private OtpDetailsRepository otpDetailsRepository;
     @Autowired
-    private DdfsUploadRepository updatedDetailsRepository;
+    private DdfsUploadRepository ddfsUploadRepository;
     @Autowired
     private OtpUtility otpUtility;
     @Autowired
-    private DateTimeUtility dateTimeUtility;
-    @Autowired
-    private MaskDocumentAndFile maskDocumentAndFile;
+    private MaskDocumentNo maskDocumentAndFile;
     @Autowired
     private AadharAndPanUtility singzyServices;
     @Autowired
-    AadharAndPanUtility externalApiServices;
+    private AadharAndPanUtility externalApiServices;
     @Autowired
     private DdfsUtility ddfsUtility;
-    @Value("${file_path}")
-    String file_path;
+
     Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
     public HashMap<String, String> validateAndSendOtp(String loanNo) {
+        logger.info("validating and sending OTP for loanNo: {}", loanNo);
         HashMap<String, String> otpResponse = new HashMap<>();
 
         try {
-
-            Customer customer = customerRepository.getCustomer(loanNo);
-            if (customer != null) {
-                String phoneNo = saveCustomerDetails(customer.getLoanNumber());
-                int otpCode = otpUtility.generateOtp(phoneNo);
-                if ((otpCode > 0 && phoneNo!=null) && saveOtpDetail(otpCode, phoneNo)) {
-                    saveOtpDetail(otpCode, phoneNo);
-//                    if (otpUtility.sendOtp(phoneNo, otpCode, loanNo)) {  //stopped sms services
-                        logger.info("otp sent on mobile");
-                        otpResponse.put("otpCode", String.valueOf(otpCode));
-                        otpResponse.put("mobile", phoneNo);
-                        otpResponse.put("msg", "Otp send.");
-                        otpResponse.put("code", "0000");
-
-//                    } else {
-//                        otpResponse.put("msg", "Please try again");
-//                        otpResponse.put("code", "1111");
-//                    }
-
-                } else {
-                    logger.info("Failed to generate OTP for loan number: " + loanNo);
-                    otpResponse.put("msg", "Please try again");
-                    otpResponse.put("code", "1111");
-                }
-            } else {
-                logger.info("Loan number not found: " + loanNo);
-                System.out.println("==Loan no not found==");
+            String mobileNo;
+            Optional<KycCustomer> customer = customerRepository.getCustomer(loanNo);
+            if (customer.isEmpty()) {
+                logger.warn("Loan number {} not found", loanNo);
                 otpResponse.put("msg", "Loan no not found");
                 otpResponse.put("code", "1111");
+                return otpResponse;
             }
-
+            LoanDetails loanDetails=loanDetailsRepository.getLoanDetails(loanNo);
+            mobileNo=(loanDetails !=null) ? loanDetails.getMobileNumber() : loanNoAuthentication.getCustomerData(loanNo);
+            if (mobileNo !=null && !mobileNo.isEmpty()) {
+                otpUtility.generateOtp(mobileNo, otpResponse);
+                if (!otpResponse.containsKey("otpCode")) {
+                    return otpResponse;
+                }
+                return otpUtility.sendOtp(mobileNo, otpResponse.get("otpCode"), loanNo);
+            } else {
+                logger.warn("Failed to send OTP for loanNo: {}", loanNo);
+                otpResponse.put("msg", "Please try again");
+                otpResponse.put("code", "1111");
+            }
         } catch (Exception e) {
-            logger.error("An error occurred during admin login: {}", e.getMessage(), e);
-            System.out.println(e);
+            logger.error("Error while sending OTP for loanNo: {}", loanNo, e);
+            otpResponse.put("msg", "Technical issue.");
+            otpResponse.put("code", "1111");
         }
         return otpResponse;
     }
 
 
-    private boolean saveOtpDetail(int otpCode, String mobileNo) {
-
-        OtpDetails otpDetails = new OtpDetails();
-        otpDetails.setOtpCode(Long.valueOf(otpCode));
-        logger.info("OTP code set: {}", otpCode); // Log OTP code
-        System.out.println(otpCode);
-        otpDetails.setMobileNo(mobileNo);
-        try {
-
-            otpDetailsRepository.save(otpDetails);
-            logger.info("OTP details saved successfully for mobile number: {}", mobileNo); // Log successful save
-            return true;
-        } catch (Exception e) {
-            logger.error("Error occurred while saving OTP details for mobile number: {}", mobileNo, e); // Log error
-            System.out.println(e);
-            return false;
-        }
-    }
-
-    private String saveCustomerDetails(String loanNo) {
-        String phoneNo = null;
-
-        try {
-            LoanDetails loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
-            if (loanDetails == null) {
-                LoanDetails loanDetails1 = new LoanDetails();
-                CustomerDataResponse customerDetails = loanNoAuthentication.getCustomerData(loanNo);
-                phoneNo = customerDetails.getMobileNumber();
-                loanDetails1.setLoanNumber(customerDetails.getLoanNumber());
-                loanDetails1.setApplicationNumber(customerDetails.getApplicationNumber());
-                loanDetails1.setAadhar(customerDetails.getAadharNumber());
-                loanDetails1.setPan(customerDetails.getPanNumber());
-                loanDetails1.setCustomerName(customerDetails.getCustomerName());
-                loanDetails1.setAddressDetailsResidential(customerDetails.getAddressDetailsResidential());
-                loanDetails1.setMobileNumber(customerDetails.getMobileNumber());
-
-                loanDetailsRepository.save(loanDetails1);
-                logger.info("customer details saved");
-
-
-            } else {
-                phoneNo = loanDetails.getMobileNumber();
-            }
-            return phoneNo;
-        } catch (Exception e) {
-            logger.error("An error occurred while saving customer details", e);
-            System.out.println(e);
-            return phoneNo;
-
-        }
-
-    }
-
-
     @Override
     public LoanDetails otpValidation(String mobileNo, String otpCode, String loanNo) {
+        logger.info("Performing OTP validation for loanNo: {}, mobileNo: {}, otpCode: {}", loanNo, mobileNo, otpCode);
 
-        LoanDetails loanDetails = new LoanDetails();
-        try {
-            OtpDetails otpDetails = otpDetailsRepository.IsotpExpired(mobileNo, otpCode);
-            Duration duration = Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now());
-            loanDetails = (duration.toMinutes() > 50) ? loanDetails : loanDetailsRepository.getLoanDetail(loanNo);
-
-        } catch (Exception e) {
-            logger.error("An error occurred during OTP validation: {}", e.getMessage());
-            System.out.println("===Otp invalid==");
+        OtpDetails otpDetails = otpDetailsRepository.isOtpValid(mobileNo, otpCode);
+        if (otpDetails == null) {
+            logger.warn("Invalid OTP for mobileNo: {}", mobileNo);
+            return null;
         }
-        return loanDetails;
+        if (Duration.between(otpDetails.getOtpExprTime(), LocalDateTime.now()).toMinutes() > 10) {
+            logger.warn("OTP expired for mobileNo: {}", mobileNo);
+            return null;
+        }
 
+        return loanDetailsRepository.getLoanDetail(loanNo).orElse(null);
     }
-
-    /**
-     *
-     */
 
 
     @Override
-    public HashMap<String, String> callFileExchangeServices(InputBase64 inputBase64, String documentType) {
+    public HashMap<String, String> callFileExchangeServices(InputBase64 inputBase64) {
 
         HashMap<String, String> documentDetail = new HashMap<>();
         List<String> urls = new ArrayList<>();
         try {
 
-
             for (InputBase64.Base64Data base64 : inputBase64.getBase64Data()) {
-
                 documentDetail = singzyServices.convertBase64ToUrl(base64.getFileType(), base64.getBase64String());
-                if (documentDetail.containsKey("code")) {
-                    break;
-                } else {
-                    urls.add(documentDetail.get("fileUrl"));
-                }
+                if (documentDetail.containsKey("code")) break;
+                urls.add(documentDetail.get("fileUrl"));
             }
-            if (!(urls.isEmpty())) {
-                if (documentType.equals("aadhar")) {
-                    documentDetail = singzyServices.extractAadharDetails(urls, inputBase64.getDocumentId());
-                } else {
-                    documentDetail = singzyServices.extractPanDetails(urls, inputBase64.getDocumentId());
-                }
-            }
+            documentDetail = (!urls.isEmpty()) ? callExtractionService(urls, inputBase64) : documentDetail;
         } catch (Exception e) {
 
             documentDetail.put("code", "1111");
@@ -211,124 +131,147 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     }
 
 
+    private HashMap<String, String> callExtractionService(List<String> urls, InputBase64 inputBase64) {
+        HashMap<String, String> extractedDetails;
+        extractedDetails = (inputBase64.getDocumentType().equals("aadhar") ? singzyServices.extractAadharDetails(urls, inputBase64.getDocumentId()) : singzyServices.extractPanDetails(urls, inputBase64.getDocumentId()));
+
+        if (extractedDetails.get("code").equals("0000")) {
+            deleteUnProcessRecord(inputBase64.getLoanNo());
+            urls.forEach(url -> {
+                saveUpdatedDetails(inputBase64, url);
+
+            });
+        }
+        return extractedDetails;
+    }
+
     /**
      *
      */
     @Override
-    public CommonResponse updateCustomerKycFlag(String loanNo) {
+    public CommonResponse updateCustomerKycFlag(String loanNo, String mobileNo) {
 
+        logger.info("Updating customer KYC flag for loanNo: {}", loanNo);
         CommonResponse commonResponse = new CommonResponse();
         try {
-            LoanDetails loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
-            try {
-
-                loanDetailsRepository.deleteById(loanDetails.getUserId());
-                customerRepository.updateKycFlag(loanNo);
-                commonResponse.setMsg("Successfully");
-                commonResponse.setCode("0000");
-                logger.info("KYC flag updated successfully for loan number: {}", loanNo);
-            } catch (Exception e) {
-                commonResponse.setMsg("Flag did not updated.");
-                commonResponse.setCode("1111");
-                logger.error("Failed to update KYC flag for loan number: {}. Error: {}", loanNo, e.getMessage());
-            }
+            Optional<LoanDetails> loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
+            customerRepository.updateKycFlag(loanDetails.get().getLoanNumber());
+            loanDetailsRepository.deleteById(loanDetails.get().getUserId());
+            otpUtility.sendTextMsg(mobileNo, SmsTemplate.existingKyc); //otp send
+            logger.info("Customer KYC flag updated successfully for loanNo: {}", loanNo);
 
         } catch (Exception e) {
+            logger.error("Error occurred while updating customer KYC flag for loanNo: {}", loanNo, e);
             commonResponse.setMsg("Loan is not valid, try again");
             commonResponse.setCode("1111");
-            logger.error("Failed to fetch loan details for loan number: {}. Error: {}", loanNo, e.getMessage());
         }
         return commonResponse;
     }
 
 
     @Override
-    public CommonResponse callDdfsService(UpdateAddress inputAddress, String applicationNO, Long loanId) {
+    public CommonResponse callDdfsService(UpdateAddress inputAddress, LoanDetails loanDetails) {
+        logger.info("Calling ddfs service for applicationNO: {}", loanDetails.getApplicationNumber());
         CommonResponse commonResponse = new CommonResponse();
 
-        File folder = new File(file_path);
-        File[] listOfFiles = folder.listFiles();
-        String base64String = null;
+        List<DdfsUpload> ddfsUploads = ddfsUploadRepository.getImageUrl(inputAddress.getLoanNo());
+        if (!ddfsUploads.isEmpty()) {
 
-        assert listOfFiles != null;
-        for (File file : listOfFiles) {
-            if (file.getName().contains(inputAddress.getLoanNo())) {
-
+            for (DdfsUpload result : ddfsUploads) {
+                String imageUrl = result.getImageUrl();
                 try {
-                    byte[] fileBytes = Files.readAllBytes(Paths.get((file_path + file.getName())));
-//                    base64String = Base64.getEncoder().encodeToString(fileBytes);
-//                System.out.println("Base64 representation of the file:\n" + base64String);
-                    if (ddfsUtility.callDDFSApi(fileBytes, applicationNO)) {
+                    InputStream inputStream = new URL(imageUrl).openStream();
 
-                        if (saveUpdatedDetails(inputAddress, applicationNO)) {
-                            logger.info("Data has been updated in the database.");
-                            System.out.println("=== data has been updated in db ===");
-                        }
+                    byte[] imageBytes = IOUtils.toByteArray(inputStream);
 
+                    String base64String = Base64.encodeBase64String(imageBytes);
+                    inputStream.close();
+                    if (ddfsUtility.callDDFSApi(base64String, loanDetails.getApplicationNumber())) {
+                        result.setFileName(loanDetails.getApplicationNumber());
+                        result.setDdfsFlag("Y");
+                        ddfsUploadRepository.save(result);
                     } else {
-                        logger.error("DDFS file upload exception.");
-                        System.out.println("=== DDFS file upload exception ===");
                         commonResponse.setCode("1111");
-                        commonResponse.setMsg("File upload error.");
+                        commonResponse.setMsg("File upload error, try again");
                         break;
+
                     }
-                    File fileToDelete = new File(file_path + file.getName());
-                    if (fileToDelete.delete()) {
-                        logger.info("{} file removed from directory", file.getName());
-                        System.out.println(file.getName() + "file removed from directory");
-                    }
-                } catch (Exception e) {
-                    logger.error("An error occurred during file processing: {}", e.getMessage());
+                    logger.info("DDFS service call successfully for applicationNO: {}", loanDetails.getApplicationNumber());
+
+                } catch (IOException e) {
+                    logger.error("Error occurred while calling ddfs service for applicationNO: {}", loanDetails.getApplicationNumber(), e);
                     System.out.println(e);
                     commonResponse.setCode("1111");
-                    commonResponse.setMsg("File upload error.");
+                    commonResponse.setMsg("File upload error, try again");
                     break;
+
                 }
             }
+        } else {
+            commonResponse.setCode("1111");
+            commonResponse.setMsg("File upload error, try again");
+            logger.info("file bucket url does not exist.");
         }
         if (commonResponse.getCode().equals("0000")) {
-            otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc); //otp send
-            loanDetailsRepository.deleteById(loanId);  //delete loan detail
+            otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc);
+            loanDetailsRepository.deleteById(loanDetails.getUserId());
+
         }
         return commonResponse;
     }
 
+    public void deleteUnProcessRecord(String loanNo) {
+        logger.info("Deleting unprocessed record for loanNo: {}", loanNo);
+        ddfsUploadRepository.deletePreviousDetail(loanNo).forEach(data -> {
+            ddfsUploadRepository.deleteById(data.getUpdatedId());
+        });
+    }
 
-    public boolean saveUpdatedDetails(UpdateAddress inputUpdateAddress, String fileName) {
+    public void saveUpdatedDetails(InputBase64 inputUpdatedDetails, String url) {
+        logger.info("saving updated details for url: {}", inputUpdatedDetails.getLoanNo());
         DdfsUpload updatedDetails = new DdfsUpload();
-        updatedDetails.setMobileNo(inputUpdateAddress.getMobileNo());
-        updatedDetails.setLoanNo(inputUpdateAddress.getLoanNo());
-        updatedDetails.setFileName(fileName);
-        updatedDetails.setDocumentType(inputUpdateAddress.getDocumentType());
-        updatedDetails.setDdfsFlag("Y");
 
         try {
-            updatedDetailsRepository.save(updatedDetails);
-            return true;
+
+            updatedDetails.setLoanNo(inputUpdatedDetails.getLoanNo());
+            updatedDetails.setDocumentType(inputUpdatedDetails.getDocumentType());
+            updatedDetails.setDdfsFlag("N");
+            updatedDetails.setImageUrl(url);
+            ddfsUploadRepository.save(updatedDetails);
+            logger.info("Updated details saved successfully for loanNo: {}", inputUpdatedDetails.getLoanNo());
 
         } catch (Exception e) {
-            return false;
-
+            logger.error("Error occurred while saving updated details for loanNo: {}", inputUpdatedDetails.getLoanNo(), e);
+            System.out.println(e);
         }
     }
 
 
     @Override
     public KycCountUpload kycCount() {
+        logger.info("Fetching KYC count");
 
         try {
-            KycCountUpload kycCount=new KycCountUpload();
+            KycCountUpload kycCount = new KycCountUpload();
             Integer existingCount = customerRepository.getKycCountDetail();
-            Integer updatedCount=  updatedDetailsRepository.getUpdatedCount();
+            Integer updatedCount = ddfsUploadRepository.getUpdatedCount();
             kycCount.setUpdatedKyc(updatedCount);
             kycCount.setExistingKyc(existingCount);
+            logger.info("KYC count fetched successfully: Existing KYC count: {}, Updated KYC count: {}", existingCount, updatedCount);
 
             return kycCount;
 
-        }catch (Exception e){
-            throw new RuntimeException("failed"+e);
+        } catch (Exception e) {
+            logger.error("Error occurred while fetching KYC count", e);
+            throw new RuntimeException("failed" + e);
         }
 
+    }
+
+    @Override
+    public LoanDetails loanDetails(String loanNo) {
+        logger.info("Fetching loan details for loanNo: {}", loanNo);
+        return loanDetailsRepository.getLoanDetail(loanNo).orElseThrow(null);
     }
 
 
