@@ -1,30 +1,24 @@
 package com.example.reKyc.ServiceImp;
 
-import com.example.reKyc.Entity.KycCustomer;
-import com.example.reKyc.Entity.LoanDetails;
-import com.example.reKyc.Entity.OtpDetails;
-import com.example.reKyc.Entity.DdfsUpload;
+import com.example.reKyc.Entity.*;
+import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Model.*;
-import com.example.reKyc.Repository.CustomerRepository;
-import com.example.reKyc.Repository.LoanDetailsRepository;
-import com.example.reKyc.Repository.OtpDetailsRepository;
-import com.example.reKyc.Repository.DdfsUploadRepository;
+import com.example.reKyc.Repository.*;
 import com.example.reKyc.Service.LoanNoAuthentication;
 import com.example.reKyc.Utill.*;
-import lombok.Value;
 import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.sql.Date;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -53,6 +47,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     private AadharAndPanUtility externalApiServices;
     @Autowired
     private DdfsUtility ddfsUtility;
+    @Autowired
+    private UpdatedDetailRepository updatedDetailRepository;
 
     Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
@@ -69,8 +65,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 otpResponse.put("code", "1111");
                 return otpResponse;
             }
-            LoanDetails loanDetails=loanDetailsRepository.getLoanDetails(loanNo);
-            mobileNo=(loanDetails !=null) ? loanDetails.getMobileNumber() : loanNoAuthentication.getCustomerData(loanNo);
+            CustomerDetails customerDetails =loanDetailsRepository.getLoanDetails(loanNo);
+            mobileNo=(customerDetails !=null) ? customerDetails.getMobileNumber() : loanNoAuthentication.getCustomerData(loanNo);
             if (mobileNo !=null && !mobileNo.isEmpty()) {
                 otpUtility.generateOtp(mobileNo, otpResponse);
                 if (!otpResponse.containsKey("otpCode")) {
@@ -92,7 +88,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     @Override
-    public LoanDetails otpValidation(String mobileNo, String otpCode, String loanNo) {
+    public CustomerDetails otpValidation(String mobileNo, String otpCode, String loanNo) {
         logger.info("Performing OTP validation for loanNo: {}, mobileNo: {}, otpCode: {}", loanNo, mobileNo, otpCode);
 
         OtpDetails otpDetails = otpDetailsRepository.isOtpValid(mobileNo, otpCode);
@@ -154,8 +150,9 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         logger.info("Updating customer KYC flag for loanNo: {}", loanNo);
         CommonResponse commonResponse = new CommonResponse();
         try {
-            Optional<LoanDetails> loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
+            Optional<CustomerDetails> loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
             customerRepository.updateKycFlag(loanDetails.get().getLoanNumber());
+            updateCustomerDetails(loanDetails);
             loanDetailsRepository.deleteById(loanDetails.get().getUserId());
             otpUtility.sendTextMsg(mobileNo, SmsTemplate.existingKyc); //otp send
             logger.info("Customer KYC flag updated successfully for loanNo: {}", loanNo);
@@ -170,8 +167,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     @Override
-    public CommonResponse callDdfsService(UpdateAddress inputAddress, LoanDetails loanDetails) {
-        logger.info("Calling ddfs service for applicationNO: {}", loanDetails.getApplicationNumber());
+    public CommonResponse callDdfsService(UpdateAddress inputAddress, CustomerDetails customerDetails) {
+        logger.info("Calling ddfs service for applicationNO: {}", customerDetails.getApplicationNumber());
         CommonResponse commonResponse = new CommonResponse();
 
         List<DdfsUpload> ddfsUploads = ddfsUploadRepository.getImageUrl(inputAddress.getLoanNo());
@@ -186,8 +183,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
                     String base64String = Base64.encodeBase64String(imageBytes);
                     inputStream.close();
-                    if (ddfsUtility.callDDFSApi(base64String, loanDetails.getApplicationNumber())) {
-                        result.setFileName(loanDetails.getApplicationNumber());
+                    if (ddfsUtility.callDDFSApi(base64String, customerDetails.getApplicationNumber())) {
+                        result.setFileName(customerDetails.getApplicationNumber());
                         result.setDdfsFlag("Y");
                         ddfsUploadRepository.save(result);
                     } else {
@@ -196,10 +193,10 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                         break;
 
                     }
-                    logger.info("DDFS service call successfully for applicationNO: {}", loanDetails.getApplicationNumber());
+                    logger.info("DDFS service call successfully for applicationNO: {}", customerDetails.getApplicationNumber());
 
                 } catch (IOException e) {
-                    logger.error("Error occurred while calling ddfs service for applicationNO: {}", loanDetails.getApplicationNumber(), e);
+                    logger.error("Error occurred while calling ddfs service for applicationNO: {}", customerDetails.getApplicationNumber(), e);
                     System.out.println(e);
                     commonResponse.setCode("1111");
                     commonResponse.setMsg("File upload error, try again");
@@ -214,7 +211,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         }
         if (commonResponse.getCode().equals("0000")) {
             otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc);
-            loanDetailsRepository.deleteById(loanDetails.getUserId());
+            updateCustomerDetails(Optional.of(customerDetails));
+            loanDetailsRepository.deleteById(customerDetails.getUserId());
 
         }
         return commonResponse;
@@ -269,10 +267,19 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     }
 
     @Override
-    public LoanDetails loanDetails(String loanNo) {
+    public CustomerDetails loanDetails(String loanNo) {
         logger.info("Fetching loan details for loanNo: {}", loanNo);
         return loanDetailsRepository.getLoanDetail(loanNo).orElseThrow(null);
     }
 
-
+    public void updateCustomerDetails(Optional<CustomerDetails> loanDetails) {
+        UpdatedDetails updatedDetails = new UpdatedDetails();
+        updatedDetails.setAddressDetails(loanDetails.get().getAddressDetailsResidential());
+        updatedDetails.setLoanNumber(loanDetails.get().getLoanNumber());
+        updatedDetails.setApplicationNumber(loanDetails.get().getApplicationNumber());
+        updatedDetails.setRekycDate(Date.valueOf(LocalDate.now()));
+        updatedDetails.setRekycStatus("N");
+        updatedDetails.setRekycDocument(loanDetails.get().getAadhar());
+        updatedDetailRepository.save(updatedDetails);
+    }
 }

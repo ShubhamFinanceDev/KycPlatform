@@ -1,16 +1,16 @@
 package com.example.reKyc.Repository;
 
-import com.example.reKyc.Entity.LoanDetails;
+import com.example.reKyc.Entity.CustomerDetails;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
-public interface LoanDetailsRepository extends JpaRepository<LoanDetails,Long> {
+public interface LoanDetailsRepository extends JpaRepository<CustomerDetails,Long> {
   @Query("select ld from LoanDetails ld where ld.loanNumber=:loanNo")
-    Optional<LoanDetails> getLoanDetail(String loanNo);
+    Optional<CustomerDetails> getLoanDetail(String loanNo);
   @Query("select ld from LoanDetails ld where ld.loanNumber=:loanNo")
-  LoanDetails getLoanDetails(String loanNo);
+  CustomerDetails getLoanDetails(String loanNo);
   @Query("select count(ld) from LoanDetails ld where ld.loanNumber=:loanNo")
   int getCount(String loanNo);
 }

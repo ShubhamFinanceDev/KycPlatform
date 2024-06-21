@@ -1,6 +1,6 @@
 package com.example.reKyc.Controller;
 
-import com.example.reKyc.Entity.LoanDetails;
+import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Model.CommonResponse;
 import com.example.reKyc.Model.OtpRequest;
 import com.example.reKyc.Model.JwtResponse;
@@ -67,24 +67,24 @@ public class User {
         CommonResponse commonResponse = new CommonResponse();
         JwtResponse jwtResponse = new JwtResponse();
         String token = null;
-        LoanDetails loanDetails;
+        CustomerDetails customerDetails;
 
         try {
             UserDetails userDetails = userDetailsService.loadUserByUsername(request.getLoanNo());   //load user details and( here userDetail interface is used)
-            loanDetails = service.otpValidation(request.getMobileNo(), request.getOtpCode(), request.getLoanNo());
-            if (loanDetails == null) {
+            customerDetails = service.otpValidation(request.getMobileNo(), request.getOtpCode(), request.getLoanNo());
+            if (customerDetails == null) {
                 commonResponse.setMsg("Otp is expired or invalid.");
                 commonResponse.setCode("1111");
                 return ResponseEntity.ok(commonResponse);
             }
             token = this.jwtHelper.generateToken(userDetails);
             jwtResponse.setJwtToken(token);
-            jwtResponse.setMobileNo(loanDetails.getMobileNumber());
-            jwtResponse.setAddress(loanDetails.getAddressDetailsResidential());
-            jwtResponse.setName(loanDetails.getCustomerName());
-            jwtResponse.setPanNo(loanDetails.getPan() != null ? maskDocument.documentNoEncryption(loanDetails.getPan()) : "NA");
-            jwtResponse.setAadharNo(loanDetails.getAadhar() != null ? maskDocument.documentNoEncryption(loanDetails.getAadhar()) : "NA");
-            jwtResponse.setLoanNo(loanDetails.getLoanNumber());
+            jwtResponse.setMobileNo(customerDetails.getMobileNumber());
+            jwtResponse.setAddress(customerDetails.getAddressDetailsResidential());
+            jwtResponse.setName(customerDetails.getCustomerName());
+            jwtResponse.setPanNo(customerDetails.getPan() != null ? maskDocument.documentNoEncryption(customerDetails.getPan()) : "NA");
+            jwtResponse.setAadharNo(customerDetails.getAadhar() != null ? maskDocument.documentNoEncryption(customerDetails.getAadhar()) : "NA");
+            jwtResponse.setLoanNo(customerDetails.getLoanNumber());
             return ResponseEntity.ok(jwtResponse);
         } catch (Exception e) {
             commonResponse.setMsg("Loan no not found.");

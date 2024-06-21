@@ -10,7 +10,7 @@ import java.util.Collection;
 @Entity
 @Table(name = "customer_details")
 @Data
-public class LoanDetails implements UserDetails {
+public class CustomerDetails implements UserDetails {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
