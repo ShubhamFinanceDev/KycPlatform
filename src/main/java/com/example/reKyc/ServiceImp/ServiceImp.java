@@ -152,7 +152,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         try {
             Optional<CustomerDetails> loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
             customerRepository.updateKycFlag(loanDetails.get().getLoanNumber());
-            updateCustomerDetails(loanDetails);
+            String status = "N";
+            updateCustomerDetails(loanDetails,status);
             loanDetailsRepository.deleteById(loanDetails.get().getUserId());
             otpUtility.sendTextMsg(mobileNo, SmsTemplate.existingKyc); //otp send
             logger.info("Customer KYC flag updated successfully for loanNo: {}", loanNo);
@@ -211,7 +212,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         }
         if (commonResponse.getCode().equals("0000")) {
             otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc);
-            updateCustomerDetails(Optional.of(customerDetails));
+            String status = "Y";
+            updateCustomerDetails(Optional.of(customerDetails),status);
             loanDetailsRepository.deleteById(customerDetails.getUserId());
 
         }
@@ -272,13 +274,12 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         return loanDetailsRepository.getLoanDetail(loanNo).orElseThrow(null);
     }
 
-    public void updateCustomerDetails(Optional<CustomerDetails> loanDetails) {
+    public void updateCustomerDetails(Optional<CustomerDetails> loanDetails,String status) {
         UpdatedDetails updatedDetails = new UpdatedDetails();
         updatedDetails.setAddressDetails(loanDetails.get().getAddressDetailsResidential());
         updatedDetails.setLoanNumber(loanDetails.get().getLoanNumber());
         updatedDetails.setApplicationNumber(loanDetails.get().getApplicationNumber());
         updatedDetails.setRekycDate(Date.valueOf(LocalDate.now()));
-        updatedDetails.setRekycStatus("N");
         updatedDetails.setRekycDocument(loanDetails.get().getAadhar());
         updatedDetailRepository.save(updatedDetails);
     }
