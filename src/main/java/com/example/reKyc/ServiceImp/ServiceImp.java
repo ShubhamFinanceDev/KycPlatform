@@ -74,7 +74,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 if (!otpResponse.containsKey("otpCode")) {
                     return otpResponse;
                 }
-//                return otpUtility.sendOtp(mobileNo, otpResponse.get("otpCode"), loanNo);
+                return otpUtility.sendOtp(mobileNo, otpResponse.get("otpCode"), loanNo);
             } else {
                 logger.warn("Failed to send OTP for loanNo: {}", loanNo);
                 otpResponse.put("msg", "Please try again");
