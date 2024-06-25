@@ -76,7 +76,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 if (!otpResponse.containsKey("otpCode")) {
                     return otpResponse;
                 }
-                return otpUtility.sendOtp(mobileNo, otpResponse.get("otpCode"), loanNo);
+//                return otpUtility.sendOtp(mobileNo, otpResponse.get("otpCode"), loanNo);
             } else {
                 logger.warn("Failed to send OTP for loanNo: {}", loanNo);
                 otpResponse.put("msg", "Please try again");
@@ -220,6 +220,10 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             updateCustomerDetails(Optional.of(customerDetails),status);
             loanDetailsRepository.deleteById(customerDetails.getUserId());
 
+            updateCustomerDetails(Optional.of(loanDetails),status);
+            loanDetailsRepository.deleteById(loanDetails.getUserId());
+
+
         }
         return commonResponse;
     }
@@ -278,7 +282,11 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         return loanDetailsRepository.getLoanDetail(loanNo).orElseThrow(null);
     }
 
+
     public void updateCustomerDetails(Optional<CustomerDetails> loanDetails,String status) {
+
+    public void updateCustomerDetails(Optional<LoanDetails> loanDetails,String status) {
+
         UpdatedDetails updatedDetails = new UpdatedDetails();
         updatedDetails.setAddressDetails(loanDetails.get().getAddressDetailsResidential());
         updatedDetails.setLoanNumber(loanDetails.get().getLoanNumber());
