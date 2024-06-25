@@ -154,8 +154,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         try {
             Optional<LoanDetails> loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
             customerRepository.updateKycFlag(loanDetails.get().getLoanNumber());
-            String status = "N";
-            updateCustomerDetails(loanDetails,status);
+            updateCustomerDetails(loanDetails,"N");
             loanDetailsRepository.deleteById(loanDetails.get().getUserId());
             otpUtility.sendTextMsg(mobileNo, SmsTemplate.existingKyc); //otp send
             logger.info("Customer KYC flag updated successfully for loanNo: {}", loanNo);
@@ -214,8 +213,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         }
         if (commonResponse.getCode().equals("0000")) {
             otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc);
-            String status = "Y";
-            updateCustomerDetails(Optional.of(loanDetails),status);
+            updateCustomerDetails(Optional.of(loanDetails),"Y");
             loanDetailsRepository.deleteById(loanDetails.getUserId());
 
         }
@@ -280,6 +278,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         UpdatedDetails updatedDetails = new UpdatedDetails();
         updatedDetails.setAddressDetails(loanDetails.get().getAddressDetailsResidential());
         updatedDetails.setLoanNumber(loanDetails.get().getLoanNumber());
+        updatedDetails.setRekycStatus(status);
         updatedDetails.setApplicationNumber(loanDetails.get().getApplicationNumber());
         updatedDetails.setRekycDate(Date.valueOf(LocalDate.now()));
         updatedDetails.setRekycDocument(loanDetails.get().getAadhar());
