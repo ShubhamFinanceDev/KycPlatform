@@ -105,7 +105,7 @@ public class User {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         service.generateExcel(response, reportList);
-        return (ResponseEntity<?>) ResponseEntity.ok();
+        return ResponseEntity.ok("success");
     }
 
 }

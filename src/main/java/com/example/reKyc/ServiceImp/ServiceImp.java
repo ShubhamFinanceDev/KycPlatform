@@ -326,6 +326,11 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 row.createCell(4).setCellValue(list.getRekycDocument());
                 row.createCell(5).setCellValue(list.getRekycDate());
             }
+            response.setContentType("text/csv");
+            response.setHeader("Content-Disposition", "attachment; filename=MIS_Report.xlsx");
+
+            workbook.write(response.getOutputStream());
+            workbook.close();
         } catch (Exception e) {
             System.out.println("Error while executing report query :" + e.getMessage());
         }
