@@ -1,12 +1,14 @@
 package com.example.reKyc.Controller;
 
 import com.example.reKyc.Entity.LoanDetails;
+import com.example.reKyc.Entity.UpdatedDetails;
 import com.example.reKyc.Model.CommonResponse;
 import com.example.reKyc.Model.OtpRequest;
 import com.example.reKyc.Model.JwtResponse;
 import com.example.reKyc.Security.JwtHelper;
 import com.example.reKyc.Service.Service;
 import com.example.reKyc.Utill.MaskDocumentNo;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -94,6 +97,15 @@ public class User {
 
     }
 
+    @GetMapping("/generate-report")
+    public ResponseEntity<?> generateReport(HttpServletResponse response){
+        List<UpdatedDetails> reportList = service.getReportDataList();
+        if (reportList.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        service.generateExcel(response, reportList);
+        return ResponseEntity.ok("success");
+    }
 
 }
 

@@ -1,7 +1,9 @@
 package com.example.reKyc.Service;
 
 import com.example.reKyc.Entity.LoanDetails;
+import com.example.reKyc.Entity.UpdatedDetails;
 import com.example.reKyc.Model.*;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,4 +21,6 @@ public interface Service {
     KycCountUpload kycCount();
 
     LoanDetails loanDetails(String loanNo);
+    List<UpdatedDetails> getReportDataList();
+    void generateExcel(HttpServletResponse response, List<UpdatedDetails> reportList);
 }
