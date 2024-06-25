@@ -220,8 +220,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             updateCustomerDetails(Optional.of(customerDetails),status);
             loanDetailsRepository.deleteById(customerDetails.getUserId());
 
-            updateCustomerDetails(Optional.of(loanDetails),status);
-            loanDetailsRepository.deleteById(loanDetails.getUserId());
+            updateCustomerDetails(Optional.of(customerDetails),status);
+            loanDetailsRepository.deleteById(customerDetails.getUserId());
 
 
         }
@@ -284,8 +284,6 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     public void updateCustomerDetails(Optional<CustomerDetails> loanDetails,String status) {
-
-    public void updateCustomerDetails(Optional<LoanDetails> loanDetails,String status) {
 
         UpdatedDetails updatedDetails = new UpdatedDetails();
         updatedDetails.setAddressDetails(loanDetails.get().getAddressDetailsResidential());

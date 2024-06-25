@@ -16,6 +16,7 @@ public interface Service {
     CommonResponse updateCustomerKycFlag(String loanNo,String mobileNo);
     CommonResponse callDdfsService(UpdateAddress inputAddress, CustomerDetails applicationNo);
     KycCountUpload kycCount();
+
     CustomerDetails loanDetails(String loanNo);
     List<UpdatedDetails> getReportDataList();
     void generateExcel(HttpServletResponse response, List<UpdatedDetails> reportList);
