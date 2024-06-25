@@ -6,7 +6,11 @@ import com.example.reKyc.Model.*;
 import com.example.reKyc.Repository.*;
 import com.example.reKyc.Service.LoanNoAuthentication;
 import com.example.reKyc.Utill.*;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.compress.utils.IOUtils;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -282,5 +286,42 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         updatedDetails.setRekycDate(Date.valueOf(LocalDate.now()));
         updatedDetails.setRekycDocument(loanDetails.get().getAadhar());
         updatedDetailRepository.save(updatedDetails);
+    }
+
+    public List<UpdatedDetails> getReportDataList(){
+        try {
+            return updatedDetailRepository.findAll();
+        }catch (Exception e){
+            System.out.println("Error while executing report query :" +e.getMessage());
+        }
+        return null;
+    }
+
+    public void generateExcel(HttpServletResponse response, List<UpdatedDetails> reportList) {
+
+        try {
+            XSSFWorkbook workbook = new XSSFWorkbook();
+            XSSFSheet sheet = workbook.createSheet("Updated-Details");
+            int rowCount = 0;
+
+            String[] header = {"Application Number", "Rekyc Date", "Address Details", "Rekyc Status", "Loan Number", "Rekyc Document"};
+            Row headerRow = sheet.createRow(rowCount++);
+            int cellCount = 0;
+
+            for (String headerValue : header) {
+                headerRow.createCell(cellCount++).setCellValue(headerValue);
+            }
+            for (UpdatedDetails list : reportList) {
+                Row row = sheet.createRow(rowCount++);
+                row.createCell(0).setCellValue(list.getApplicationNumber());
+                row.createCell(1).setCellValue(list.getAddressDetails());
+                row.createCell(2).setCellValue(list.getRekycStatus());
+                row.createCell(3).setCellValue(list.getLoanNumber());
+                row.createCell(4).setCellValue(list.getRekycDocument());
+                row.createCell(5).setCellValue(list.getRekycDate());
+            }
+        } catch (Exception e) {
+            System.out.println("Error while executing report query :" + e.getMessage());
+        }
     }
 }
