@@ -7,6 +7,7 @@ import com.example.reKyc.Model.KycCountUpload;
 import com.example.reKyc.Repository.AdminRepository;
 import com.example.reKyc.Repository.CustomerRepository;
 import com.example.reKyc.Service.Service;
+import com.example.reKyc.Utill.OtpUtility;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,12 +30,15 @@ public class Admin {
     private CustomerRepository customerRepository;
     @Autowired
     private AdminRepository adminRepository;
+    @Autowired
+    private OtpUtility otpUtility;
 
     @CrossOrigin
     @PostMapping("/invoke-kyc-process-flag")
     public ResponseEntity<?> invokeProcessFlag(@RequestParam("file") MultipartFile file, @RequestParam("uid") Long uid) {
 
         HashMap<String, String> response = new HashMap<>();
+        List<String> contactList = new ArrayList<>();
         String errorMsg = "";
         try {
             if (adminRepository.findById(uid).isEmpty()) {
@@ -48,18 +52,20 @@ public class Admin {
             Iterator<Row> rowIterator = sheet.iterator();
             Row headerRow = rowIterator.next();
 
-            if (headerRow.getCell(0).toString().equals("Loan-No")) {
+            if (headerRow.getCell(0).toString().equals("Loan-No") && headerRow.getCell(1).toString().equals("Contact-No")) {
 
                 while (rowIterator.hasNext()) {
                     KycCustomer customer = new KycCustomer();
 
                     Row row = rowIterator.next();
                     Cell cell = row.getCell(0);
+                    Cell cell1 = row.getCell(1);
                     errorMsg = (cell == null || cell.getCellType() == CellType.BLANK) ? "File upload error due to row no " + (row.getRowNum() + 1) + " is empty" : "";
 
                     if (errorMsg.isEmpty()) {
 
                         customer.setLoanNumber(cell.toString());
+                        contactList.add(cell1.toString());
                         customer.setKycFlag("Y");
                         customerList.add(customer);
                     } else {
@@ -72,6 +78,7 @@ public class Admin {
                 if (errorMsg.isEmpty()) {
                     try {
                         customerRepository.saveAll(customerList);
+                        service.sendOtpOnContactLists(contactList);
                         response.put("msg", "Successfully uploaded");
                         response.put("code", "0000");
                     } catch (Exception e) {

@@ -76,7 +76,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 if (!otpResponse.containsKey("otpCode")) {
                     return otpResponse;
                 }
-//                return otpUtility.sendOtp(mobileNo, otpResponse.get("otpCode"), loanNo);
+                return otpUtility.sendOtp(mobileNo, otpResponse.get("otpCode"), loanNo);
             } else {
                 logger.warn("Failed to send OTP for loanNo: {}", loanNo);
                 otpResponse.put("msg", "Please try again");
@@ -156,8 +156,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         try {
             Optional<CustomerDetails> loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
             customerRepository.updateKycFlag(loanDetails.get().getLoanNumber());
-            String status = "N";
-            updateCustomerDetails(loanDetails,status);
+            updateCustomerDetails(loanDetails,"N");
             loanDetailsRepository.deleteById(loanDetails.get().getUserId());
             otpUtility.sendTextMsg(mobileNo, SmsTemplate.existingKyc); //otp send
             logger.info("Customer KYC flag updated successfully for loanNo: {}", loanNo);
@@ -216,13 +215,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         }
         if (commonResponse.getCode().equals("0000")) {
             otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc);
-            String status = "Y";
-            updateCustomerDetails(Optional.of(customerDetails),status);
+            updateCustomerDetails(Optional.of(customerDetails),"Y");
             loanDetailsRepository.deleteById(customerDetails.getUserId());
-
-            updateCustomerDetails(Optional.of(customerDetails),status);
-            loanDetailsRepository.deleteById(customerDetails.getUserId());
-
 
         }
         return commonResponse;
@@ -288,6 +282,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         UpdatedDetails updatedDetails = new UpdatedDetails();
         updatedDetails.setAddressDetails(loanDetails.get().getAddressDetailsResidential());
         updatedDetails.setLoanNumber(loanDetails.get().getLoanNumber());
+        updatedDetails.setRekycStatus(status);
         updatedDetails.setApplicationNumber(loanDetails.get().getApplicationNumber());
         updatedDetails.setRekycDate(Date.valueOf(LocalDate.now()));
         updatedDetails.setRekycDocument(loanDetails.get().getAadhar());
@@ -333,6 +328,14 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             workbook.close();
         } catch (Exception e) {
             System.out.println("Error while executing report query :" + e.getMessage());
+        }
+    }
+
+    public void sendOtpOnContactLists(List<String> contactList) {
+        String msgBody = "Dear Customer, Thank you for visiting our website. Your KYC update request has been approved and submitted Identity and Address proofs have been updated in our records. For more information call our customer care number 1800 258 2225. Thank you. SHDFC\n" +
+                "\nप्रिय ग्राहक, हमारी वेबसाइट पर आने के लिए धन्यवाद। आपका के-वाई-सी अपडेट अनुरोध स्वीकृत हो गया है और जमा किये गए पहचान और पता प्रमाण को हमारे रिकॉर्ड में अपडेट कर दिया गया है। अधिक जानकारी के लिए हमारे ग्राहक सेवा नंबर 1800 258 2225 पर कॉल करें। धन्यवाद। SHDFC";
+        for (String mobileNo : contactList) {
+            otpUtility.sendTextMsg(mobileNo,msgBody);
         }
     }
 }
