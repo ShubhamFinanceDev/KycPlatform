@@ -58,14 +58,15 @@ public class Admin {
                     KycCustomer customer = new KycCustomer();
 
                     Row row = rowIterator.next();
-                    Cell cell = row.getCell(0);
-                    Cell cell1 = row.getCell(1);
-                    errorMsg = (cell == null || cell.getCellType() == CellType.BLANK) ? "File upload error due to row no " + (row.getRowNum() + 1) + " is empty" : "";
+                    Cell loanNo = row.getCell(0);
+                    Cell contactNo = row.getCell(1);
+                    errorMsg = (loanNo == null || loanNo.getCellType() == CellType.BLANK) ? "File upload error due to row no " + (row.getRowNum() + 1) + " is empty" : "";
 
                     if (errorMsg.isEmpty()) {
-
-                        customer.setLoanNumber(cell.toString());
-                        contactList.add(cell1.toString());
+                        DataFormatter dataFormatter = new DataFormatter();
+                        String formattedContactNo = dataFormatter.formatCellValue(contactNo);
+                        customer.setLoanNumber(loanNo.toString());
+                        contactList.add(formattedContactNo);
                         customer.setKycFlag("Y");
                         customerList.add(customer);
                     } else {

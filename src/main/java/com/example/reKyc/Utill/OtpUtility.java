@@ -58,7 +58,6 @@ public class OtpUtility {
     @Async
     public void sendTextMsg(String mobileNo, String body) {
 
-        System.out.println(body);
         String apiUrl = otpUrl + "?method=" + otpMethod + "&api_key=" + otpKey + "&to=" + mobileNo + "&sender=" + otpSender + "&message=" + body + "&format=" + otpFormat + "&unicode=auto";
         try {
             RestTemplate restTemplate = new RestTemplate();
@@ -75,7 +74,7 @@ public class OtpUtility {
     public HashMap<String,String> sendOtp(String mobileNo, String otpCode, String loanNo) {
         String subStringLoanNo = loanNo.substring(loanNo.length() - 5, loanNo.length());
         String smsBody = "Dear Customer, Your Rekyc OTP is " + otpCode + " for Loan XXXXXXXXXXXXXXX" + subStringLoanNo + ".\\n\\nRegards\\nShubham Housing Development Finance Company";
-//        sendTextMsg(mobileNo, smsBody);
+        sendTextMsg(mobileNo, smsBody);
         HashMap<String,String> otpResponse= new HashMap<>();
         otpResponse.put("mobile", mobileNo);
         otpResponse.put("msg", "Otp send successfully.");

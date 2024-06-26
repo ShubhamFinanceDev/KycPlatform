@@ -332,10 +332,9 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     }
 
     public void sendOtpOnContactLists(List<String> contactList) {
-        String msgBody = "Dear Customer, Thank you for visiting our website. Your KYC update request has been approved and submitted Identity and Address proofs have been updated in our records. For more information call our customer care number 1800 258 2225. Thank you. SHDFC\n" +
-                "\nप्रिय ग्राहक, हमारी वेबसाइट पर आने के लिए धन्यवाद। आपका के-वाई-सी अपडेट अनुरोध स्वीकृत हो गया है और जमा किये गए पहचान और पता प्रमाण को हमारे रिकॉर्ड में अपडेट कर दिया गया है। अधिक जानकारी के लिए हमारे ग्राहक सेवा नंबर 1800 258 2225 पर कॉल करें। धन्यवाद। SHDFC";
         for (String mobileNo : contactList) {
-            otpUtility.sendTextMsg(mobileNo,msgBody);
+            otpUtility.sendTextMsg(mobileNo,SmsTemplate.existingKyc);
         }
+        logger.info("Rekyc link share to {}", contactList.size()+" customer.");
     }
 }
