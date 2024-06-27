@@ -322,7 +322,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 row.createCell(2).setCellValue(list.getAddressDetails());
                 row.createCell(3).setCellValue(list.getRekycStatus());
                 row.createCell(4).setCellValue(list.getLoanNumber());
-                row.createCell(5).setCellValue(list.getRekycDocument());
+                row.createCell(5).setCellValue("Aadhaar");
             }
             response.setContentType("text/csv");
             response.setHeader("Content-Disposition", "attachment; filename=MIS_Report.xlsx");
