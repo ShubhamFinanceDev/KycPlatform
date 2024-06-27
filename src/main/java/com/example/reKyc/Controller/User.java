@@ -97,16 +97,6 @@ public class User {
 
     }
 
-    @GetMapping("/generate-report")
-    public ResponseEntity<?> generateReport(HttpServletResponse response){
-        List<UpdatedDetails> reportList = service.getReportDataList();
-        if (reportList.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        service.generateExcel(response, reportList);
-        return ResponseEntity.ok("success");
-    }
-
 }
 
 
