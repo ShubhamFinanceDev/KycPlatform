@@ -309,7 +309,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             XSSFSheet sheet = workbook.createSheet("Updated-Details");
             int rowCount = 0;
 
-            String[] header = {"Application Number", "Rekyc Date", "Address Details", "Rekyc Status", "Loan Number", "Rekyc Document"};
+            String[] header = {"Application Number", "Rekyc Date", "Address Details", "ReKYC Mode", "Loan Number", "Rekyc Document"};
             Row headerRow = sheet.createRow(rowCount++);
             int cellCount = 0;
 
