@@ -110,7 +110,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     @Override
-    public HashMap<String, String> callFileExchangeServices(InputBase64 inputBase64) {
+    public HashMap<String, String> callFileExchangeServices(InputBase64 inputBase64, CustomerDetails customerDetails) {
 
         HashMap<String, String> documentDetail = new HashMap<>();
         List<String> urls = new ArrayList<>();
@@ -122,6 +122,10 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 urls.add(documentDetail.get("fileUrl"));
             }
             documentDetail = (!urls.isEmpty()) ? callExtractionService(urls, inputBase64) : documentDetail;
+            if (documentDetail.containsKey("address")){
+                customerDetails.setAddressDetailsResidential(documentDetail.get("address"));
+                updateCustomerDetails(Optional.of(customerDetails),"Y");
+            }
         } catch (Exception e) {
 
             documentDetail.put("code", "1111");
@@ -215,7 +219,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         }
         if (commonResponse.getCode().equals("0000")) {
             otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc);
-            updateCustomerDetails(Optional.of(customerDetails),"Y");
+//            updateCustomerDetails(Optional.of(customerDetails));
             loanDetailsRepository.deleteById(customerDetails.getUserId());
 
         }

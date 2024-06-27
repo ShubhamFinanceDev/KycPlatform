@@ -35,7 +35,8 @@ public class Shubham {
             String documentType = inputParam.getDocumentType();
             String documentId = inputParam.getDocumentId();
             if ((documentType.contains("pan") && customerDetails.getPan().equals(documentId)) || (documentType.contains("aadhar") && customerDetails.getAadhar().equals(documentId))) {
-                extractDetail = service.callFileExchangeServices(inputParam);
+                extractDetail = service.callFileExchangeServices(inputParam,customerDetails);
+
             } else {
                 extractDetail.put("msg", "The document ID number is incorrect");
                 extractDetail.put("code", "1111");
