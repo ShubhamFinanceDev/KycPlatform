@@ -28,7 +28,7 @@ public class Shubham {
     private OtpUtility otpUtility;
 
     @PostMapping("/upload-preview")
-    public HashMap handleRequest(@RequestBody @Valid InputBase64 inputParam) {     //convert base64 into url
+    public HashMap<String,String> handleRequest(@RequestBody @Valid InputBase64 inputParam) {     //convert base64 into url
         HashMap<String, String> extractDetail = new HashMap<>();
         try {
             CustomerDetails customerDetails = service.loanDetails(inputParam.getLoanNo()); //validate document type and ID
