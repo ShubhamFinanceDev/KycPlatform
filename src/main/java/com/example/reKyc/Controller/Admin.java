@@ -1,6 +1,7 @@
 package com.example.reKyc.Controller;
 
 import com.example.reKyc.Entity.KycCustomer;
+import com.example.reKyc.Entity.UpdatedDetails;
 import com.example.reKyc.Model.AdminResponse;
 import com.example.reKyc.Model.CommonResponse;
 import com.example.reKyc.Model.KycCountUpload;
@@ -8,6 +9,7 @@ import com.example.reKyc.Repository.AdminRepository;
 import com.example.reKyc.Repository.CustomerRepository;
 import com.example.reKyc.Service.Service;
 import com.example.reKyc.Utill.OtpUtility;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,6 +131,15 @@ public class Admin {
         return ResponseEntity.ok(count);
     }
 
+    @GetMapping("/generate-report")
+    public ResponseEntity<?> generateReport(HttpServletResponse response){
+        List<UpdatedDetails> reportList = service.getReportDataList();
+        if (reportList.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        service.generateExcel(response, reportList);
+        return ResponseEntity.ok("success");
+    }
 }
 
 
