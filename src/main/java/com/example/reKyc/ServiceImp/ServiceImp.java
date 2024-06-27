@@ -219,7 +219,6 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         }
         if (commonResponse.getCode().equals("0000")) {
             otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc);
-//            updateCustomerDetails(Optional.of(customerDetails));
             loanDetailsRepository.deleteById(customerDetails.getUserId());
 
         }
@@ -323,7 +322,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 row.createCell(2).setCellValue(list.getRekycStatus());
                 row.createCell(3).setCellValue(list.getLoanNumber());
                 row.createCell(4).setCellValue(list.getRekycDocument());
-                row.createCell(5).setCellValue(list.getRekycDate());
+                row.createCell(5).setCellValue(list.getRekycDate().toString());
+                System.out.println(list.getRekycDate());
             }
             response.setContentType("text/csv");
             response.setHeader("Content-Disposition", "attachment; filename=MIS_Report.xlsx");
@@ -335,10 +335,10 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         }
     }
 
-    public void sendOtpOnContactLists(List<String> contactList) {
-        for (String mobileNo : contactList) {
-            otpUtility.sendTextMsg(mobileNo,SmsTemplate.existingKyc);
+    public void sendOtpOnContactLists(List<String> mobileList) {
+        for (String mobileNo : mobileList) {
+            otpUtility.sendTextMsg(mobileNo,SmsTemplate.lnkKyc);
         }
-        logger.info("Rekyc link share to {}", contactList.size()+" customer.");
+        logger.info("Rekyc link share to {}", mobileList.size()+" customer.");
     }
 }

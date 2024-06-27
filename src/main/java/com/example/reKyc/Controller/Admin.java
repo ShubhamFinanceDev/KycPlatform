@@ -40,7 +40,7 @@ public class Admin {
     public ResponseEntity<?> invokeProcessFlag(@RequestParam("file") MultipartFile file, @RequestParam("uid") Long uid) {
 
         HashMap<String, String> response = new HashMap<>();
-        List<String> contactList = new ArrayList<>();
+        List<String> mobileList = new ArrayList<>();
         String errorMsg = "";
         try {
             if (adminRepository.findById(uid).isEmpty()) {
@@ -54,7 +54,7 @@ public class Admin {
             Iterator<Row> rowIterator = sheet.iterator();
             Row headerRow = rowIterator.next();
 
-            if (headerRow.getCell(0).toString().equals("Loan-No") && headerRow.getCell(1).toString().equals("Contact-No")) {
+            if (headerRow.getCell(0).toString().equals("Loan-No") && headerRow.getCell(1).toString().equals("Mobile-No")) {
 
                 while (rowIterator.hasNext()) {
                     KycCustomer customer = new KycCustomer();
@@ -68,7 +68,7 @@ public class Admin {
                         DataFormatter dataFormatter = new DataFormatter();
                         String formattedContactNo = dataFormatter.formatCellValue(contactNo);
                         customer.setLoanNumber(loanNo.toString());
-                        contactList.add(formattedContactNo);
+                        mobileList.add(formattedContactNo);
                         customer.setKycFlag("Y");
                         customerList.add(customer);
                     } else {
@@ -81,7 +81,7 @@ public class Admin {
                 if (errorMsg.isEmpty()) {
                     try {
                         customerRepository.saveAll(customerList);
-                        service.sendOtpOnContactLists(contactList);
+                        service.sendOtpOnContactLists(mobileList);
                         response.put("msg", "Successfully uploaded");
                         response.put("code", "0000");
                     } catch (Exception e) {

@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface CustomerRepository extends JpaRepository<KycCustomer,String> {
    @Query("select cd from KycCustomer cd where cd.loanNumber=:loanNo and cd.kycFlag='Y'")
-   Optional getCustomer(String loanNo);
+   Optional<KycCustomer> getCustomer(String loanNo);
    @Transactional
    @Modifying
    @Query("update KycCustomer cd set cd.kycFlag='N' where cd.loanNumber=:loanNo")
