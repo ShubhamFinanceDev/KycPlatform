@@ -319,11 +319,11 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             for (UpdatedDetails list : reportList) {
                 Row row = sheet.createRow(rowCount++);
                 row.createCell(0).setCellValue(list.getApplicationNumber());
-                row.createCell(1).setCellValue(list.getAddressDetails());
-                row.createCell(2).setCellValue(list.getRekycStatus());
-                row.createCell(3).setCellValue(list.getLoanNumber());
-                row.createCell(4).setCellValue(list.getRekycDocument());
-                row.createCell(5).setCellValue(list.getRekycDate());
+                row.createCell(1).setCellValue(list.getRekycDate());
+                row.createCell(2).setCellValue(list.getAddressDetails());
+                row.createCell(3).setCellValue(list.getRekycStatus());
+                row.createCell(4).setCellValue(list.getLoanNumber());
+                row.createCell(5).setCellValue(list.getRekycDocument());
             }
             response.setContentType("text/csv");
             response.setHeader("Content-Disposition", "attachment; filename=MIS_Report.xlsx");
