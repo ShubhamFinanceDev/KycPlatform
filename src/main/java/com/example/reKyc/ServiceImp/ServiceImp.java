@@ -258,8 +258,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
         try {
             KycCountUpload kycCount = new KycCountUpload();
-            Integer existingCount = customerRepository.getKycCountDetail();
-            Integer updatedCount = ddfsUploadRepository.getUpdatedCount();
+            Integer existingCount = updatedDetailRepository.getKycCountDetail();
+            Integer updatedCount = updatedDetailRepository.getUpdatedCount();
             kycCount.setUpdatedKyc(updatedCount);
             kycCount.setExistingKyc(existingCount);
             logger.info("KYC count fetched successfully: Existing KYC count: {}, Updated KYC count: {}", existingCount, updatedCount);
