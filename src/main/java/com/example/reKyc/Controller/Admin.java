@@ -132,12 +132,16 @@ public class Admin {
     }
 
     @GetMapping("/generate-report")
-    public ResponseEntity<?> generateReport(HttpServletResponse response){
-        List<UpdatedDetails> reportList = service.getReportDataList();
-        if (reportList.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        service.generateExcel(response, reportList);
+    public ResponseEntity<?> generateReport(HttpServletResponse response,@RequestParam(name = "uid")Long uid){
+
+            if (adminRepository.findById(uid).isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+            List<UpdatedDetails> reportList = service.getReportDataList();
+            if (reportList.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            service.generateExcel(response, reportList);
         return ResponseEntity.ok("success");
     }
 }

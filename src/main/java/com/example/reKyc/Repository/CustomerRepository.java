@@ -15,7 +15,4 @@ public interface CustomerRepository extends JpaRepository<KycCustomer,String> {
    @Modifying
    @Query("update KycCustomer cd set cd.kycFlag='N' where cd.loanNumber=:loanNo")
     void updateKycFlag(String loanNo);
-
-   @Query("select count(cd) from KycCustomer cd where cd.kycFlag='N'")
-   Integer getKycCountDetail();
 }
