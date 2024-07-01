@@ -144,9 +144,12 @@ public class Admin {
         return ResponseEntity.ok("success");
     }
 
-    @PostMapping("/send-otp")
-    public ResponseEntity<?> sendOtpAfterUpdateDetails(){
-        return ResponseEntity.ok(service.sendOtpOnMobile());
+    @PostMapping("/send-sms")
+    public ResponseEntity<?> sendSmsAfterUpdateDetails(@RequestParam(name = "uid")Long uid){
+        if (adminRepository.findById(uid).isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        return ResponseEntity.ok(service.sendSmsOnMobile());
     }
 }
 

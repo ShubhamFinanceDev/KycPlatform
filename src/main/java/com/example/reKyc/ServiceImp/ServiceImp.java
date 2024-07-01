@@ -334,22 +334,26 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         }
     }
 
-    public CommonResponse sendOtpOnMobile(){
+    public CommonResponse sendSmsOnMobile() {
         CommonResponse commonResponse = new CommonResponse();
-        try
-        {
+        try {
             List<String> mobileNo = customerRepository.findMobileNo();
-            for (String mobileList : mobileNo) {
-                otpUtility.sendTextMsg(mobileList,SmsTemplate.lnkKyc);
+            if (mobileNo != null) {
+                for (String mobileList : mobileNo) {
+                        otpUtility.sendTextMsg(mobileList, SmsTemplate.lnkKyc);
+                        customerRepository.updateSmsSentFlag(mobileList);
+                }
+                commonResponse.setCode("0000");
+                commonResponse.setMsg("Sms sent successfully to " + mobileNo.size() + " mobile numbers");
+                logger.info("Rekyc link shared with {} customers.", mobileNo.size());
+            } else {
+                commonResponse.setCode("1111");
+                commonResponse.setMsg("No record found for sending SMS");
             }
-            commonResponse.setCode("0000");
-            commonResponse.setMsg("Otp send successfully");
-            logger.info("Rekyc link share to {}", mobileNo.size()+" customer.");
-
-        }catch (Exception e){
-            System.out.println(e.getMessage());
+        } catch (Exception e) {
+            logger.error("Exception in sendOtpOnMobile", e);
             commonResponse.setCode("1111");
-            commonResponse.setMsg("Technical issue exception :"+e.getMessage());
+            commonResponse.setMsg("Technical issue: " + e.getMessage());
         }
         return commonResponse;
     }

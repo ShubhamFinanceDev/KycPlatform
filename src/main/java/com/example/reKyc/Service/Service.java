@@ -20,5 +20,5 @@ public interface Service {
     CustomerDetails loanDetails(String loanNo);
     List<UpdatedDetails> getReportDataList();
     void generateExcel(HttpServletResponse response, List<UpdatedDetails> reportList);
-    CommonResponse sendOtpOnMobile();
+    CommonResponse sendSmsOnMobile();
 }
