@@ -16,5 +16,8 @@ public class KycCustomer {
     private String loanNumber;
     @Column(name="kyc_flag")
     private String kycFlag;
-
+    @Column(name = "mobile_no")
+    private String mobileNo;
+    @Column(name = "sms_flag")
+    private String smsFlag;
 }
