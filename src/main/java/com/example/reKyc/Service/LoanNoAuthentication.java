@@ -1,10 +1,7 @@
 package com.example.reKyc.Service;
 
-import com.example.reKyc.Controller.User;
-import com.example.reKyc.Entity.LoanDetails;
+import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Model.CustomerDataResponse;
-import com.example.reKyc.Model.CustomerDetails;
-import com.example.reKyc.Repository.CustomerRepository;
 import com.example.reKyc.Repository.LoanDetailsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,21 +38,21 @@ public class LoanNoAuthentication implements UserDetailsService {
 
         String sql = Query.loanQuery.concat("'" + loanNo + "'");
         try {
-            List<CustomerDetails> customerDetails = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(CustomerDetails.class));
+            List<com.example.reKyc.Model.CustomerDetails> customerDetails = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(com.example.reKyc.Model.CustomerDetails.class));
             logger.info("Data fetched successfully.");
             customerDataResponse.setCustomerName(customerDetails.get(0).getCustomer_Name());
             customerDataResponse.setLoanNumber(customerDetails.get(0).getLOAN_ACCOUNT_NO());
             customerDataResponse.setApplicationNumber(customerDetails.get(0).getApplication_Number());
-            customerDataResponse.setMobileNumber(customerDetails.get(0).getPHONE_NUMBER());
-//            customerDataResponse.setMobileNumber("8160041657");
+//            customerDataResponse.setMobileNumber(customerDetails.get(0).getPHONE_NUMBER());
+            customerDataResponse.setMobileNumber("8160041657");
             customerDataResponse.setAddressDetailsResidential(customerDetails.get(0).getRESIDENTIAL_ADDRESS());
 
-            for (CustomerDetails data : customerDetails) {
+            for (com.example.reKyc.Model.CustomerDetails data : customerDetails) {
                 if (data.getIDENTIFICATION_TYPE().contains("PAN")) {
                     customerDataResponse.setPanNumber(data.getIDENTIFICATION_NUMBER());
                 } else if (data.getIDENTIFICATION_TYPE().contains("AAdhar_No")) {
-                    customerDataResponse.setAadharNumber(data.getIDENTIFICATION_NUMBER());
-//                    customerDataResponse.setAadharNumber("390920211147");
+                    // customerDataResponse.setAadharNumber(data.getIDENTIFICATION_NUMBER());
+                    customerDataResponse.setAadharNumber("390920211147");
 
                 }
             }
@@ -68,16 +65,16 @@ public class LoanNoAuthentication implements UserDetailsService {
     }
 
     private void saveLoanNoDetailsLocally(CustomerDataResponse customerDataResponse) {
-        LoanDetails loanDetails=new LoanDetails();
+        CustomerDetails customerDetails =new CustomerDetails();
         try
         {
-            loanDetails.setLoanNumber(customerDataResponse.getLoanNumber());
-            loanDetails.setAddressDetailsResidential(customerDataResponse.getAddressDetailsResidential());
-            loanDetails.setAadhar(customerDataResponse.getAadharNumber());
-            loanDetails.setApplicationNumber(customerDataResponse.getApplicationNumber());
-            loanDetails.setCustomerName(customerDataResponse.getCustomerName());
-            loanDetails.setMobileNumber(customerDataResponse.getMobileNumber());
-            loanDetailsRepository.save(loanDetails);
+            customerDetails.setLoanNumber(customerDataResponse.getLoanNumber());
+            customerDetails.setAddressDetailsResidential(customerDataResponse.getAddressDetailsResidential());
+            customerDetails.setAadhar(customerDataResponse.getAadharNumber());
+            customerDetails.setApplicationNumber(customerDataResponse.getApplicationNumber());
+            customerDetails.setCustomerName(customerDataResponse.getCustomerName());
+            customerDetails.setMobileNumber(customerDataResponse.getMobileNumber());
+            loanDetailsRepository.save(customerDetails);
             logger.info("Loan-detail save temporary.");
 
         }

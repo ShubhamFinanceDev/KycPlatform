@@ -36,38 +36,44 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
+//        try {
+//            Thread.sleep(500);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
+        //Authorization
 
         String requestHeader = request.getHeader("Authorization");
+        //Bearer 2352345235sdfrsfgsdfsdf
+//        logger.info(" Header :  {}", requestHeader);
         String username = null;
         String token = null;
-        if (!request.getRequestURI().startsWith("/actuator") && !request.getRequestURI().startsWith("/favicon.ico")) {
-            logger.info(" Header :  {}", requestHeader);
-            if (requestHeader != null && requestHeader.startsWith("shubham")) {
-                //looking good
-                token = requestHeader.substring(7);
-                try {
+        if (requestHeader != null && requestHeader.startsWith("shubham")) {
+            //looking good
+            token = requestHeader.substring(7);
+            try {
 
-                    username = this.jwtHelper.getUsernameFromToken(token);
+                username = this.jwtHelper.getUsernameFromToken(token);
 
-                } catch (IllegalArgumentException e) {
-                    logger.info("Illegal Argument while fetching the username !!");
-                    e.printStackTrace();
-                } catch (ExpiredJwtException e) {
-                    logger.info("Given jwt token is expired !!");
-                    e.printStackTrace();
-                } catch (MalformedJwtException e) {
-                    logger.info("Some changed has done in token !! Invalid Token");
-                    e.printStackTrace();
-                } catch (Exception e) {
-                    e.printStackTrace();
+            } catch (IllegalArgumentException e) {
+                logger.info("Illegal Argument while fetching the username !!");
+                e.printStackTrace();
+            } catch (ExpiredJwtException e) {
+                logger.info("Given jwt token is expired !!");
+                e.printStackTrace();
+            } catch (MalformedJwtException e) {
+                logger.info("Some changed has done in token !! Invalid Token");
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
 
-                }
-
-
-            } else {
-                logger.info("Invalid Header Value !! ");
             }
+
+
+        } else {
+            logger.info("Invalid Header Value !! ");
         }
+
 
         //
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

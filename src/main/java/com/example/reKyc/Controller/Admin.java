@@ -1,12 +1,15 @@
 package com.example.reKyc.Controller;
 
 import com.example.reKyc.Entity.KycCustomer;
+import com.example.reKyc.Entity.UpdatedDetails;
 import com.example.reKyc.Model.AdminResponse;
 import com.example.reKyc.Model.CommonResponse;
 import com.example.reKyc.Model.KycCountUpload;
 import com.example.reKyc.Repository.AdminRepository;
 import com.example.reKyc.Repository.CustomerRepository;
 import com.example.reKyc.Service.Service;
+import com.example.reKyc.Utill.OtpUtility;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,12 +32,15 @@ public class Admin {
     private CustomerRepository customerRepository;
     @Autowired
     private AdminRepository adminRepository;
+    @Autowired
+    private OtpUtility otpUtility;
 
     @CrossOrigin
     @PostMapping("/invoke-kyc-process-flag")
     public ResponseEntity<?> invokeProcessFlag(@RequestParam("file") MultipartFile file, @RequestParam("uid") Long uid) {
 
         HashMap<String, String> response = new HashMap<>();
+        List<String> mobileList = new ArrayList<>();
         String errorMsg = "";
         try {
             if (adminRepository.findById(uid).isEmpty()) {
@@ -48,18 +54,21 @@ public class Admin {
             Iterator<Row> rowIterator = sheet.iterator();
             Row headerRow = rowIterator.next();
 
-            if (headerRow.getCell(0).toString().equals("Loan-No")) {
+            if (headerRow.getCell(0).toString().equals("Loan-No") && headerRow.getCell(1).toString().equals("Mobile-No")) {
 
                 while (rowIterator.hasNext()) {
                     KycCustomer customer = new KycCustomer();
 
                     Row row = rowIterator.next();
-                    Cell cell = row.getCell(0);
-                    errorMsg = (cell == null || cell.getCellType() == CellType.BLANK) ? "File upload error due to row no " + (row.getRowNum() + 1) + " is empty" : "";
+                    Cell loanNo = row.getCell(0);
+                    Cell contactNo = row.getCell(1);
+                    errorMsg = (loanNo == null || loanNo.getCellType() == CellType.BLANK) ? "File upload error due to row no " + (row.getRowNum() + 1) + " is empty" : "";
 
                     if (errorMsg.isEmpty()) {
-
-                        customer.setLoanNumber(cell.toString());
+                        DataFormatter dataFormatter = new DataFormatter();
+                        String formattedContactNo = dataFormatter.formatCellValue(contactNo);
+                        customer.setLoanNumber(loanNo.toString());
+                        mobileList.add(formattedContactNo);
                         customer.setKycFlag("Y");
                         customerList.add(customer);
                     } else {
@@ -72,6 +81,7 @@ public class Admin {
                 if (errorMsg.isEmpty()) {
                     try {
                         customerRepository.saveAll(customerList);
+                        service.sendOtpOnContactLists(mobileList);
                         response.put("msg", "Successfully uploaded");
                         response.put("code", "0000");
                     } catch (Exception e) {
@@ -121,6 +131,19 @@ public class Admin {
         return ResponseEntity.ok(count);
     }
 
+    @GetMapping("/generate-report")
+    public ResponseEntity<?> generateReport(HttpServletResponse response,@RequestParam(name = "uid")Long uid){
+
+            if (adminRepository.findById(uid).isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+            List<UpdatedDetails> reportList = service.getReportDataList();
+            if (reportList.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            service.generateExcel(response, reportList);
+        return ResponseEntity.ok("success");
+    }
 }
 
 
