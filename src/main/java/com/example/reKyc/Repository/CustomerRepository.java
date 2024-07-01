@@ -17,8 +17,10 @@ public interface CustomerRepository extends JpaRepository<KycCustomer,String> {
    @Modifying
    @Query("update KycCustomer cd set cd.kycFlag='N' where cd.loanNumber=:loanNo")
     void updateKycFlag(String loanNo);
-   @Query("SELECT e.mobileNo FROM UpdatedDetails e WHERE e.smsFlag = :'N'")
+   @Query("SELECT e.mobileNo FROM KycCustomer e WHERE e.smsFlag='N'")
    List<String> findMobileNo();
-   @Query("UPDATE KycCustomer k SET k.smsFlag = 'Y' WHERE c.mobileNo = :mobileList")
+   @Transactional
+   @Modifying
+   @Query("update KycCustomer k set k.smsFlag = 'Y' where k.mobileNo =:mobileList")
    void updateSmsSentFlag(String mobileList);
 }
