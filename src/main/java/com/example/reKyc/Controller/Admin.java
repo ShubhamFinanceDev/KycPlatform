@@ -23,7 +23,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/admin")
-@CrossOrigin("*")
+@CrossOrigin
 public class Admin {
 
     @Autowired
@@ -40,7 +40,6 @@ public class Admin {
     public ResponseEntity<?> invokeProcessFlag(@RequestParam("file") MultipartFile file, @RequestParam("uid") Long uid) {
 
         HashMap<String, String> response = new HashMap<>();
-        List<String> mobileList = new ArrayList<>();
         String errorMsg = "";
         try {
             if (adminRepository.findById(uid).isEmpty()) {
@@ -68,7 +67,8 @@ public class Admin {
                         DataFormatter dataFormatter = new DataFormatter();
                         String formattedContactNo = dataFormatter.formatCellValue(contactNo);
                         customer.setLoanNumber(loanNo.toString());
-                        mobileList.add(formattedContactNo);
+                        customer.setMobileNo(formattedContactNo);
+                        customer.setSmsFlag("N");
                         customer.setKycFlag("Y");
                         customerList.add(customer);
                     } else {
@@ -81,7 +81,6 @@ public class Admin {
                 if (errorMsg.isEmpty()) {
                     try {
                         customerRepository.saveAll(customerList);
-                        service.sendOtpOnContactLists(mobileList);
                         response.put("msg", "Successfully uploaded");
                         response.put("code", "0000");
                     } catch (Exception e) {
@@ -143,6 +142,14 @@ public class Admin {
             }
             service.generateExcel(response, reportList);
         return ResponseEntity.ok("success");
+    }
+
+    @PostMapping("/send-sms")
+    public ResponseEntity<?> sendSmsAfterUpdateDetails(@RequestParam(name = "uid")Long uid){
+        if (adminRepository.findById(uid).isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        return ResponseEntity.ok(service.sendSmsOnMobile());
     }
 }
 

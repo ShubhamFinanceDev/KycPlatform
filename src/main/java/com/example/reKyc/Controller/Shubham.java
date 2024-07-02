@@ -17,7 +17,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/shubham")
-@CrossOrigin("*")
+@CrossOrigin
 public class Shubham {
 
     @Autowired
