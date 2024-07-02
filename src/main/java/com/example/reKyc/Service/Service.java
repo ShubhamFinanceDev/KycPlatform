@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public interface Service {
 
@@ -20,5 +21,10 @@ public interface Service {
     CustomerDetails loanDetails(String loanNo);
     List<UpdatedDetails> getReportDataList();
     void generateExcel(HttpServletResponse response, List<UpdatedDetails> reportList);
-    CommonResponse sendSmsOnMobile();
+
+    void sendOtpOnContactLists(List<String> contactList);
+
+     Map<String, Object> getOkycOtp(String aadhaarNumber);
+  
+  Map fetchOkycData(String otp, String requestId);
 }

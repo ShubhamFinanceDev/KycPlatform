@@ -11,8 +11,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 
 @RestController
@@ -26,6 +28,10 @@ public class Shubham {
     private LoanNoAuthentication loanNoAuthentication;
     @Autowired
     private OtpUtility otpUtility;
+
+    private static final String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final int randomStringLength = 5;
+    private static final Random random = new SecureRandom();
 
     @PostMapping("/upload-preview")
     public HashMap<String,String> handleRequest(@RequestBody @Valid InputBase64 inputParam) {     //convert base64 into url
@@ -79,6 +85,48 @@ public class Shubham {
         commonResponse = service.updateCustomerKycFlag(inputParam.get("loanNo"), inputParam.get("mobileNo"));            //update the KYC flag for the customer
 
         return new ResponseEntity<>(commonResponse, HttpStatus.OK);
+    }
+
+
+    @PostMapping("/get-Okyc-Otp")
+    public ResponseEntity<Map<String, Object>> getOkycOtp(@RequestBody AadhaarRequest otpRequest) {
+        Map<String, Object> response = service.getOkycOtp(otpRequest.getAadhaarNumber());
+
+        // Extracting relevant data from the response
+        Map<String, Object> data = (Map<String, Object>) response.get("data");
+        String requestId = (String) data.get("requestId");
+        boolean otpSentStatus = (boolean) data.get("otpSentStatus");
+
+        String modifiedRequestId = requestId + generateRandomString();
+
+        //setting the message
+        String statusMessage = otpSentStatus ? "SUCCESS" : "FAILED";
+
+        //setting the msgCode
+        String statusCode = otpSentStatus ? "1111" : "0000";
+
+        // Creating the final response map
+        Map<String, Object> finalResponse = new HashMap<>();
+        finalResponse.put("requestId", modifiedRequestId);
+        finalResponse.put("Msg", statusMessage);
+        finalResponse.put("Code", statusCode);
+        finalResponse.put("originalResponse", response);
+
+        return ResponseEntity.ok(finalResponse);
+    }
+    private String generateRandomString() {
+        StringBuilder sb = new StringBuilder(randomStringLength);
+        for (int i = 0; i < randomStringLength; i++) {
+            sb.append(characters.charAt(random.nextInt(characters.length())));
+        }
+        return sb.toString();
+    }
+
+
+    @PostMapping("/fetch-Okyc-Data")
+    public ResponseEntity<Map<String, Object>> fetchOkycData(@RequestBody OkycDataRequest request){
+        Map response = service.fetchOkycData(request.getOtp(), request.getRequestId());
+        return ResponseEntity.ok(response);
     }
 
 
