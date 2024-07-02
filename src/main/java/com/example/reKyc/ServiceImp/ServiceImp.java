@@ -14,7 +14,10 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -53,7 +56,16 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     private DdfsUtility ddfsUtility;
     @Autowired
     private UpdatedDetailRepository updatedDetailRepository;
+    @Autowired
+    private AddressRepository addressRepository;
+    @Value("https://api-preproduction.signzy.app/api/v3/getOkycOtp")
+    private String getOkycOtpUrl;
+    @Value("https://api-preproduction.signzy.app/api/v3/fetchOkycData")
+    private String fetchOkycDataUrl;
+    @Value("${authorization.key}")
+    private String authorizationToken;
 
+    private final RestTemplate restTemplate = new RestTemplate();
     Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
     public HashMap<String, String> validateAndSendOtp(String loanNo) {
@@ -339,5 +351,81 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             otpUtility.sendTextMsg(mobileNo,SmsTemplate.lnkKyc);
         }
         logger.info("Rekyc link share to {}", mobileList.size()+" customer.");
+    }
+
+
+
+    @Override
+    public Map<String, Object> getOkycOtp(String aadhaarNumber) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", authorizationToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("aadhaarNumber", aadhaarNumber);
+
+        HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody,headers);
+        ResponseEntity response = restTemplate.exchange(getOkycOtpUrl, HttpMethod.POST, entity, HashMap.class);
+
+        return (Map<String, Object>) response.getBody();
+    }
+
+    @Override
+    public Map<String, Object> fetchOkycData(String otp, String requestId) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", authorizationToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("otp", otp);
+        requestBody.put("requestId", requestId);
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+        ResponseEntity response = restTemplate.exchange(fetchOkycDataUrl, HttpMethod.POST, entity, HashMap.class);
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+        if (responseBody != null)
+        {
+            saveAddressData(responseBody);
+        }
+        return responseBody;
+    }
+    private void saveAddressData(Map<String, Object> responseBody) {
+        Map<String, Object> addressData = (Map<String, Object>) responseBody.get("data");
+        Map<String, Object> addressDetails = (Map<String, Object>) addressData.get("address");
+        Address address = new Address();
+
+        String dist = (String) addressDetails.get("dist");
+        String state = (String) addressDetails.get("state");
+        String po = (String) addressDetails.get("po");
+        String loc = (String) addressDetails.get("loc");
+        String vtc = (String) addressDetails.get("vtc");
+        String subdist = (String) addressDetails.get("subdist");
+        String street = (String) addressDetails.get("street");
+        String house = (String) addressDetails.get("house");
+        String landmark = (String) addressDetails.get("landmark");
+        String pincode = (String) addressData.get("zip");
+
+        // Build the full address by concatenating non-null and non-empty fields
+        StringBuilder fullAddressBuilder = new StringBuilder();
+
+        if (dist != null && !dist.isEmpty()) fullAddressBuilder.append(dist).append(", ");
+        if (state != null && !state.isEmpty()) fullAddressBuilder.append(state).append(", ");
+        if (po != null && !po.isEmpty()) fullAddressBuilder.append(po).append(", ");
+        if (loc != null && !loc.isEmpty()) fullAddressBuilder.append(loc).append(", ");
+        if (vtc != null && !vtc.isEmpty()) fullAddressBuilder.append(vtc).append(", ");
+        if (subdist != null && !subdist.isEmpty()) fullAddressBuilder.append(subdist).append(", ");
+        if (street != null && !street.isEmpty()) fullAddressBuilder.append(street).append(", ");
+        if (house != null && !house.isEmpty()) fullAddressBuilder.append(house).append(", ");
+        if (landmark != null && !landmark.isEmpty()) fullAddressBuilder.append(landmark).append(", ");
+        if (pincode != null && !pincode.isEmpty()) fullAddressBuilder.append(pincode).append(", ");
+
+        // Remove the last comma and space if any were appended
+        if (fullAddressBuilder.length() > 0) {
+            fullAddressBuilder.setLength(fullAddressBuilder.length() - 2);
+        }
+
+        String fullAddress = fullAddressBuilder.toString();
+
+        address.setAddress(fullAddress);
+        addressRepository.save(address);
+
     }
 }
