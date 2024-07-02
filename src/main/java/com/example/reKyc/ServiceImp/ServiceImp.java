@@ -32,7 +32,7 @@ import org.apache.commons.codec.binary.Base64;
 public class ServiceImp implements com.example.reKyc.Service.Service {
 
     @Autowired
-    private LoanDetailsRepository loanDetailsRepository;
+    private CustomerDetailsRepository customerDetailsRepository;
     @Autowired
     private LoanNoAuthentication loanNoAuthentication;
     @Autowired
@@ -53,6 +53,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     private DdfsUtility ddfsUtility;
     @Autowired
     private UpdatedDetailRepository updatedDetailRepository;
+    @Autowired
+    private FetchingDetails fetchingDetails;
 
     Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
@@ -63,14 +65,15 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         try {
             String mobileNo;
             Optional<KycCustomer> customer = customerRepository.getCustomer(loanNo);
+            Optional<CustomerDetails> customerDetails=customerDetailsRepository.getLoanDetail(loanNo);
             if (customer.isEmpty()) {
                 logger.warn("Loan number {} not found", loanNo);
                 otpResponse.put("msg", "Loan no not found");
                 otpResponse.put("code", "1111");
                 return otpResponse;
             }
-            CustomerDetails customerDetails =loanDetailsRepository.getLoanDetails(loanNo);
-            mobileNo=(customerDetails !=null) ? customerDetails.getMobileNumber() : loanNoAuthentication.getCustomerData(loanNo);
+            if(customerDetails.isEmpty()) fetchingDetails.getCustomerData(loanNo);
+            mobileNo=customer.get().getMobileNo();
             if (mobileNo !=null && !mobileNo.isEmpty()) {
                 otpUtility.generateOtp(mobileNo, otpResponse);
                 if (!otpResponse.containsKey("otpCode")) {
@@ -105,7 +108,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             return null;
         }
 
-        return loanDetailsRepository.getLoanDetail(loanNo).orElse(null);
+        return customerDetailsRepository.getLoanDetail(loanNo).orElse(null);
     }
 
 
@@ -158,10 +161,10 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         logger.info("Updating customer KYC flag for loanNo: {}", loanNo);
         CommonResponse commonResponse = new CommonResponse();
         try {
-            Optional<CustomerDetails> loanDetails = loanDetailsRepository.getLoanDetail(loanNo);
+            Optional<CustomerDetails> loanDetails = customerDetailsRepository.getLoanDetail(loanNo);
             customerRepository.updateKycFlag(loanDetails.get().getLoanNumber());
             updateCustomerDetails(loanDetails,"N");
-            loanDetailsRepository.deleteById(loanDetails.get().getUserId());
+            customerDetailsRepository.deleteById(loanDetails.get().getUserId());
             otpUtility.sendTextMsg(mobileNo, SmsTemplate.existingKyc); //otp send
             logger.info("Customer KYC flag updated successfully for loanNo: {}", loanNo);
 
@@ -219,7 +222,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         }
         if (commonResponse.getCode().equals("0000")) {
             otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc);
-            loanDetailsRepository.deleteById(customerDetails.getUserId());
+            customerDetailsRepository.deleteById(customerDetails.getUserId());
 
         }
         return commonResponse;
@@ -276,7 +279,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Override
     public CustomerDetails loanDetails(String loanNo) {
         logger.info("Fetching loan details for loanNo: {}", loanNo);
-        return loanDetailsRepository.getLoanDetail(loanNo).orElseThrow(null);
+        return customerDetailsRepository.getLoanDetail(loanNo).orElseThrow(null);
     }
 
 
