@@ -24,7 +24,7 @@ public interface Service {
 
     void sendOtpOnContactLists(List<String> contactList);
 
-    Map<String, Object> getOkycOtp(String aadhaarNumber);
-
- Map fetchOkycData(String otp, String requestId);
+     Map<String, Object> getOkycOtp(String aadhaarNumber);
+  
+  Map fetchOkycData(String otp, String requestId);
 }
