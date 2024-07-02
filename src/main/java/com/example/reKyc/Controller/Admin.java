@@ -23,7 +23,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/admin")
-@CrossOrigin("*")
+@CrossOrigin
 public class Admin {
 
     @Autowired
