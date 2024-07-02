@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
-public interface CustomerDetailsRepository extends JpaRepository<CustomerDetails,Long> {
+public interface LoanDetailsRepository extends JpaRepository<CustomerDetails,Long> {
   @Query("select ld from CustomerDetails ld where ld.loanNumber=:loanNo")
     Optional<CustomerDetails> getLoanDetail(String loanNo);
   @Query("select ld from CustomerDetails ld where ld.loanNumber=:loanNo")

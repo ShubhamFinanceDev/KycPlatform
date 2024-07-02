@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UpdatedDetailRepository extends JpaRepository<UpdatedDetails,Long> {
+public interface UpdatedDetailRepository extends JpaRepository<UpdatedDetails,String> {
     @Query("select count(distinct up.loanNumber) from UpdatedDetails up where up.rekycStatus='N'")
     Integer getKycCountDetail();
     @Query("select count(distinct up.loanNumber) from UpdatedDetails up where up.rekycStatus='Y'")

@@ -2,14 +2,13 @@ package com.example.reKyc.Service;
 
 import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Model.CustomerDataResponse;
-import com.example.reKyc.Repository.CustomerDetailsRepository;
+import com.example.reKyc.Repository.LoanDetailsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -21,7 +20,7 @@ import java.util.List;
 public class LoanNoAuthentication implements UserDetailsService {
 
     @Autowired
-    private CustomerDetailsRepository customerDetailsRepository;
+    private LoanDetailsRepository loanDetailsRepository;
     @Autowired
     @Qualifier("oracleJdbcTemplate")
     private JdbcTemplate jdbcTemplate;
@@ -30,11 +29,11 @@ public class LoanNoAuthentication implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String loanNo) throws UsernameNotFoundException {
 
-        return customerDetailsRepository.getLoanDetail(loanNo).orElseThrow(() -> new RuntimeException("user not found"));
+        return loanDetailsRepository.getLoanDetail(loanNo).orElseThrow(() -> new RuntimeException("user not found"));
 
     }
-    @Async
-    public void getCustomerData(String loanNo) {
+
+    public String getCustomerData(String loanNo) {
         CustomerDataResponse customerDataResponse = new CustomerDataResponse();
 
         String sql = Query.loanQuery.concat("'" + loanNo + "'");
@@ -61,6 +60,8 @@ public class LoanNoAuthentication implements UserDetailsService {
         } catch (Exception e) {
             logger.error("exception while running main db query :"+e.getMessage());
         }
+        return customerDataResponse.getMobileNumber();
+
     }
 
     private void saveLoanNoDetailsLocally(CustomerDataResponse customerDataResponse) {
@@ -73,7 +74,7 @@ public class LoanNoAuthentication implements UserDetailsService {
             customerDetails.setApplicationNumber(customerDataResponse.getApplicationNumber());
             customerDetails.setCustomerName(customerDataResponse.getCustomerName());
             customerDetails.setMobileNumber(customerDataResponse.getMobileNumber());
-            customerDetailsRepository.save(customerDetails);
+            loanDetailsRepository.save(customerDetails);
             logger.info("Loan-detail save temporary.");
 
         }
