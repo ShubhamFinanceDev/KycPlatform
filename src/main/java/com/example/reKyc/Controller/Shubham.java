@@ -1,11 +1,10 @@
 package com.example.reKyc.Controller;
 
-import com.example.reKyc.Entity.LoanDetails;
+import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Model.*;
 import com.example.reKyc.Service.LoanNoAuthentication;
 import com.example.reKyc.Service.Service;
 import com.example.reKyc.Utill.OtpUtility;
-import com.example.reKyc.Utill.SmsTemplate;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,12 +13,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 
 @RestController
 @RequestMapping("/shubham")
-@CrossOrigin("*")
+@CrossOrigin
 public class Shubham {
 
     @Autowired
@@ -30,14 +28,15 @@ public class Shubham {
     private OtpUtility otpUtility;
 
     @PostMapping("/upload-preview")
-    public HashMap handleRequest(@RequestBody @Valid InputBase64 inputParam) {     //convert base64 into url
+    public HashMap<String,String> handleRequest(@RequestBody @Valid InputBase64 inputParam) {     //convert base64 into url
         HashMap<String, String> extractDetail = new HashMap<>();
         try {
-            LoanDetails loanDetails = service.loanDetails(inputParam.getLoanNo()); //validate document type and ID
+            CustomerDetails customerDetails = service.loanDetails(inputParam.getLoanNo()); //validate document type and ID
             String documentType = inputParam.getDocumentType();
             String documentId = inputParam.getDocumentId();
-            if ((documentType.contains("pan") && loanDetails.getPan().equals(documentId)) || (documentType.contains("aadhar") && loanDetails.getAadhar().equals(documentId))) {
-                extractDetail = service.callFileExchangeServices(inputParam);
+            if ((documentType.contains("pan") && customerDetails.getPan().equals(documentId)) || (documentType.contains("aadhar") && customerDetails.getAadhar().equals(documentId))) {
+                extractDetail = service.callFileExchangeServices(inputParam,customerDetails);
+
             } else {
                 extractDetail.put("msg", "The document ID number is incorrect");
                 extractDetail.put("code", "1111");
@@ -56,8 +55,8 @@ public class Shubham {
     public ResponseEntity<CommonResponse> finalUpdate(@RequestBody @Valid UpdateAddress inputUpdateAddress) {
         CommonResponse commonResponse = new CommonResponse();
         try {
-            LoanDetails loanDetails = service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo());   //Validate OTP and loan Number
-            commonResponse = service.callDdfsService(inputUpdateAddress, loanDetails);   // calls a service to update the address details
+            CustomerDetails customerDetails = service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo());   //Validate OTP and loan Number
+            commonResponse = service.callDdfsService(inputUpdateAddress, customerDetails);   // calls a service to update the address details
             return ResponseEntity.ok(commonResponse);
         } catch (Exception e) {
             commonResponse.setMsg("Loan no or Otp is not valid.");
