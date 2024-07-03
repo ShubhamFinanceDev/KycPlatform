@@ -43,9 +43,8 @@ public class FetchingDetails {
                 if (data.getIDENTIFICATION_TYPE().contains("PAN")) {
                     customerDataResponse.setPanNumber(data.getIDENTIFICATION_NUMBER());
                 } else if (data.getIDENTIFICATION_TYPE().contains("AAdhar_No")) {
-                    // customerDataResponse.setAadharNumber(data.getIDENTIFICATION_NUMBER());
-                    customerDataResponse.setAadharNumber("390920211147");
-
+                     customerDataResponse.setAadharNumber(data.getIDENTIFICATION_NUMBER());
+//                    customerDataResponse.setAadharNumber("390920211147");
                 }
             }
             saveLoanNoDetailsLocally(customerDataResponse);
