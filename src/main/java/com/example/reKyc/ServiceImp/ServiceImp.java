@@ -127,7 +127,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             documentDetail = (!urls.isEmpty()) ? callExtractionService(urls, inputBase64) : documentDetail;
             if (documentDetail.containsKey("address")){
                 customerDetails.setAddressDetailsResidential(documentDetail.get("address"));
-                updateCustomerDetails(Optional.of(customerDetails),"Y");
+                updateCustomerDetails(Optional.of(customerDetails),null);
             }
         } catch (Exception e) {
 
@@ -221,6 +221,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             logger.info("file bucket url does not exist.");
         }
         if (commonResponse.getCode().equals("0000")) {
+            updatedDetailRepository.updateKycStatus(customerDetails.getLoanNumber());
             otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc);
             customerDetailsRepository.deleteById(customerDetails.getUserId());
 
@@ -297,7 +298,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
     public List<UpdatedDetails> getReportDataList(){
         try {
-            return updatedDetailRepository.findAll();
+            return updatedDetailRepository.latestKycDetail();
         }catch (Exception e){
             System.out.println("Error while executing report query :" +e.getMessage());
         }
