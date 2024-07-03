@@ -62,7 +62,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     private String getOkycOtpUrl;
     @Value("https://api-preproduction.signzy.app/api/v3/fetchOkycData")
     private String fetchOkycDataUrl;
-    @Value("${authorization.key}")
+    @Value("${singzy.authorisation.key}")
     private String authorizationToken;
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -374,10 +374,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Override
     public Map<String, Object> getOkycOtp(String aadhaarNumber, String loanNumber) {
         Map<String, Object> result = new HashMap<>();
-        CustomerDetails customerDetails = new CustomerDetails();
-
         try {
-            customerDetails = customerDetailsRepository.getLoanDetail(loanNumber).orElseThrow(null);
+            CustomerDetails customerDetails = customerDetailsRepository.getLoanDetail(loanNumber).orElseThrow(null);
             if(customerDetails.getAadhar().equals(aadhaarNumber)) {
                 HttpHeaders headers = new HttpHeaders();
                 headers.set("Authorization", authorizationToken);
@@ -405,7 +403,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 result.put("code", "111");
             }
         } catch (Exception e) {
-            result.put("msg", "Technical issue, please try again");
+            result.put("msg", "Exception found :"+e.getMessage());
             result.put("code", "111");
         }
         return result;
@@ -428,23 +426,23 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 if (responseBody != null) {
                     saveOkycData(responseBody,customerDetails);
                     if (responseBody.containsKey("statusCode") && responseBody.containsKey("message")) {
-                        result.put("code", "000");
                         result.put("msg", "OKYC Data Fetched.");
+                        result.put("code", "000");
                     } else {
-                        result.put("code", "111");
                         result.put("msg", "OKYC Data NOT Fetched.");
+                        result.put("code", "111");
                     }
                 } else {
-                    result.put("code", "111");
                     result.put("msg", "Invalid response from OKYC service");
+                    result.put("code", "111");
                 }
             } else {
-                result.put("code", "1111");
                 result.put("msg", "Technical issue, please try again");
+                result.put("code", "111");
             }
         } catch (Exception e) {
+            result.put("msg", "Exception found :"+e.getMessage());
             result.put("code", "111");
-            result.put("msg", "Technical issue, please try again");
         }
         return result;
     }
