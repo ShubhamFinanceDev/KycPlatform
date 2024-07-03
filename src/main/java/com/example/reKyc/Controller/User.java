@@ -53,7 +53,7 @@ public class User {
         HashMap<String, String> otpResponse = new HashMap<>();
         String loanNo = inputParam.get("loanNo");
         if (loanNo.isEmpty() || loanNo == null) {
-            logger.warn("Request to send OTP failed due to mussing loanNo");
+            logger.warn("Request to send OTP failed due to missing loanNo");
             otpResponse.put("msg", "One or more field is required");
             otpResponse.put("code", "400");
             return new ResponseEntity<>(otpResponse, HttpStatus.BAD_REQUEST);
