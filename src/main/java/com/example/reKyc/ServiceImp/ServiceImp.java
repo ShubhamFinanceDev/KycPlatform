@@ -14,7 +14,10 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -55,6 +58,13 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     private UpdatedDetailRepository updatedDetailRepository;
     @Autowired
     private FetchingDetails fetchingDetails;
+    @Value("https://api-preproduction.signzy.app/api/v3/getOkycOtp")
+    private String getOkycOtpUrl;
+    @Value("https://api-preproduction.signzy.app/api/v3/fetchOkycData")
+    private String fetchOkycDataUrl;
+    @Value("${authorization.key}")
+    private String authorizationToken;
+    private final RestTemplate restTemplate = new RestTemplate();
 
     Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
@@ -291,7 +301,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         updatedDetails.setRekycStatus(status);
         updatedDetails.setApplicationNumber(loanDetails.get().getApplicationNumber());
         updatedDetails.setRekycDate(Date.valueOf(LocalDate.now()));
-        updatedDetails.setRekycDocument(loanDetails.get().getAadhar());
+        updatedDetails.setRekycDocument("Aadhar");
         updatedDetailRepository.save(updatedDetails);
     }
 
@@ -359,5 +369,106 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             commonResponse.setMsg("Technical issue: " + e.getMessage());
         }
         return commonResponse;
+    }
+
+    @Override
+    public Map<String, Object> getOkycOtp(String aadhaarNumber, String loanNumber) {
+        Map<String, Object> result = new HashMap<>();
+        CustomerDetails customerDetails = new CustomerDetails();
+
+        try {
+            customerDetails = customerDetailsRepository.getLoanDetail(loanNumber).orElseThrow(null);
+            if(customerDetails.getAadhar().equals(aadhaarNumber)) {
+                HttpHeaders headers = new HttpHeaders();
+                headers.set("Authorization", authorizationToken);
+                headers.setContentType(MediaType.APPLICATION_JSON);
+
+                HttpEntity<Map<String, String>> entity = new HttpEntity<>(Map.of("aadhaarNumber", aadhaarNumber), headers);
+                ResponseEntity<Map> response = restTemplate.exchange(getOkycOtpUrl, HttpMethod.POST, entity, Map.class);
+
+                if (response.getStatusCode() == HttpStatus.OK) {
+                    Map<String, Object> responseBody = response.getBody();
+                    if (responseBody != null && responseBody.containsKey("data")) {
+                        result.put("msg", "OTP Sent.");
+                        result.put("code", "000");
+                        result.put("requestId", ((Map<?, ?>) responseBody.get("data")).get("requestId"));
+                    } else {
+                        result.put("msg", "Invalid response from OKYC service");
+                        result.put("code", "111");
+                    }
+                } else {
+                    result.put("msg", "Technical issue, please try again");
+                    result.put("code", "1111");
+                }
+            }else {
+                result.put("msg", "Invalid aadhaarNumber from OKYC service");
+                result.put("code", "111");
+            }
+        } catch (Exception e) {
+            result.put("msg", "Technical issue, please try again");
+            result.put("code", "111");
+        }
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> fetchOkycData(String otp, String requestId, String loanNumber) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            CustomerDetails customerDetails = customerDetailsRepository.getLoanDetail(loanNumber).orElseThrow(null);
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", authorizationToken);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<Map<String, String>> entity = new HttpEntity<>(Map.of("otp", otp, "requestId", requestId), headers);
+            ResponseEntity<Map> response = restTemplate.exchange(fetchOkycDataUrl, HttpMethod.POST, entity,  Map.class);
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                Map<String, Object> responseBody = response.getBody();
+                if (responseBody != null) {
+                    saveOkycData(responseBody,customerDetails);
+                    if (responseBody.containsKey("statusCode") && responseBody.containsKey("message")) {
+                        result.put("code", "000");
+                        result.put("msg", "OKYC Data Fetched.");
+                    } else {
+                        result.put("code", "111");
+                        result.put("msg", "OKYC Data NOT Fetched.");
+                    }
+                } else {
+                    result.put("code", "111");
+                    result.put("msg", "Invalid response from OKYC service");
+                }
+            } else {
+                result.put("code", "1111");
+                result.put("msg", "Technical issue, please try again");
+            }
+        } catch (Exception e) {
+            result.put("code", "111");
+            result.put("msg", "Technical issue, please try again");
+        }
+        return result;
+    }
+    private void saveOkycData(Map<String, Object> responseBody, CustomerDetails customerDetails) {
+        Map<String, Object> data = (Map<String, Object>) responseBody.getOrDefault("data", Collections.emptyMap());
+        Map<String, Object> addressData = (Map<String, Object>) data.getOrDefault("address", Collections.emptyMap());
+
+        if (!addressData.isEmpty()) {
+            List<String> addressComponents = new ArrayList<>();
+            String[] componentOrder = {"vtc", "loc", "po", "dist", "state", "subdist", "street", "house", "landmark"};
+            for (String component : componentOrder) {
+                String value = (String) addressData.getOrDefault(component, "N/A");
+                if (!value.equals("N/A") && !value.isEmpty()) {
+                    addressComponents.add(value);
+                }
+            }
+            String zip = (String) data.getOrDefault("zip", "N/A");
+            if (!zip.equals("N/A")) {
+                addressComponents.add(zip);
+            }
+            String concatenatedAddress = String.join(", ", addressComponents);
+            System.out.println(concatenatedAddress);
+            customerDetails.setAddressDetailsResidential(concatenatedAddress);
+            updateCustomerDetails(Optional.of(customerDetails),"O");
+        }
     }
 }

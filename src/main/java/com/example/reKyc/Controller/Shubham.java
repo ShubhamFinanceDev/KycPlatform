@@ -81,5 +81,15 @@ public class Shubham {
         return new ResponseEntity<>(commonResponse, HttpStatus.OK);
     }
 
+    @PostMapping("/get-Okyc-Otp")
+    public ResponseEntity<Map<String, Object>> getOkycOtp(@RequestBody AadhaarRequest otpRequest){
+        return ResponseEntity.ok(service.getOkycOtp(otpRequest.getAadhaarNumber(),otpRequest.getLoanNumber()));
+    }
+
+    @PostMapping("/fetch-Okyc-Data")
+    public ResponseEntity<Map<String, Object>> fetchOkycData(@RequestBody OkycDataRequest request){
+        return ResponseEntity.ok(service.fetchOkycData(request.getOtp(),request.getRequestId(),request.getLoanNumber()));
+    }
+
 
 }
