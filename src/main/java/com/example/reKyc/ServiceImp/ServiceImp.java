@@ -60,13 +60,6 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     private FetchingDetails fetchingDetails;
     @Autowired
     private OfflineAadhaarUtility offlineAadhaarUtility;
-    @Value("${singzy.send.otp.aadhar}")
-    private String getOkycOtpUrl;
-    @Value("${singzy.verify.otp.aadhar}")
-    private String fetchOkycDataUrl;
-    @Value("${singzy.authorisation.key}")
-    private String authorizationToken;
-    private final RestTemplate restTemplate = new RestTemplate();
 
     Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
