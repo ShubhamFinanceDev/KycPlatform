@@ -15,6 +15,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -26,6 +28,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -370,17 +373,37 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Override
     public Map<String, Object> getOkycOtp(String aadhaarNumber,String loanNumber) {
         Map<String,Object> finalResponse = new HashMap<>();
+        Map<String,Object> collectingResponse = new HashMap<>();
         CustomerDetails customerDetails = new CustomerDetails();
         try {
 
-            customerDetails = customerDetailsRepo.getLoanDetails(loanNumber);
+            customerDetails = customerDetailsRepository.getLoanDetail(loanNumber).orElseThrow(null);
+            collectingResponse = offlineAadhaarUtility.requestIdUtility(aadhaarNumber);
+            ResponseEntity<Map> extractingResponse= (ResponseEntity<Map>) collectingResponse.get("response");
+            Map<String, Object> responseBody = (Map<String, Object>) collectingResponse.get("requestId");
             if(customerDetails.getAadhar().equals(aadhaarNumber)) {
-
-                finalResponse = offlineAadhaarUtility.requestIdUtility(aadhaarNumber);
+                if (extractingResponse.getStatusCode() == HttpStatus.OK)
+                {
+                    if (responseBody!=null)
+                    {
+                        finalResponse.put("RequestId", responseBody);
+                        finalResponse.put("Msg", "Aadhaar OTP request sent successful");
+                        finalResponse.put("Code", "000");
+                    }
+                    else
+                    {
+                        finalResponse.put("Msg","Something is not right");
+                        finalResponse.put("Code","1111");
+                    }
+                }else
+                {
+                    finalResponse.put("Msg","Technical issue!! try again");
+                    finalResponse.put("Code","1111");
+                }
 
             }else
             {
-                finalResponse.put("Msg", "Invalid aadhaarNumber");
+                finalResponse.put("Msg", "Invalid AadhaarNumber");
                 finalResponse.put("Code", "111");
             }
 
@@ -394,50 +417,72 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     }
     @Override
     public Map<String, Object> fetchOkycData(String otp, String requestId,String loanNumber) {
-        Map<String,Object> responseBody =offlineAadhaarUtility.fetchAadhaarAndSaveAddress(otp,requestId);
-        CustomerDetails customerDetails = customerDetailsRepository.getLoanDetail(loanNumber).orElseThrow(null);
-        if (responseBody != null)
-        {
-            saveCustomerData(responseBody,customerDetails);
+        Map<String,Object> finalResponse = new HashMap<>();
+        Map<String,Object> collectingResponse = new HashMap<>();
+        try {
+            collectingResponse= offlineAadhaarUtility.fetchAadhaarAndSaveAddress(otp, requestId);
+            CustomerDetails customerDetails = customerDetailsRepository.getLoanDetail(loanNumber).orElseThrow(null);
+            ResponseEntity<Map>extractingResponse = (ResponseEntity<Map>) collectingResponse.get("response");
+            Map<String, Object> responseBody = (Map<String, Object>) collectingResponse.get("responseBody");
+            if(extractingResponse.getStatusCode()==HttpStatus.OK)
+            {
+                if (responseBody != null) {
+                    saveCustomerData(responseBody, customerDetails);
+                    if (responseBody.containsKey("statusCode")&&responseBody.containsKey("message"))
+                    {
+                        finalResponse.put("Msg","Data Fetched Successfully!!");
+                        finalResponse.put("Code","0000");
+                    }
+                    else
+                    {
+                        finalResponse.put("Msg","Unable to fetch data");
+                        finalResponse.put("Code","1111");
+                    }
+                }
+                else
+                {
+                    finalResponse.put("Msg","Something went wrong");
+                    finalResponse.put("Code","1111");
+                }
+            }
+            else
+            {
+                finalResponse.put("Msg","Some Technical Issue");
+                finalResponse.put("Code","1111");
+            }
         }
-        return responseBody;
+        catch (Exception e)
+        {
+            finalResponse.put("Msg","Exception found :" +e.getMessage());
+            finalResponse.put("Code","1111");
+        }
+        return finalResponse;
     }
 
     @Transactional
     public void saveCustomerData(Map<String, Object> responseBody, CustomerDetails customerDetails) {
         Map<String, Object> data = (Map<String, Object>) responseBody.get("data");
         Map<String, Object> addressDetails = (Map<String, Object>) data.get("address");
-
-        String dist = (String) addressDetails.get("dist");
-        String state = (String) addressDetails.get("state");
-        String po = (String) addressDetails.get("po");
-        String loc = (String) addressDetails.get("loc");
-        String vtc = (String) addressDetails.get("vtc");
-        String subdist = (String) addressDetails.get("subdist");
-        String street = (String) addressDetails.get("street");
-        String house = (String) addressDetails.get("house");
-        String landmark = (String) addressDetails.get("landmark");
         String pincode = (String) data.get("zip");
 
-        StringBuilder fullAddressBuilder = new StringBuilder();
-        if (dist != null && !dist.isEmpty()) fullAddressBuilder.append(dist).append(", ");
-        if (state != null && !state.isEmpty()) fullAddressBuilder.append(state).append(", ");
-        if (po != null && !po.isEmpty()) fullAddressBuilder.append(po).append(", ");
-        if (loc != null && !loc.isEmpty()) fullAddressBuilder.append(loc).append(", ");
-        if (vtc != null && !vtc.isEmpty()) fullAddressBuilder.append(vtc).append(", ");
-        if (subdist != null && !subdist.isEmpty()) fullAddressBuilder.append(subdist).append(", ");
-        if (street != null && !street.isEmpty()) fullAddressBuilder.append(street).append(", ");
-        if (house != null && !house.isEmpty()) fullAddressBuilder.append(house).append(", ");
-        if (landmark != null && !landmark.isEmpty()) fullAddressBuilder.append(landmark).append(", ");
-        if (pincode != null && !pincode.isEmpty()) fullAddressBuilder.append(pincode).append(", ");
+        List<String> addressComponents = Arrays.asList(
+                (String) addressDetails.get("dist"),
+                (String) addressDetails.get("state"),
+                (String) addressDetails.get("po"),
+                (String) addressDetails.get("loc"),
+                (String) addressDetails.get("vtc"),
+                (String) addressDetails.get("subdist"),
+                (String) addressDetails.get("street"),
+                (String) addressDetails.get("house"),
+                (String) addressDetails.get("landmark"),
+                pincode
+        );
 
-        if (fullAddressBuilder.length() > 0) {
-            fullAddressBuilder.setLength(fullAddressBuilder.length() - 2);
-        }
-
-        String fullAddress = fullAddressBuilder.toString();
+        String fullAddress = addressComponents.stream()
+                .filter(component -> component != null && !component.isEmpty())
+                .collect(Collectors.joining(", "));
 
         customerDetails.setAddressDetailsResidential(fullAddress);
-        updateCustomerDetails(Optional.of(customerDetails),"O");
+        updateCustomerDetails(Optional.of(customerDetails), "O");
     }
 }
