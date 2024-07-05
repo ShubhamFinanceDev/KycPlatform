@@ -27,6 +27,7 @@ public class Shubham {
     @Autowired
     private OtpUtility otpUtility;
 
+
     @PostMapping("/upload-preview")
     public HashMap<String,String> handleRequest(@RequestBody @Valid InputBase64 inputParam) {     //convert base64 into url
         HashMap<String, String> extractDetail = new HashMap<>();
@@ -81,5 +82,15 @@ public class Shubham {
         return new ResponseEntity<>(commonResponse, HttpStatus.OK);
     }
 
+    @PostMapping("/get-Okyc-Otp")
+    public ResponseEntity<Map<String, Object>> getOkycOtp(@RequestBody AadhaarRequest otpRequest) {
+        Map<String, Object> response = service.getOkycOtp(otpRequest.getAadhaarNumber(),otpRequest.getLoanNumber());
+        return ResponseEntity.ok(response);
+    }
 
+    @PostMapping("/fetch-Okyc-Data")
+    public ResponseEntity<Map<String, Object>> fetchOkycData(@RequestBody OkycDataRequest request){
+        Map response = service.fetchOkycData(request.getOtp(), request.getRequestId(), request.getLoanNumber());
+        return ResponseEntity.ok(response);
+    }
 }

@@ -7,6 +7,7 @@ import com.example.reKyc.Repository.*;
 import com.example.reKyc.Service.LoanNoAuthentication;
 import com.example.reKyc.Utill.*;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -55,6 +56,11 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     private UpdatedDetailRepository updatedDetailRepository;
     @Autowired
     private FetchingDetails fetchingDetails;
+    @Autowired
+    private CustomerDetailsRepository customerDetailsRepo;
+    @Autowired
+    private OfflineAadhaarUtility offlineAadhaarUtility;
+
 
     Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
@@ -291,7 +297,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         updatedDetails.setRekycStatus(status);
         updatedDetails.setApplicationNumber(loanDetails.get().getApplicationNumber());
         updatedDetails.setRekycDate(Date.valueOf(LocalDate.now()));
-        updatedDetails.setRekycDocument(loanDetails.get().getAadhar());
+        updatedDetails.setRekycDocument("Aadhaar");
         updatedDetailRepository.save(updatedDetails);
     }
 
@@ -359,5 +365,79 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             commonResponse.setMsg("Technical issue: " + e.getMessage());
         }
         return commonResponse;
+    }
+
+    @Override
+    public Map<String, Object> getOkycOtp(String aadhaarNumber,String loanNumber) {
+        Map<String,Object> finalResponse = new HashMap<>();
+        CustomerDetails customerDetails = new CustomerDetails();
+        try {
+
+            customerDetails = customerDetailsRepo.getLoanDetails(loanNumber);
+            if(customerDetails.getAadhar().equals(aadhaarNumber)) {
+
+                finalResponse = offlineAadhaarUtility.requestIdUtility(aadhaarNumber);
+
+            }else
+            {
+                finalResponse.put("Msg", "Invalid aadhaarNumber");
+                finalResponse.put("Code", "111");
+            }
+
+        }catch (Exception e)
+        {
+            finalResponse.put("Msg", "Exception found :" +e.getMessage());
+            finalResponse.put("Code", "111");
+        }
+
+        return finalResponse;
+    }
+    @Override
+    public Map<String, Object> fetchOkycData(String otp, String requestId,String loanNumber) {
+        Map<String,Object> responseBody =offlineAadhaarUtility.fetchAadhaarAndSaveAddress(otp,requestId);
+        CustomerDetails customerDetails = customerDetailsRepository.getLoanDetail(loanNumber).orElseThrow(null);
+        if (responseBody != null)
+        {
+            saveCustomerData(responseBody,customerDetails);
+        }
+        return responseBody;
+    }
+
+    @Transactional
+    public void saveCustomerData(Map<String, Object> responseBody, CustomerDetails customerDetails) {
+        Map<String, Object> data = (Map<String, Object>) responseBody.get("data");
+        Map<String, Object> addressDetails = (Map<String, Object>) data.get("address");
+
+        String dist = (String) addressDetails.get("dist");
+        String state = (String) addressDetails.get("state");
+        String po = (String) addressDetails.get("po");
+        String loc = (String) addressDetails.get("loc");
+        String vtc = (String) addressDetails.get("vtc");
+        String subdist = (String) addressDetails.get("subdist");
+        String street = (String) addressDetails.get("street");
+        String house = (String) addressDetails.get("house");
+        String landmark = (String) addressDetails.get("landmark");
+        String pincode = (String) data.get("zip");
+
+        StringBuilder fullAddressBuilder = new StringBuilder();
+        if (dist != null && !dist.isEmpty()) fullAddressBuilder.append(dist).append(", ");
+        if (state != null && !state.isEmpty()) fullAddressBuilder.append(state).append(", ");
+        if (po != null && !po.isEmpty()) fullAddressBuilder.append(po).append(", ");
+        if (loc != null && !loc.isEmpty()) fullAddressBuilder.append(loc).append(", ");
+        if (vtc != null && !vtc.isEmpty()) fullAddressBuilder.append(vtc).append(", ");
+        if (subdist != null && !subdist.isEmpty()) fullAddressBuilder.append(subdist).append(", ");
+        if (street != null && !street.isEmpty()) fullAddressBuilder.append(street).append(", ");
+        if (house != null && !house.isEmpty()) fullAddressBuilder.append(house).append(", ");
+        if (landmark != null && !landmark.isEmpty()) fullAddressBuilder.append(landmark).append(", ");
+        if (pincode != null && !pincode.isEmpty()) fullAddressBuilder.append(pincode).append(", ");
+
+        if (fullAddressBuilder.length() > 0) {
+            fullAddressBuilder.setLength(fullAddressBuilder.length() - 2);
+        }
+
+        String fullAddress = fullAddressBuilder.toString();
+
+        customerDetails.setAddressDetailsResidential(fullAddress);
+        updateCustomerDetails(Optional.of(customerDetails),"O");
     }
 }
