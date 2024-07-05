@@ -22,8 +22,4 @@ public interface Service {
     List<UpdatedDetails> getReportDataList();
     void generateExcel(HttpServletResponse response, List<UpdatedDetails> reportList);
     CommonResponse sendSmsOnMobile();
-
-    Map<String, Object> getOkycOtp(String aadhaarNumber, String loanNumber);
-
-    Map<String, Object> fetchOkycData(String otp, String requestId, String loanNumber);
 }
