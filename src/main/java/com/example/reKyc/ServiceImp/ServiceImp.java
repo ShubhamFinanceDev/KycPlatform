@@ -355,8 +355,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             List<String> mobileNo = customerRepository.findMobileNo();
             if (!mobileNo.isEmpty()) {
                 for (String mobileList : mobileNo) {
-                        otpUtility.sendTextMsg(mobileList, SmsTemplate.lnkKyc);
-                        customerRepository.updateSmsSentFlag(mobileList);
+                    otpUtility.sendTextMsg(mobileList, SmsTemplate.lnkKyc);
+                    customerRepository.updateSmsSentFlag(mobileList);
                 }
                 commonResponse.setCode("0000");
                 commonResponse.setMsg("Sms sent successfully for " + mobileNo.size() + " loan number");
