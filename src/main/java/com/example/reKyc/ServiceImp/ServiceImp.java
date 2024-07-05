@@ -58,13 +58,6 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     private UpdatedDetailRepository updatedDetailRepository;
     @Autowired
     private FetchingDetails fetchingDetails;
-    @Value("https://api-preproduction.signzy.app/api/v3/getOkycOtp")
-    private String getOkycOtpUrl;
-    @Value("https://api-preproduction.signzy.app/api/v3/fetchOkycData")
-    private String fetchOkycDataUrl;
-    @Value("${singzy.authorisation.key}")
-    private String authorizationToken;
-    private final RestTemplate restTemplate = new RestTemplate();
 
     Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
