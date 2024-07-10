@@ -14,7 +14,10 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -55,6 +58,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     private UpdatedDetailRepository updatedDetailRepository;
     @Autowired
     private FetchingDetails fetchingDetails;
+    @Autowired
+    private OfflineAadhaarUtility offlineAadhaarUtility;
 
     Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
@@ -291,7 +296,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         updatedDetails.setRekycStatus(status);
         updatedDetails.setApplicationNumber(loanDetails.get().getApplicationNumber());
         updatedDetails.setRekycDate(Date.valueOf(LocalDate.now()));
-        updatedDetails.setRekycDocument(loanDetails.get().getAadhar());
+        updatedDetails.setRekycDocument("Aadhar");
         updatedDetailRepository.save(updatedDetails);
     }
 
@@ -343,8 +348,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             List<String> mobileNo = customerRepository.findMobileNo();
             if (!mobileNo.isEmpty()) {
                 for (String mobileList : mobileNo) {
-                        otpUtility.sendTextMsg(mobileList, SmsTemplate.lnkKyc);
-                        customerRepository.updateSmsSentFlag(mobileList);
+                    otpUtility.sendTextMsg(mobileList, SmsTemplate.lnkKyc);
+                    customerRepository.updateSmsSentFlag(mobileList);
                 }
                 commonResponse.setCode("0000");
                 commonResponse.setMsg("Sms sent successfully for " + mobileNo.size() + " loan number");
@@ -359,5 +364,34 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             commonResponse.setMsg("Technical issue: " + e.getMessage());
         }
         return commonResponse;
+    }
+
+    @Override
+    public Map<String, Object> getOkycOtp(String aadhaarNumber, String loanNumber) {
+        Map<String, Object> result = new HashMap<>();
+            CustomerDetails customerDetails = customerDetailsRepository.getLoanDetail(loanNumber).orElseThrow(null);
+        if (customerDetails == null) {
+            result.put("msg", "Loan details not found for loanNumber: " + loanNumber);
+            result.put("code", "111");
+        }else if(customerDetails.getAadhar().equals(aadhaarNumber)) {
+                offlineAadhaarUtility.processOkycResponse(result, aadhaarNumber);
+            }else {
+                result.put("msg", "Invalid aadhaarNumber from OKYC service");
+                result.put("code", "111");
+            }
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> fetchOkycData(String otp, String requestId, String loanNumber) {
+        Map<String, Object> result = new HashMap<>();
+        CustomerDetails customerDetails = customerDetailsRepository.getLoanDetail(loanNumber).orElseThrow(null);
+        if (customerDetails != null) {
+            offlineAadhaarUtility.processFetchOkycDataResponse(result, otp, requestId, customerDetails);
+        }else {
+            result.put("msg", "Loan details not found for loanNumber: " + loanNumber);
+            result.put("code", "111");
+        }
+        return result;
     }
 }
