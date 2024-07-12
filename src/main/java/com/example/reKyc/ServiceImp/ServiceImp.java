@@ -371,45 +371,39 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     }
 
     @Override
-    public Map<String, Object> getOkycOtp(String aadhaarNumber,String loanNumber) {
-        Map<String,Object> finalResponse = new HashMap<>();
-        Map<String,Object> collectingResponse = new HashMap<>();
+    public Map<String, Object> getOkycOtp(String aadhaarNumber, String loanNumber) {
+        Map<String, Object> finalResponse = new HashMap<>();
+        Map<String, Object> collectingResponse = new HashMap<>();
         CustomerDetails customerDetails = new CustomerDetails();
-        try {
 
+        try {
             customerDetails = customerDetailsRepository.getLoanDetail(loanNumber).orElseThrow(null);
             collectingResponse = offlineAadhaarUtility.requestIdUtility(aadhaarNumber);
-            ResponseEntity<Map> extractingResponse= (ResponseEntity<Map>) collectingResponse.get("response");
-            Map<String, Object> responseBody = (Map<String, Object>) collectingResponse.get("requestId");
-            if(customerDetails.getAadhar().equals(aadhaarNumber)) {
-                if (extractingResponse.getStatusCode() == HttpStatus.OK)
-                {
-                    if (responseBody!=null)
-                    {
-                        finalResponse.put("RequestId", responseBody);
-                        finalResponse.put("Msg", "Aadhaar OTP request sent successful");
-                        finalResponse.put("Code", "000");
-                    }
-                    else
-                    {
-                        finalResponse.put("Msg","Something is not right");
-                        finalResponse.put("Code","1111");
-                    }
-                }else
-                {
-                    finalResponse.put("Msg","Technical issue!! try again");
-                    finalResponse.put("Code","1111");
-                }
+            ResponseEntity<Map> extractingResponse = (ResponseEntity<Map>) collectingResponse.get("response");
 
-            }else
-            {
+
+            Object requestId = collectingResponse.get("requestId");
+
+            if (customerDetails.getAadhar().equals(aadhaarNumber)) {
+                if (extractingResponse.getStatusCode() == HttpStatus.OK) {
+                    if (requestId != null) {
+                        finalResponse.put("RequestId", requestId);
+                        finalResponse.put("Msg", "Aadhaar OTP request sent successfully");
+                        finalResponse.put("Code", "000");
+                    } else {
+                        finalResponse.put("Msg", "Something is not right");
+                        finalResponse.put("Code", "1111");
+                    }
+                } else {
+                    finalResponse.put("Msg", "Technical issue!! try again");
+                    finalResponse.put("Code", "1111");
+                }
+            } else {
                 finalResponse.put("Msg", "Invalid AadhaarNumber");
                 finalResponse.put("Code", "111");
             }
-
-        }catch (Exception e)
-        {
-            finalResponse.put("Msg", "Exception found :" +e.getMessage());
+        } catch (Exception e) {
+            finalResponse.put("Msg", "Exception found: " + e.getMessage());
             finalResponse.put("Code", "111");
         }
 

@@ -19,25 +19,34 @@ public class OfflineAadhaarUtility {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public Map<String,Object> requestIdUtility(String aadhaarNumber)
-    {
-        Map<String,Object> finalResponse = new HashMap<>();
-                HttpHeaders headers = new HttpHeaders();
-                headers.set("Authorization", authorizationToken);
-                headers.setContentType(MediaType.APPLICATION_JSON);
+    public Map<String, Object> requestIdUtility(String aadhaarNumber) {
+        Map<String, Object> finalResponse = new HashMap<>();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", authorizationToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("aadhaarNumber", aadhaarNumber);
+        HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
 
-                Map<String, String> requestBody = new HashMap<>();
-                requestBody.put("aadhaarNumber", aadhaarNumber);
+        try {
+            ResponseEntity response = restTemplate.exchange(getOkycOtpUrl, HttpMethod.POST, entity, Map.class);
+            Map<String, Object> puttingResponse = (Map<String, Object>) response.getBody();
+            System.out.println("Response Body: " + puttingResponse);
 
-                HttpEntity<Map<String, String>> entity = new HttpEntity<>(requestBody, headers);
-                ResponseEntity response = restTemplate.exchange(getOkycOtpUrl, HttpMethod.POST, entity, Map.class);
-                Map<String, Object> puttingResponse = (Map<String, Object>) response.getBody();
+            if (puttingResponse != null && puttingResponse.get("data") instanceof Map) {
                 Map<String, Object> data = (Map<String, Object>) puttingResponse.get("data");
-                String requestId = (String) data.get("requestId");
+                Object requestId = data.get("requestId");
                 finalResponse.put("requestId", requestId);
-                finalResponse.put("response",response);
+            } else {
+                throw new IllegalArgumentException("Unexpected response structure: " + puttingResponse);
+            }
 
-                return finalResponse;
+            finalResponse.put("response", response);
+        } catch (Exception e) {
+            finalResponse.put("Msg", "Exception found: " + e.getMessage());
+            finalResponse.put("Code", "111");
+        }
+        return finalResponse;
     }
 
     public Map<String,Object> fetchAadhaarAndSaveAddress(String otp, String requestId) {
