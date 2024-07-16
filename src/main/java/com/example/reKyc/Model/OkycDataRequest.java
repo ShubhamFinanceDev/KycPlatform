@@ -7,6 +7,5 @@ public class OkycDataRequest {
 
     private String requestId;
     private String otp;
-    private String aadhaarNumber;
     private String loanNumber;
 }
