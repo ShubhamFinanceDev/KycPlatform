@@ -372,12 +372,12 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             CustomerDetails customerDetails = customerDetailsRepository.getLoanDetail(loanNumber).orElseThrow(null);
         if (customerDetails == null) {
             result.put("msg", "Loan details not found for loanNumber: " + loanNumber);
-            result.put("code", "111");
+            result.put("code", "1111");
         }else if(customerDetails.getAadhar().equals(aadhaarNumber)) {
                 offlineAadhaarUtility.processOkycResponse(result, aadhaarNumber);
             }else {
                 result.put("msg", "Invalid aadhaarNumber from OKYC service");
-                result.put("code", "111");
+                result.put("code", "1111");
             }
         return result;
     }
@@ -390,7 +390,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             offlineAadhaarUtility.processFetchOkycDataResponse(result, otp, requestId, customerDetails);
         }else {
             result.put("msg", "Loan details not found for loanNumber: " + loanNumber);
-            result.put("code", "111");
+            result.put("code", "1111");
         }
         return result;
     }

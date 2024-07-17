@@ -38,11 +38,11 @@ public class OfflineAadhaarUtility {
             Map<String, Object> responseBody = response.getBody();
             if (responseBody != null && responseBody.containsKey("data")) {
                 result.put("msg", "successfully");
-                result.put("code", "000");
+                result.put("code", "0000");
                 result.put("requestId", ((Map<?, ?>) responseBody.get("data")).get("requestId"));
             } else {
                 result.put("msg", "Invalid response from OKYC service");
-                result.put("code", "111");
+                result.put("code", "1111");
             }
         } else {
             result.put("msg", "Technical issue, please try again");
@@ -51,7 +51,7 @@ public class OfflineAadhaarUtility {
 
     } catch (Exception e){
             result.put("msg", "Exception found :"+e.getMessage());
-            result.put("code", "111");
+            result.put("code", "1111");
         }
     }
 
@@ -70,22 +70,22 @@ public class OfflineAadhaarUtility {
                     saveOkycData(responseBody, customerDetails);
                     if (responseBody.containsKey("statusCode") && responseBody.containsKey("message")) {
                         result.put("msg", "OKYC Data Fetched.");
-                        result.put("code", "000");
+                        result.put("code", "0000");
                     } else {
                         result.put("msg", "OKYC Data NOT Fetched.");
-                        result.put("code", "111");
+                        result.put("code", "1111");
                     }
                 } else {
                     result.put("msg", "Invalid response from OKYC service");
-                    result.put("code", "111");
+                    result.put("code", "1111");
                 }
             } else {
                 result.put("msg", "Technical issue, please try again");
-                result.put("code", "111");
+                result.put("code", "1111");
             }
     } catch (Exception e) {
         result.put("msg", "Exception found :"+e.getMessage());
-        result.put("code", "111");
+        result.put("code", "1111");
         }
     }
 
