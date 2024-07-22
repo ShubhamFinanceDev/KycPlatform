@@ -44,7 +44,6 @@ public class FetchingDetails {
     @Async
     public CompletableFuture<CustomerDataResponse> getCustomerData(String loanNo) throws Exception {
 
-        CompletableFuture<CustomerDataResponse> customerDataResponse1=new CompletableFuture<>();
         CustomerDataResponse customerDataResponse=new CustomerDataResponse();
 
         List<CustomerDetails> customerDetailsList = new ArrayList<>();
@@ -57,9 +56,15 @@ public class FetchingDetails {
                 customerDataResponse.setAddressDetailsResidential(customerDetails.get().getResidentialAddress());
                 customerDataResponse.setPhoneNumber(customerDetails.get().getPhoneNumber());
                 customerDataResponse.setCustomerName(customerDetails.get().getCustomerName());
+                customerDataResponse.setLoanNumber(customerDetails.get().getLoanAccountNo());
                 for (CustomerDetails customerDetails1 : customerDetailsList) {
-                    customerDataResponse.setAadharNumber(customerDetails1.getIdentificationType().equals("AAdhar_No") ? customerDetails1.getIdentificationNumber() : "NA");
-                    customerDataResponse.setAadharNumber(customerDetails1.getIdentificationType().equals("PAN") ? customerDetails1.getIdentificationNumber() : "NA");
+                    if(customerDetails1.getIdentificationType().contains("PAN"))
+                    {
+                        customerDataResponse.setPanNumber(customerDetails1.getIdentificationNumber());
+                    } else if (customerDetails1.getIdentificationType().contains("AAdhar_No")) {
+                        customerDataResponse.setAadharNumber(customerDetails1.getIdentificationNumber());
+                        System.out.println(customerDetails1.getIdentificationNumber());
+                    }
 
                 }
             }
@@ -85,14 +90,9 @@ public class FetchingDetails {
                 }
 
             }
-            customerDataResponse.setPanNumber(customerDataResponse.getPanNumber() != null ? maskDocumentNo.documentNoEncryption(customerDataResponse.getPanNumber()) : "NA");
-            customerDataResponse.setAadharNumber(customerDataResponse.getAadharNumber() != null ? maskDocumentNo.documentNoEncryption(customerDataResponse.getAadharNumber()) : "NA");
-
-
         }
-
-        customerDataResponse1.complete(customerDataResponse);
-
-        return customerDataResponse1;
+        customerDataResponse.setPanNumber(customerDataResponse.getPanNumber() != null ? maskDocumentNo.documentNoEncryption(customerDataResponse.getPanNumber()) : "NA");
+        customerDataResponse.setAadharNumber(customerDataResponse.getAadharNumber() != null ? maskDocumentNo.documentNoEncryption(customerDataResponse.getAadharNumber()) : "NA");
+        return CompletableFuture.completedFuture(customerDataResponse);
     }
 }

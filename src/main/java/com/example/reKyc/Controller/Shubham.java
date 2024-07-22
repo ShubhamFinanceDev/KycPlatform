@@ -7,6 +7,8 @@ import com.example.reKyc.Service.Service;
 import com.example.reKyc.Utill.FetchingDetails;
 import com.example.reKyc.Utill.OtpUtility;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,7 @@ import java.util.concurrent.CompletableFuture;
 @CrossOrigin
 public class Shubham {
 
+    private static final Logger log = LoggerFactory.getLogger(Shubham.class);
     @Autowired
     private Service service;
     @Autowired
@@ -55,13 +58,16 @@ public class Shubham {
                 }
             }
             customerDetailsResponseData.setResidentialAddress(extractDetail.get("address"));
+            customerDetailsResponseData.setLoanAccountNo(inputParam.getLoanNo());
             service.updateCustomerDetails(Optional.of(customerDetailsResponseData), null);
             return ResponseEntity.ok(extractDetail);
 
         } catch (Exception e) {
-            extractDetail.put("msg", "Loan no is not valid.");
+            extractDetail.clear();
+            extractDetail.put("msg", "Technical issue, try again.");
             extractDetail.put("code", "1111");
-            return new ResponseEntity<>(extractDetail, HttpStatus.BAD_REQUEST);
+            System.out.println(e.getMessage());
+            return new ResponseEntity<>(extractDetail, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }

@@ -127,10 +127,6 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 urls.add(documentDetail.get("fileUrl"));
             }
             documentDetail = (!urls.isEmpty()) ? callExtractionService(urls, inputBase64) : documentDetail;
-//            if (documentDetail.containsKey("address")){
-//                customerDetails.setResidentialAddress(documentDetail.get("address"));
-//                updateCustomerDetails(Optional.of(customerDetails),null);
-//            }
         } catch (Exception e) {
 
             documentDetail.put("code", "1111");
@@ -184,9 +180,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         CommonResponse commonResponse = new CommonResponse();
         try {
             CustomerDataResponse customerDataResponse = fetchingDetails.getCustomerData(loanNo).get();
-
             List<DdfsUpload> ddfsUploads = ddfsUploadRepository.getImageUrl(inputAddress.getLoanNo());
-            if (!ddfsUploads.isEmpty() && customerDataResponse!=null) {
+            if (!ddfsUploads.isEmpty() && customerDataResponse != null) {
 
                 for (DdfsUpload result : ddfsUploads) {
                     String imageUrl = result.getImageUrl();
@@ -229,12 +224,13 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc);
             }
         } catch (Exception e) {
+            commonResponse.setCode("1111");
+            commonResponse.setMsg("Technical error, try again");
             logger.info("Error while fetching customer data for loanNo: {}", loanNo);
         }
         return commonResponse;
 
     }
-
 
 
     public void deleteUnProcessRecord(String loanNo) {
@@ -245,9 +241,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     }
 
 
-
     public void saveUpdatedDetails(InputBase64 inputUpdatedDetails, String url) {
-        logger.info("saving updated details for url: {}", inputUpdatedDetails.getLoanNo());
+        logger.info("saving updated details for loanNo: {}", inputUpdatedDetails.getLoanNo());
         DdfsUpload updatedDetails = new DdfsUpload();
 
         try {
@@ -297,14 +292,15 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     public void updateCustomerDetails(Optional<CustomerDetails> loanDetails, String status) {
 
         UpdatedDetails updatedDetails = new UpdatedDetails();
-        updatedDetails.setAddressDetails(loanDetails.get().getResidentialAddress());
         updatedDetails.setLoanNumber(loanDetails.get().getLoanAccountNo());
+        updatedDetails.setAddressDetails(loanDetails.get().getResidentialAddress());
         updatedDetails.setRekycStatus(status);
         updatedDetails.setApplicationNumber(loanDetails.get().getApplicationNumber());
         updatedDetails.setRekycDate(Date.valueOf(LocalDate.now()));
         updatedDetails.setRekycDocument(loanDetails.get().getIdentificationNumber());
         updatedDetailRepository.save(updatedDetails);
     }
+
 
     public List<UpdatedDetails> getReportDataList() {
         try {
@@ -314,7 +310,6 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         }
         return null;
     }
-
 
 
     public void generateExcel(HttpServletResponse response, List<UpdatedDetails> reportList) {
