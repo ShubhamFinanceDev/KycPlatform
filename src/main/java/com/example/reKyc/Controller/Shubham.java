@@ -4,6 +4,7 @@ import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Model.*;
 import com.example.reKyc.Service.LoanNoAuthentication;
 import com.example.reKyc.Service.Service;
+import com.example.reKyc.Utill.FetchingDetails;
 import com.example.reKyc.Utill.OtpUtility;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +13,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 
 @RestController
@@ -25,45 +29,64 @@ public class Shubham {
     @Autowired
     private LoanNoAuthentication loanNoAuthentication;
     @Autowired
-    private OtpUtility otpUtility;
+    private FetchingDetails fetchingDetails;
 
     @PostMapping("/upload-preview")
-    public HashMap<String,String> handleRequest(@RequestBody @Valid InputBase64 inputParam) {     //convert base64 into url
+    public ResponseEntity<?> handleRequest(@RequestBody @Valid InputBase64 inputParam) {     //convert base64 into url
         HashMap<String, String> extractDetail = new HashMap<>();
         try {
-            CustomerDetails customerDetails = service.loanDetails(inputParam.getLoanNo()); //validate document type and ID
+
             String documentType = inputParam.getDocumentType();
             String documentId = inputParam.getDocumentId();
-            if ((documentType.contains("pan") && customerDetails.getPan().equals(documentId)) || (documentType.contains("aadhar") && customerDetails.getAadhar().equals(documentId))) {
-                extractDetail = service.callFileExchangeServices(inputParam,customerDetails);
+            List<CustomerDetails> customerDetails = fetchingDetails.getCustomerIdentification(inputParam.getLoanNo()).get();
+            System.out.println("call");
+            extractDetail = service.callFileExchangeServices(inputParam);
 
-            } else {
-                extractDetail.put("msg", "The document ID number is incorrect");
-                extractDetail.put("code", "1111");
+            CustomerDetails customerDetailsResponseData = new CustomerDetails();
+            for (CustomerDetails customerDetailsResponse : customerDetails) {
+                if (customerDetailsResponse.getIdentificationType().contains(documentType)) {
+                    if (!documentId.equals(documentId)) {
+                        extractDetail.clear();
+                        extractDetail.put("msg", "The document ID number is incorrect");
+                        extractDetail.put("code", "1111");
+                        break;
+                    }
+                    customerDetailsResponseData = customerDetailsResponse;
+                }
             }
+            customerDetailsResponseData.setResidentialAddress(extractDetail.get("address"));
+            service.updateCustomerDetails(Optional.of(customerDetailsResponseData), null);
+            return ResponseEntity.ok(extractDetail);
 
         } catch (Exception e) {
             extractDetail.put("msg", "Loan no is not valid.");
             extractDetail.put("code", "1111");
+            return new ResponseEntity<>(extractDetail, HttpStatus.BAD_REQUEST);
         }
 
-        return extractDetail;
     }
 
 
     @PostMapping("/upload-kyc")
-    public ResponseEntity<CommonResponse> finalUpdate(@RequestBody @Valid UpdateAddress inputUpdateAddress) {
+    public ResponseEntity<?> finalUpdate(@RequestBody @Valid UpdateAddress inputUpdateAddress) {
         CommonResponse commonResponse = new CommonResponse();
         try {
-            CustomerDetails customerDetails = service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo());   //Validate OTP and loan Number
-            commonResponse = service.callDdfsService(inputUpdateAddress, customerDetails);   // calls a service to update the address details
+            if(service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo()))
+            {
+                commonResponse = service.callDdfsService(inputUpdateAddress,inputUpdateAddress.getLoanNo());   // calls a service to update the address details
+            }
+            else{
+                commonResponse.setMsg("Loan no or Otp is not valid.");
+                commonResponse.setCode("1111");
+            }
             return ResponseEntity.ok(commonResponse);
         } catch (Exception e) {
-            commonResponse.setMsg("Loan no or Otp is not valid.");
+            commonResponse.setMsg("technical issue.");
             commonResponse.setCode("1111");
-            return ResponseEntity.ok(commonResponse);
+            return new ResponseEntity<>(commonResponse, HttpStatus.INTERNAL_SERVER_ERROR);
 
         }
+
     }
 
     @PostMapping("/disable-kyc-flag")
@@ -77,7 +100,6 @@ public class Shubham {
 
         }
         commonResponse = service.updateCustomerKycFlag(inputParam.get("loanNo"), inputParam.get("mobileNo"));            //update the KYC flag for the customer
-
         return new ResponseEntity<>(commonResponse, HttpStatus.OK);
     }
 

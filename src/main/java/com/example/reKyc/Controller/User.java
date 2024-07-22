@@ -2,12 +2,10 @@ package com.example.reKyc.Controller;
 
 import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Entity.UpdatedDetails;
-import com.example.reKyc.Model.CommonResponse;
-import com.example.reKyc.Model.GenerateReport;
-import com.example.reKyc.Model.OtpRequest;
-import com.example.reKyc.Model.JwtResponse;
+import com.example.reKyc.Model.*;
 import com.example.reKyc.Security.JwtHelper;
 import com.example.reKyc.Service.Service;
+import com.example.reKyc.Utill.FetchingDetails;
 import com.example.reKyc.Utill.MaskDocumentNo;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -26,6 +24,7 @@ import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/userKyc")
@@ -39,7 +38,8 @@ public class User {
     private JwtHelper jwtHelper;
     @Autowired
     private Service service;
-
+    @Autowired
+    private FetchingDetails fetchingDetails;
     @Autowired
     private MaskDocumentNo maskDocument;
     @Autowired
@@ -52,7 +52,7 @@ public class User {
         logger.info("Received request to send OTP with input parameters : {}", inputParam);
         HashMap<String, String> otpResponse = new HashMap<>();
         String loanNo = inputParam.get("loanNo");
-        if (loanNo.isEmpty() || loanNo == null) {
+        if (loanNo.isEmpty()) {
             logger.warn("Request to send OTP failed due to missing loanNo");
             otpResponse.put("msg", "One or more field is required");
             otpResponse.put("code", "400");
@@ -74,21 +74,23 @@ public class User {
         CustomerDetails customerDetails;
 
         try {
+            CompletableFuture<CustomerDataResponse> kycCustomerResponse = fetchingDetails.getCustomerData(request.getLoanNo());
             UserDetails userDetails = userDetailsService.loadUserByUsername(request.getLoanNo());   //load user details and( here userDetail interface is used)
-            customerDetails = service.otpValidation(request.getMobileNo(), request.getOtpCode(), request.getLoanNo());
-            if (customerDetails == null) {
+            boolean otp = service.otpValidation(request.getMobileNo(), request.getOtpCode(), request.getLoanNo());
+            if (!otp) {
                 commonResponse.setMsg("Otp is expired or invalid.");
                 commonResponse.setCode("1111");
                 return ResponseEntity.ok(commonResponse);
             }
             token = this.jwtHelper.generateToken(userDetails);
+            CustomerDataResponse kycCustomer=kycCustomerResponse.get();
             jwtResponse.setJwtToken(token);
-            jwtResponse.setMobileNo(customerDetails.getMobileNumber());
-            jwtResponse.setAddress(customerDetails.getAddressDetailsResidential());
-            jwtResponse.setName(customerDetails.getCustomerName());
-            jwtResponse.setPanNo(customerDetails.getPan() != null ? maskDocument.documentNoEncryption(customerDetails.getPan()) : "NA");
-            jwtResponse.setAadharNo(customerDetails.getAadhar() != null ? maskDocument.documentNoEncryption(customerDetails.getAadhar()) : "NA");
-            jwtResponse.setLoanNo(customerDetails.getLoanNumber());
+            jwtResponse.setMobileNo(kycCustomer.getPhoneNumber());
+            jwtResponse.setAddress(kycCustomer.getAddressDetailsResidential());
+            jwtResponse.setName(kycCustomer.getCustomerName());
+            jwtResponse.setPanNo(kycCustomer.getPanNumber());
+            jwtResponse.setAadharNo(kycCustomer.getAadharNumber());
+            jwtResponse.setLoanNo(request.getLoanNo());
             return ResponseEntity.ok(jwtResponse);
         } catch (Exception e) {
             commonResponse.setMsg("Loan no not found.");

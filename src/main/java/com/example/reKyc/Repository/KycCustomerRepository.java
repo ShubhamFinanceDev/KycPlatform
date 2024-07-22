@@ -1,7 +1,6 @@
 package com.example.reKyc.Repository;
 
 import com.example.reKyc.Entity.KycCustomer;
-import com.example.reKyc.Entity.UpdatedDetails;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -10,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 import java.util.Optional;
 
-public interface CustomerRepository extends JpaRepository<KycCustomer,String> {
+public interface KycCustomerRepository extends JpaRepository<KycCustomer,String> {
    @Query("select cd from KycCustomer cd where cd.loanNumber=:loanNo and cd.kycFlag='Y'")
    Optional<KycCustomer> getCustomer(String loanNo);
    @Transactional

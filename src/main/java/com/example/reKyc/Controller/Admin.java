@@ -6,7 +6,7 @@ import com.example.reKyc.Model.AdminResponse;
 import com.example.reKyc.Model.CommonResponse;
 import com.example.reKyc.Model.KycCountUpload;
 import com.example.reKyc.Repository.AdminRepository;
-import com.example.reKyc.Repository.CustomerRepository;
+import com.example.reKyc.Repository.KycCustomerRepository;
 import com.example.reKyc.Service.Service;
 import com.example.reKyc.Utill.OtpUtility;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,7 +29,7 @@ public class Admin {
     @Autowired
     private Service service;
     @Autowired
-    private CustomerRepository customerRepository;
+    private KycCustomerRepository kycCustomerRepository;
     @Autowired
     private AdminRepository adminRepository;
     @Autowired
@@ -80,7 +80,7 @@ public class Admin {
                 }
                 if (errorMsg.isEmpty()) {
                     try {
-                        customerRepository.saveAll(customerList);
+                        kycCustomerRepository.saveAll(customerList);
                         response.put("msg", "Successfully uploaded");
                         response.put("code", "0000");
                     } catch (Exception e) {

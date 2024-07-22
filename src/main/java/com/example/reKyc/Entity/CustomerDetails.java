@@ -10,7 +10,7 @@ import java.util.Collection;
 @Entity
 @Table(name = "customer_details")
 @Data
-public class CustomerDetails implements UserDetails {
+public class CustomerDetails {
 
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
@@ -19,76 +19,22 @@ public class CustomerDetails implements UserDetails {
     @Column(name = "application_number")
     private String applicationNumber;
     @Column(name = "loan_number")
-    private String loanNumber;
+    private String loanAccountNo;
 
     @Column(name = "customer_name")
     private String customerName;
 
     @Column(name = "address_details_residential")
-    private String addressDetailsResidential;
+    private String residentialAddress;
 
-    @Column(name = "pan_no")
-    private String pan;
+    @Column(name = "identification_type")
+    private String identificationType;
 
-    @Column(name = "aadhar_no")
-    private String aadhar;
+    @Column(name = "identification_number")
+    private String identificationNumber;
 
-    @Column(name = "mobile_number")
-    private String mobileNumber;
+    @Column(name = "phone_number")
+    private String phoneNumber;
 
-    /**
-     * @return
-     */
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
-    }
 
-    /**
-     * @return
-     */
-    @Override
-    public String getPassword() {
-        return null;
-    }
-
-    /**
-     * @return
-     */
-    @Override
-    public String getUsername() {
-        return loanNumber;
-    }
-
-    /**
-     * @return
-     */
-    @Override
-    public boolean isAccountNonExpired() {
-        return false;
-    }
-
-    /**
-     * @return
-     */
-    @Override
-    public boolean isAccountNonLocked() {
-        return false;
-    }
-
-    /**
-     * @return
-     */
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return false;
-    }
-
-    /**
-     * @return
-     */
-    @Override
-    public boolean isEnabled() {
-        return false;
-    }
 }
