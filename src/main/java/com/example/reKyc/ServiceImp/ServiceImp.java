@@ -181,7 +181,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         try {
             CustomerDataResponse customerDataResponse = fetchingDetails.getCustomerData(loanNo).get();
             List<DdfsUpload> ddfsUploads = ddfsUploadRepository.getImageUrl(inputAddress.getLoanNo());
-            if (!ddfsUploads.isEmpty() && customerDataResponse != null) {
+            if (!ddfsUploads.isEmpty() && customerDataResponse.getApplicationNumber() != null) {
 
                 for (DdfsUpload result : ddfsUploads) {
                     String imageUrl = result.getImageUrl();
