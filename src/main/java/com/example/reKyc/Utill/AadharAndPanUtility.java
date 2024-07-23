@@ -108,7 +108,7 @@ public class AadharAndPanUtility {
                         addressPreview.put("uid", aadharResponse.getResult().getUid());
                         logger.info("Extracted Aadhar Details: ");
                     } else {
-                        addressPreview.put("msg", "The uploaded document does not match with the loan number");
+                        addressPreview.put("msg", "The document ID number is incorrect.");
                         addressPreview.put("code", "1111");
                     }
 
