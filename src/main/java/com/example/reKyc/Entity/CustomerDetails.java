@@ -24,7 +24,7 @@ public class CustomerDetails {
     @Column(name = "customer_name")
     private String customerName;
 
-    @Column(name = "address_details_residential")
+    @Column(name = "residential_address")
     private String residentialAddress;
 
     @Column(name = "identification_type")
