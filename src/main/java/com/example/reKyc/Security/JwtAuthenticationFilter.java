@@ -41,6 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String username = null;
         String token = null;
         if (!request.getRequestURI().startsWith("/actuator") && !request.getRequestURI().startsWith("/favicon.ico")) {
+            logger.info(" Invoked request :  {}", request.getRequestURI());
             logger.info(" Header :  {}", requestHeader);
             if (requestHeader != null && requestHeader.startsWith("shubham")) {
                 //looking good

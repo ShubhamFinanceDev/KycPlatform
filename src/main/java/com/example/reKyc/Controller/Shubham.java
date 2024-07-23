@@ -41,25 +41,12 @@ public class Shubham {
 
             String documentType = inputParam.getDocumentType();
             String documentId = inputParam.getDocumentId();
-            List<CustomerDetails> customerDetails = fetchingDetails.getCustomerIdentification(inputParam.getLoanNo()).get();
+            CustomerDataResponse  customerDataResponse = fetchingDetails.getCustomerData(inputParam.getLoanNo()).get();
             System.out.println("call");
             extractDetail = service.callFileExchangeServices(inputParam);
 
-            CustomerDetails customerDetailsResponseData = new CustomerDetails();
-            for (CustomerDetails customerDetailsResponse : customerDetails) {
-                if (customerDetailsResponse.getIdentificationType().contains(documentType)) {
-                    if (!documentId.equals(documentId)) {
-                        extractDetail.clear();
-                        extractDetail.put("msg", "The document ID number is incorrect");
-                        extractDetail.put("code", "1111");
-                        break;
-                    }
-                    customerDetailsResponseData = customerDetailsResponse;
-                }
-            }
-            customerDetailsResponseData.setResidentialAddress(extractDetail.get("address"));
-            customerDetailsResponseData.setLoanAccountNo(inputParam.getLoanNo());
-            service.updateCustomerDetails(Optional.of(customerDetailsResponseData), null);
+            customerDataResponse.setAddressDetailsResidential(extractDetail.get("address"));
+            service.updateCustomerDetails(customerDataResponse, null,documentType);
             return ResponseEntity.ok(extractDetail);
 
         } catch (Exception e) {
