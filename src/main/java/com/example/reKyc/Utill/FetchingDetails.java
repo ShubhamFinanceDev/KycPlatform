@@ -62,8 +62,8 @@ public class FetchingDetails {
                     {
                         customerDataResponse.setPanNumber(customerDetails1.getIdentificationNumber());
                     } else if (customerDetails1.getIdentificationType().contains("AAdhar_No")) {
-//                        customerDataResponse.setAadharNumber(customerDetails1.getIdentificationNumber());
-                        customerDataResponse.setAadharNumber("390920211147");
+                        customerDataResponse.setAadharNumber(customerDetails1.getIdentificationNumber());
+//                        customerDataResponse.setAadharNumber("390920211147");
                     }
 
                 }
@@ -85,8 +85,8 @@ public class FetchingDetails {
                 if (customerDetails1.getIdentificationType().contains("PAN")) {
                     customerDataResponse.setPanNumber(customerDetails1.getIdentificationNumber());
                 } else if (customerDetails1.getIdentificationType().contains("AAdhar_No")) {
-//                    customerDataResponse.setAadharNumber(customerDetails1.getIdentificationNumber());
-                            customerDataResponse.setAadharNumber("390920211147");
+                    customerDataResponse.setAadharNumber(customerDetails1.getIdentificationNumber());
+//                            customerDataResponse.setAadharNumber("390920211147");
                 }
 
             }
