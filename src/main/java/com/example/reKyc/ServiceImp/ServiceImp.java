@@ -67,26 +67,26 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             String mobileNo;
             Optional<KycCustomer> customer = kycCustomerRepository.getCustomer(loanNo);
             List<CustomerDetails> customerDetailsList = fetchingDetails.getCustomerIdentification(loanNo).get().stream().filter(identification -> identification.getIdentificationType().contains("AAdhar_No")).collect(Collectors.toList());
-
-            if (customer.isEmpty() && customerDetailsList.isEmpty()) {
-                logger.warn("Loan number {} not found", loanNo);
-                otpResponse.put("msg", "Loan no not found");
-                otpResponse.put("code", "1111");
-                return otpResponse;
-            }
-
-            mobileNo = customer.get().getMobileNo();
-            if (mobileNo != null && !mobileNo.isEmpty()) {
-                otpUtility.generateOtp(mobileNo, otpResponse);
-                if (!otpResponse.containsKey("otpCode")) {
+                if(customer.isPresent() && !customerDetailsList.isEmpty()) {
+                    mobileNo = customer.get().getMobileNo();
+                    if (mobileNo != null && !mobileNo.isEmpty()) {
+                        otpUtility.generateOtp(mobileNo, otpResponse);
+                        if (!otpResponse.containsKey("otpCode")) {
+                            return otpResponse;
+                        }
+                        return otpUtility.sendOtp(mobileNo, otpResponse.get("otpCode"), loanNo);
+                    } else {
+                        logger.warn("Failed to send OTP for loanNo: {}", loanNo);
+                        otpResponse.put("msg", "Please try again");
+                        otpResponse.put("code", "1111");
+                    }
+                }
+                else {
+                    logger.warn("Loan number {} not found", loanNo);
+                    otpResponse.put("msg", "Loan no not found");
+                    otpResponse.put("code", "1111");
                     return otpResponse;
                 }
-                return otpUtility.sendOtp(mobileNo, otpResponse.get("otpCode"), loanNo);
-            } else {
-                logger.warn("Failed to send OTP for loanNo: {}", loanNo);
-                otpResponse.put("msg", "Please try again");
-                otpResponse.put("code", "1111");
-            }
         } catch (Exception e) {
             logger.error("Error while sending OTP for loanNo: {}", loanNo, e);
             otpResponse.put("msg", "Technical issue.");
