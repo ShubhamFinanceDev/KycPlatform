@@ -162,7 +162,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             CustomerDataResponse customerDataResponse = fetchingDetails.getCustomerData(loanNo).get();
             kycCustomerRepository.updateKycFlag(customerDataResponse.getLoanNumber());
             updateCustomerDetails(customerDataResponse, "N","aadhar");
-            otpUtility.sendTextMsg(mobileNo, SmsTemplate.existingKyc); //otp send
+            otpUtility.sendTextMsg(customerDataResponse.getPhoneNumber(), SmsTemplate.existingKyc); //otp send
             logger.info("Customer KYC flag updated successfully for loanNo: {}", loanNo);
 
         } catch (Exception e) {
