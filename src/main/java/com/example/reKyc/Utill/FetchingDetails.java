@@ -54,7 +54,9 @@ public class FetchingDetails {
                 customerDataResponse.setCustomerName(customerDetails.get(0).getCustomerName());
                 customerDataResponse.setApplicationNumber(customerDetails.get(0).getApplicationNumber());
                 customerDataResponse.setAddressDetailsResidential(customerDetails.get(0).getResidentialAddress());
-                customerDataResponse.setPhoneNumber(customerIdentificationDetails.get(0).getPhoneNumber());
+//                customerDataResponse.setPhoneNumber(customerIdentificationDetails.get(0).getPhoneNumber());
+                customerDataResponse.setPhoneNumber("8160041657");
+
                 customerDataResponse.setCustomerName(customerDetails.get(0).getCustomerName());
                 customerDataResponse.setLoanNumber(customerDetails.get(0).getLoanAccountNo());
                 for (CustomerDetails customerDetails1 : customerIdentificationDetails) {
@@ -76,8 +78,8 @@ public class FetchingDetails {
             customerDataResponse.setCustomerName(customerIdentificationDetails.get(0).getCustomerName());
             customerDataResponse.setLoanNumber(customerIdentificationDetails.get(0).getLoanAccountNo());
             customerDataResponse.setApplicationNumber(customerIdentificationDetails.get(0).getApplicationNumber());
-            customerDataResponse.setPhoneNumber(customerIdentificationDetails.get(0).getPhoneNumber());
-//            customerDataResponse.setMobileNumber("8160041657");
+//            customerDataResponse.setPhoneNumber(customerIdentificationDetails.get(0).getPhoneNumber());
+            customerDataResponse.setPhoneNumber("8160041657");
             customerDataResponse.setAddressDetailsResidential(customerIdentificationDetails.get(0).getResidentialAddress());
 
             for (CustomerDetails customerDetails1 : customerIdentificationDetails) {
