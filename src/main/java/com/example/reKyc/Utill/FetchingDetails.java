@@ -51,48 +51,37 @@ public class FetchingDetails {
             customerIdentificationDetails= getCustomerIdentification(loanNo).get();
             List<CustomerDetails> customerDetails = customerDetailsRepository.getLoanDetails(loanNo);
             if (!customerDetails.isEmpty() && !customerIdentificationDetails.isEmpty()) {
-                customerDataResponse.setCustomerName(customerDetails.get(0).getCustomerName());
-                customerDataResponse.setApplicationNumber(customerDetails.get(0).getApplicationNumber());
-                customerDataResponse.setAddressDetailsResidential(customerDetails.get(0).getResidentialAddress());
-                customerDataResponse.setPhoneNumber(customerIdentificationDetails.get(0).getPhoneNumber());
-                customerDataResponse.setCustomerName(customerDetails.get(0).getCustomerName());
-                customerDataResponse.setLoanNumber(customerDetails.get(0).getLoanAccountNo());
-                for (CustomerDetails customerDetails1 : customerIdentificationDetails) {
-                    if(customerDetails1.getIdentificationType().contains("PAN"))
-                    {
-                        customerDataResponse.setPanNumber(customerDetails1.getIdentificationNumber());
-                    } else if (customerDetails1.getIdentificationType().contains("AAdhar_No")) {
-                        customerDataResponse.setAadharNumber(customerDetails1.getIdentificationNumber());
-//                        customerDataResponse.setAadharNumber("390920211147");
-                    }
-
-                }
+                logger.info("Data fetched successfully.");
+                saveCustomerData(customerDataResponse,customerDetails.get(0),customerIdentificationDetails);
             }
         } else {
             String jdbcQuery = Query.loanQuery.concat("'" + loanNo + "'");
             customerIdentificationDetails = jdbcTemplate.query(jdbcQuery, new BeanPropertyRowMapper<>(CustomerDetails.class));
             logger.info("Data fetched successfully.");
-            System.out.println(customerIdentificationDetails.get(0));
-            customerDataResponse.setCustomerName(customerIdentificationDetails.get(0).getCustomerName());
-            customerDataResponse.setLoanNumber(customerIdentificationDetails.get(0).getLoanAccountNo());
-            customerDataResponse.setApplicationNumber(customerIdentificationDetails.get(0).getApplicationNumber());
-            customerDataResponse.setPhoneNumber(customerIdentificationDetails.get(0).getPhoneNumber());
-//            customerDataResponse.setMobileNumber("8160041657");
-            customerDataResponse.setAddressDetailsResidential(customerIdentificationDetails.get(0).getResidentialAddress());
-
-            for (CustomerDetails customerDetails1 : customerIdentificationDetails) {
-
-                if (customerDetails1.getIdentificationType().contains("PAN")) {
-                    customerDataResponse.setPanNumber(customerDetails1.getIdentificationNumber());
-                } else if (customerDetails1.getIdentificationType().contains("AAdhar_No")) {
-                    customerDataResponse.setAadharNumber(customerDetails1.getIdentificationNumber());
-//                            customerDataResponse.setAadharNumber("390920211147");
-                }
-
-            }
+            saveCustomerData(customerDataResponse,customerIdentificationDetails.get(0),customerIdentificationDetails);
         }
+
         customerDataResponse.setPanNumber(customerDataResponse.getPanNumber() != null ? maskDocumentNo.documentNoEncryption(customerDataResponse.getPanNumber()) : "NA");
         customerDataResponse.setAadharNumber(customerDataResponse.getAadharNumber() != null ? maskDocumentNo.documentNoEncryption(customerDataResponse.getAadharNumber()) : "NA");
         return CompletableFuture.completedFuture(customerDataResponse);
+    }
+
+    private void saveCustomerData(CustomerDataResponse customerDataResponse,CustomerDetails customerDetails,List<CustomerDetails> customerIdentificationDetails) {
+        customerDataResponse.setCustomerName(customerDetails.getCustomerName());
+        customerDataResponse.setLoanNumber(customerDetails.getLoanAccountNo());
+        customerDataResponse.setApplicationNumber(customerDetails.getApplicationNumber());
+            customerDataResponse.setPhoneNumber(customerIdentificationDetails.get(0).getPhoneNumber());
+//        customerDataResponse.setPhoneNumber("8160041657");
+        customerDataResponse.setAddressDetailsResidential(customerDetails.getResidentialAddress());
+
+        for (CustomerDetails customerDetails1 : customerIdentificationDetails) {
+
+            if (customerDetails1.getIdentificationType().contains("PAN")) {
+                customerDataResponse.setPanNumber(customerDetails1.getIdentificationNumber());
+            } else if (customerDetails1.getIdentificationType().contains("AAdhar_No")) {
+                    customerDataResponse.setAadharNumber(customerDetails1.getIdentificationNumber());
+//                customerDataResponse.setAadharNumber("390920211147");
+            }
+        }
     }
 }

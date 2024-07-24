@@ -99,6 +99,7 @@ public class DdfsUtility {
             formData.add("remarks", "");
             formData.add("maker", "06799");
             formData.add("path", path);
+            logger.info("Request param for DDFS API {}",formData);
             formData.add("document", base64String);
 
             HttpHeaders headers = new HttpHeaders();
@@ -112,7 +113,7 @@ public class DdfsUtility {
                 status = true;
 
             }
-            System.out.println("ddfs response " + responseBody.getBody());
+            logger.info("DDFS response {}", responseBody.getBody());
         } catch (Exception e) {
             System.out.println("==Error in DDFS api call");
             logger.error("DDFS API Call Error{}", e.getMessage());
