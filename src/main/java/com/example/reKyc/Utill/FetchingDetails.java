@@ -37,7 +37,8 @@ public class FetchingDetails {
     public CompletableFuture<List<CustomerDetails>> getCustomerIdentification(String loanNo) throws Exception {
         String jdbcQuery = Query.identificationQuery.concat("'" + loanNo + "'");
         List<CustomerDetails> customerDetailsList = jdbcTemplate.query(jdbcQuery, new BeanPropertyRowMapper<>(CustomerDetails.class));
-        System.out.println(customerDetailsList.get(0));
+        customerDetailsList.forEach(identificationType->{
+        System.out.println(identificationType.getIdentificationType());});
         return CompletableFuture.completedFuture(customerDetailsList);
 
     }
