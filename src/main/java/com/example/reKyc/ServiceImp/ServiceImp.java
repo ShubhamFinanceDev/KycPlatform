@@ -14,6 +14,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -367,5 +368,29 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             commonResponse.setMsg("Technical issue: " + e.getMessage());
         }
         return commonResponse;
+    }
+
+    @Scheduled(cron = "0 0 0 10 * ?")
+    public  void  reminderSmsOnMobileNo() {
+
+        try {
+            List<String> mobileNo = kycCustomerRepository.findMobileNumber();
+            if (!mobileNo.isEmpty()) {
+                for (String listMobile : mobileNo) {
+                    otpUtility.sendTextMsg(listMobile, SmsTemplate.lnkKyc);
+                }
+                logger.info("0000");
+                logger.info("SMS notifications have been successfully sent to " + mobileNo.size() + " loan number");
+                logger.info("Rekyc link shared with {} customers.", mobileNo.size());
+            } else {
+                logger.info("1111");
+                logger.info("No eligible mobile numbers found to send SMS notifications");
+            }
+        } catch (Exception e) {
+            logger.error("Exception in sendOtpOnMobile", e);
+            logger.info("1111");
+            logger.info("Technical issue: " + e.getMessage());
+        }
+
     }
 }
