@@ -369,28 +369,30 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         return commonResponse;
     }
 //    S M H D MO W
+
+
     @Scheduled(cron = "0 0 0 10 * ?")
-    public  CommonResponse reminderSmsOnMobileNo() {
-        CommonResponse commonResponse = new CommonResponse();
+    public  void  reminderSmsOnMobileNo() {
+
         try {
             List<String> mobileNo = kycCustomerRepository.findMobileNumber();
             if (!mobileNo.isEmpty()) {
                 for (String listMobile : mobileNo) {
                     otpUtility.sendTextMsg(listMobile, SmsTemplate.lnkKyc);
                 }
-                commonResponse.setCode("0000");
-                commonResponse.setMsg("SMS notifications have been successfully sent to " + mobileNo.size() + " loan number");
+                logger.info("0000");
+                logger.info("SMS notifications have been successfully sent to " + mobileNo.size() + " loan number");
                 logger.info("Rekyc link shared with {} customers.", mobileNo.size());
             } else {
-                commonResponse.setCode("1111");
-                commonResponse.setMsg("No eligible mobile numbers found to send SMS notifications");
+                logger.info("1111");
+                logger.info("No eligible mobile numbers found to send SMS notifications");
             }
         } catch (Exception e) {
             logger.error("Exception in sendOtpOnMobile", e);
-            commonResponse.setCode("1111");
-            commonResponse.setMsg("Technical issue: " + e.getMessage());
+            logger.info("1111");
+            logger.info("Technical issue: " + e.getMessage());
         }
-        return commonResponse;
+
     }
 }
 
