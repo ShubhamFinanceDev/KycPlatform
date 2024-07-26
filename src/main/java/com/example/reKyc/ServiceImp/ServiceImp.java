@@ -379,11 +379,11 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                     otpUtility.sendTextMsg(listMobile, SmsTemplate.lnkKyc);
                 }
                 commonResponse.setCode("0000");
-                commonResponse.setMsg("Sms sent successfully for " + mobileNo.size() + " loan number");
+                commonResponse.setMsg("SMS notifications have been successfully sent to " + mobileNo.size() + " loan number");
                 logger.info("Rekyc link shared with {} customers.", mobileNo.size());
             } else {
                 commonResponse.setCode("1111");
-                commonResponse.setMsg("No record found for send SMS");
+                commonResponse.setMsg("No eligible mobile numbers found to send SMS notifications");
             }
         } catch (Exception e) {
             logger.error("Exception in sendOtpOnMobile", e);
