@@ -22,4 +22,6 @@ public interface KycCustomerRepository extends JpaRepository<KycCustomer,String>
    @Modifying
    @Query("update KycCustomer k set k.smsFlag = 'Y' where k.mobileNo =:mobileList")
    void updateSmsSentFlag(String mobileList);
+   @Query("SELECT e.mobileNo FROM KycCustomer e WHERE e.kycFlag='N'")
+   List<String> findMobileNumber();
 }
