@@ -14,6 +14,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -29,7 +30,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.codec.binary.Base64;
-
+@EnableScheduling
 @Service
 public class ServiceImp implements com.example.reKyc.Service.Service {
 
@@ -370,25 +371,23 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         return commonResponse;
     }
 
-    @Scheduled(cron = "0 0 0 10 * ?")
-    public  void  sendSmsToNonKyc() {
+    @Scheduled(cron = "1 * * * * *")
+    public  void  reminderSmsOnMobileNo() {
 
         try {
+            logger.info("Rekyc reminder process invoked.");
             List<String> mobileNo = kycCustomerRepository.findMobileNumber();
             if (!mobileNo.isEmpty()) {
                 for (String listMobile : mobileNo) {
                     otpUtility.sendTextMsg(listMobile, SmsTemplate.lnkKyc);
+
                 }
-                logger.info("0000");
-                logger.info("SMS notifications have been successfully sent to " + mobileNo.size() + " loan number");
                 logger.info("Rekyc link shared with {} customers.", mobileNo.size());
             } else {
-                logger.info("1111");
                 logger.info("No eligible mobile numbers found to send SMS notifications");
             }
         } catch (Exception e) {
             logger.error("Exception in sendOtpOnMobile", e);
-            logger.info("1111");
             logger.info("Technical issue: " + e.getMessage());
         }
 
