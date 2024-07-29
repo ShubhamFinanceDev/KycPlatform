@@ -371,7 +371,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     }
 
     @Scheduled(cron = "0 0 0 10 * ?")
-    public  void  reminderSmsOnMobileNo() {
+    public  void  sendSmsToNonKyc() {
 
         try {
             List<String> mobileNo = kycCustomerRepository.findMobileNumber();
