@@ -43,7 +43,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Autowired
     private DdfsUploadRepository ddfsUploadRepository;
     @Autowired
-    private OtpUtility otpUtility;
+    private SmsUtility otpUtility;
     @Autowired
     private MaskDocumentNo maskDocumentAndFile;
     @Autowired
