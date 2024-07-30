@@ -120,7 +120,7 @@ public class SmsUtility {
                 byte[] excelData = generateFile(kycCustomers);
 //
                 sendSimpleMail(excelData);
-                logger.info("KYC report shared with {} customers.", kycCustomers.size());
+                logger.info("KYC report shared with {} customers.",":");
             } else {
                 logger.info("No eligible mobile numbers found to send SMS notifications");
             }
