@@ -8,7 +8,7 @@ import com.example.reKyc.Model.KycCountUpload;
 import com.example.reKyc.Repository.AdminRepository;
 import com.example.reKyc.Repository.KycCustomerRepository;
 import com.example.reKyc.Service.Service;
-import com.example.reKyc.Utill.OtpUtility;
+import com.example.reKyc.Utill.SmsUtility;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.*;
@@ -33,7 +33,7 @@ public class Admin {
     @Autowired
     private AdminRepository adminRepository;
     @Autowired
-    private OtpUtility otpUtility;
+    private SmsUtility otpUtility;
 
     @CrossOrigin
     @PostMapping("/invoke-kyc-process-flag")
@@ -150,6 +150,9 @@ public class Admin {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         return ResponseEntity.ok(service.sendSmsOnMobile());
+
+
+
     }
 }
 
