@@ -112,22 +112,19 @@ public class SmsUtility {
         return otpResponse;
     }
 
-//    @Scheduled(cron = "2 * * * * *")
+    @Scheduled(cron = "2 * * * * *")
     public void reminderSmsOnMobileNo() {
         try {
             List<KycCustomer> kycCustomers = kycCustomerRepository.findMobileNumber();
             if (!kycCustomers.isEmpty()) {
                 byte[] excelData = generateFile(kycCustomers);
-                System.out.println(Arrays.toString(excelData));
+//
                 sendSimpleMail(excelData);
-
-                logger.info("SMS notifications have been successfully sent to " + kycCustomers.size() + " loan number");
                 logger.info("KYC report shared with {} customers.", kycCustomers.size());
             } else {
                 logger.info("No eligible mobile numbers found to send SMS notifications");
             }
         } catch (Exception e) {
-            logger.error("Exception in sendOtpOnMobile", e);
             logger.info("Technical issue: " + e.getMessage());
         }
     }
