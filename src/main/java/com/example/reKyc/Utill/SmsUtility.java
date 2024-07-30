@@ -164,7 +164,6 @@ public class SmsUtility {
     }
 
     public void sendSimpleMail(byte[] excelData) {
-        System.out.println("atish rai");
 
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
