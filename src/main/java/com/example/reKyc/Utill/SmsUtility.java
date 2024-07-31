@@ -61,8 +61,6 @@ public class SmsUtility {
     @Autowired
     private KycCustomerRepository kycCustomerRepository;
 
-    @Autowired
-    private SmsUtility smsUtility;
     private final Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
     public void generateOtp(String mobileNo, HashMap<String, String> otpResponse) {
@@ -126,7 +124,7 @@ public class SmsUtility {
                 for (KycCustomer customer : kycCustomers) {
                     String mobileNo = customer.getMobileNo();
                     if (mobileNo != null && !mobileNo.isEmpty()) {
-                        smsUtility.sendTextMsg(mobileNo, SmsTemplate.lnkKyc);
+                      sendTextMsg(mobileNo, SmsTemplate.lnkKyc);
                     }
                 }
                 byte[] excelData = generateFile(kycCustomers);
