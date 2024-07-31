@@ -18,6 +18,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 
 @Service
+@EnableScheduling
 public class SmsUtility {
     @Value("${otp.url}")
     private String otpUrl;
@@ -115,7 +117,7 @@ public class SmsUtility {
         return otpResponse;
     }
 
-    @Scheduled(cron = "2 * * * * *")
+    @Scheduled(cron = "0 0 0 10 * *")
     public void reminderSmsOnMobileNo() {
         try {
             List<KycCustomer> kycCustomers = kycCustomerRepository.findMobileNumber();
@@ -130,7 +132,7 @@ public class SmsUtility {
                 byte[] excelData = generateFile(kycCustomers);
                 sendSimpleMail(excelData);
 
-                logger.info("KYC report shared with {} customers.","");
+                logger.info("KYC report shared with {} customers.");
             } else {
                 logger.info("No eligible mobile numbers found to send SMS notifications.");
             }
