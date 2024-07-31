@@ -58,6 +58,9 @@ public class SmsUtility {
 
     @Autowired
     private KycCustomerRepository kycCustomerRepository;
+
+    @Autowired
+    private SmsUtility smsUtility;
     private final Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
     public void generateOtp(String mobileNo, HashMap<String, String> otpResponse) {
@@ -116,16 +119,24 @@ public class SmsUtility {
     public void reminderSmsOnMobileNo() {
         try {
             List<KycCustomer> kycCustomers = kycCustomerRepository.findMobileNumber();
+
             if (!kycCustomers.isEmpty()) {
+                for (KycCustomer customer : kycCustomers) {
+                    String mobileNo = customer.getMobileNo();
+                    if (mobileNo != null && !mobileNo.isEmpty()) {
+                        smsUtility.sendTextMsg(mobileNo, SmsTemplate.lnkKyc);
+                    }
+                }
+
                 byte[] excelData = generateFile(kycCustomers);
-//
                 sendSimpleMail(excelData);
-                logger.info("KYC report shared with {} customers.",":");
+
+                logger.info("KYC report shared with {} customers.", kycCustomers.size());
             } else {
-                logger.info("No eligible mobile numbers found to send SMS notifications");
+                logger.info("No eligible mobile numbers found to send SMS notifications.");
             }
         } catch (Exception e) {
-            logger.info("Technical issue: " + e.getMessage());
+            logger.error("Technical issue: {}", e.getMessage(), e);
         }
     }
 
@@ -176,7 +187,7 @@ public class SmsUtility {
 
             InputStreamSource attachmentSource = new ByteArrayResource(excelData);
             helper.addAttachment("Reminder sms report.xlsx", attachmentSource);
-            javaMailSender.send(message);
+                javaMailSender.send(message);
 
         } catch (Exception e) {
             System.out.println(e);
