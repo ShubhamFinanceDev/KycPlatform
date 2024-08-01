@@ -1,11 +1,9 @@
 package com.example.reKyc.Controller;
 
-import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Model.*;
 import com.example.reKyc.Service.LoanNoAuthentication;
 import com.example.reKyc.Service.Service;
 import com.example.reKyc.Utill.FetchingDetails;
-import com.example.reKyc.Utill.OtpUtility;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,10 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 
 @RestController

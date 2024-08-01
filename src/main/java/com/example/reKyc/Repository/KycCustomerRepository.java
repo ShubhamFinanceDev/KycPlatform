@@ -5,6 +5,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,4 +23,7 @@ public interface KycCustomerRepository extends JpaRepository<KycCustomer,String>
    @Modifying
    @Query("update KycCustomer k set k.smsFlag = 'Y' where k.mobileNo =:mobileList")
    void updateSmsSentFlag(String mobileList);
+   @Query("SELECT e FROM KycCustomer e WHERE e.kycFlag='Y'")
+   List<KycCustomer> findMobileNumber();
+
 }
