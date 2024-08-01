@@ -18,6 +18,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 
 @Service
+@EnableScheduling
 public class SmsUtility {
     @Value("${otp.url}")
     private String otpUrl;
@@ -58,6 +60,7 @@ public class SmsUtility {
 
     @Autowired
     private KycCustomerRepository kycCustomerRepository;
+
     private final Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
     public void generateOtp(String mobileNo, HashMap<String, String> otpResponse) {
@@ -112,20 +115,27 @@ public class SmsUtility {
         return otpResponse;
     }
 
-    @Scheduled(cron = "2 * * * * *")
+    @Scheduled(cron = "0 0 0 10 * *")
     public void reminderSmsOnMobileNo() {
         try {
             List<KycCustomer> kycCustomers = kycCustomerRepository.findMobileNumber();
+
             if (!kycCustomers.isEmpty()) {
+                for (KycCustomer customer : kycCustomers) {
+                    String mobileNo = customer.getMobileNo();
+                    if (mobileNo != null && !mobileNo.isEmpty()) {
+                      sendTextMsg(mobileNo, SmsTemplate.lnkKyc);
+                    }
+                }
                 byte[] excelData = generateFile(kycCustomers);
-//
                 sendSimpleMail(excelData);
-                logger.info("KYC report shared with {} customers.",":");
+
+                logger.info("KYC report shared with {} customers.");
             } else {
-                logger.info("No eligible mobile numbers found to send SMS notifications");
+                logger.info("No eligible mobile numbers found to send SMS notifications.");
             }
         } catch (Exception e) {
-            logger.info("Technical issue: " + e.getMessage());
+            logger.error("Technical issue: {}", e.getMessage(), e);
         }
     }
 
@@ -176,7 +186,7 @@ public class SmsUtility {
 
             InputStreamSource attachmentSource = new ByteArrayResource(excelData);
             helper.addAttachment("Reminder sms report.xlsx", attachmentSource);
-            javaMailSender.send(message);
+                javaMailSender.send(message);
 
         } catch (Exception e) {
             System.out.println(e);
