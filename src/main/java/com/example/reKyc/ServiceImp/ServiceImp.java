@@ -14,8 +14,10 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.InputStream;
@@ -56,6 +58,10 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     private UpdatedDetailRepository updatedDetailRepository;
     @Autowired
     private FetchingDetails fetchingDetails;
+    @Autowired
+            private AadharAndPanUtility aadharAndPanUtility;
+
+    RestTemplate restTemplate=new RestTemplate();
 
     Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
@@ -115,25 +121,31 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
     @Override
     public HashMap<String, String> callFileExchangeServices(InputBase64 inputBase64) {
-
         HashMap<String, String> documentDetail = new HashMap<>();
         List<String> urls = new ArrayList<>();
         try {
-
             for (InputBase64.Base64Data base64 : inputBase64.getBase64Data()) {
                 documentDetail = singzyServices.convertBase64ToUrl(base64.getFileType(), base64.getBase64String());
                 if (documentDetail.containsKey("code")) break;
                 urls.add(documentDetail.get("fileUrl"));
             }
+            // Mask Aadhaar documents before extracting details
+            if (inputBase64.getDocumentType().equals("aadhar")) {
+                HashMap<String, String> maskingResult = aadharAndPanUtility.callAadhaarMaskingService(urls);
+                if (maskingResult.containsKey("code") && maskingResult.get("code").equals("1111")) {
+                    return maskingResult; // Return masking error if any
+                }
+                // Update URLs to use masked URLs
+                urls = Arrays.asList(maskingResult.get("maskedUrls").split(","));
+            }
+
             documentDetail = (!urls.isEmpty()) ? callExtractionService(urls, inputBase64) : documentDetail;
         } catch (Exception e) {
-
             documentDetail.put("code", "1111");
             documentDetail.put("msg", "Technical issue");
         }
         return documentDetail;
     }
-
 
     private HashMap<String, String> callExtractionService(List<String> urls, InputBase64 inputBase64) {
         HashMap<String, String> extractedDetails;
@@ -143,7 +155,6 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             deleteUnProcessRecord(inputBase64.getLoanNo());
             urls.forEach(url -> {
                 saveUpdatedDetails(inputBase64, url);
-
             });
         }
         return extractedDetails;
