@@ -195,7 +195,9 @@ public class AadharAndPanUtility {
                 if (responseEntity.getStatusCode() == HttpStatus.OK) {
                     Map responseBody = responseEntity.getBody();
                     // Process the response to extract masked URLs
-                    List<String> maskedUrls = (List<String>) ((Map) responseBody.get("result")).get("maskedImages");
+//                    List<String> maskedUrls = (List<String>) ((Map) responseBody.get("result")).get("maskedImages");
+                    String maskedUrls = (String) ((Map) responseBody.get("result")).get("maskedImages");
+
                     maskedDocumentDetails.put("maskedUrls", String.join(",", maskedUrls));
                 } else {
                     maskedDocumentDetails.put("code", "1111");
