@@ -38,7 +38,7 @@ public class AadharAndPanUtility {
     private String sendOtpAadharUrl;
     @Value("${singzy.verify.otp.aadhar}")
     private String verifyOtpAadharUrl;
-    @Value("singzy.masking.aadhar")
+    @Value("https://api-preproduction.signzy.app/api/v3/aadhaar/maskers")
     private String maskingUrl;
     private final Logger logger = LoggerFactory.getLogger(DdfsUtility.class);
 
