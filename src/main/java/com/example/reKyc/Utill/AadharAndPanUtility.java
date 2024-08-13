@@ -179,43 +179,37 @@ public class AadharAndPanUtility {
         return panResponse;
     }
 
-    public HashMap<String, String> callAadhaarMaskingService(List<String> urls) {
+    public HashMap<String, String> callAadhaarMaskingService(String url) {
         HashMap<String, String> maskedDocumentDetails = new HashMap<>();
         try {
-            // Assuming the API can only handle one URL at a time
-            if (urls.size() > 1) {
-                maskedDocumentDetails.put("code", "1112");
-                maskedDocumentDetails.put("msg", "Only one URL can be processed at a time.");
-                return maskedDocumentDetails;
-            }
-
-            HashMap<String, List<String>> inputBody = new HashMap<>();
-            inputBody.put("urls", urls);
-            inputBody.put("requestType", Arrays.asList("true")); // Assuming requestType is a boolean
+            HashMap<String, String> inputBody = new HashMap<>();
+            inputBody.put("url", url);
+            inputBody.put("requestType", "true"); // Assuming requestType is a boolean
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Authorization", singzyAuthKey); // Replace with actual authorization token
-            HttpEntity<Map<String, List<String>>> requestEntity = new HttpEntity<>(inputBody, headers);
+            HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(inputBody, headers);
 
             ResponseEntity<Map> responseEntity = restTemplate.postForEntity(maskingUrl, requestEntity, Map.class);
 
             if (responseEntity.getStatusCode() == HttpStatus.OK) {
                 Map responseBody = responseEntity.getBody();
-                // Process the response to extract masked URLs
-                List<String> maskedUrls = (List<String>) ((Map) responseBody.get("result")).get("maskedImages");
-                maskedDocumentDetails.put("maskedUrls", String.join(",", maskedUrls));
+                // Process the response to extract masked URL
+                String maskedUrl = (String) ((Map) responseBody.get("result")).get("maskedImage");
+                maskedDocumentDetails.put("maskedUrl", maskedUrl);
             } else {
                 maskedDocumentDetails.put("code", "1111");
-                maskedDocumentDetails.put("msg", "Failed to mask Aadhaar documents");
+                maskedDocumentDetails.put("msg", "Failed to mask Aadhaar document");
             }
         } catch (Exception e) {
             maskedDocumentDetails.put("code", "1111");
             maskedDocumentDetails.put("msg", "Technical issue, please try again");
-            logger.error("Error masking Aadhaar documents: {}", e.getMessage());
+            logger.error("Error masking Aadhaar document: {}", e.getMessage());
         }
         return maskedDocumentDetails;
     }
+
 
 
 }
