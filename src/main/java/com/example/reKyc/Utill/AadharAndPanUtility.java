@@ -181,14 +181,14 @@ public class AadharAndPanUtility {
         HashMap<String, String> maskedDocumentDetails = new HashMap<>();
         try {
             for (String url : urls) {
-                HashMap<String, String> inputBody = new HashMap<>();
-                inputBody.put("urls", url);
-                inputBody.put("requestType", "true"); // Assuming requestType is a boolean
+                HashMap<String, List<String>> inputBody = new HashMap<>();
+                inputBody.put("urls", Collections.singletonList(url));
+                inputBody.put("requestType", Collections.singletonList("true")); // Assuming requestType is a boolean
 
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_JSON);
                 headers.set("Authorization", singzyAuthKey); // Replace with actual authorization token
-                HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(inputBody, headers);
+                HttpEntity<Map<String, List<String>>> requestEntity = new HttpEntity<>(inputBody, headers);
 
                 ResponseEntity<Map> responseEntity = restTemplate.postForEntity(maskingUrl, requestEntity, Map.class);
 
@@ -197,7 +197,6 @@ public class AadharAndPanUtility {
                     // Process the response to extract masked URLs
 //                    List<String> maskedUrls = (List<String>) ((Map) responseBody.get("result")).get("maskedImages");
                     String maskedUrls = (String) ((Map) responseBody.get("result")).get("maskedImages");
-
                     maskedDocumentDetails.put("maskedUrls", String.join(",", maskedUrls));
                 } else {
                     maskedDocumentDetails.put("code", "1111");
