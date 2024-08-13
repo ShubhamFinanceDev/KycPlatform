@@ -31,6 +31,9 @@ public class AadharAndPanUtility {
     @Value("${singzy.authorisation.key}")
     private String singzyAuthKey;
 
+    @Value("${api.key}")
+    private String apiKey;
+
     @Value("${singzy.send.otp.aadhar}")
     private String sendOtpAadharUrl;
     @Value("${singzy.verify.otp.aadhar}")
@@ -187,7 +190,7 @@ public class AadharAndPanUtility {
 
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_JSON);
-                headers.set("Authorization", singzyAuthKey); // Replace with actual authorization token
+                headers.set("Authorization", apiKey); // Replace with actual authorization token
                 HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(inputBody, headers);
 
                 ResponseEntity<Map> responseEntity = restTemplate.postForEntity(maskingUrl, requestEntity, Map.class);
