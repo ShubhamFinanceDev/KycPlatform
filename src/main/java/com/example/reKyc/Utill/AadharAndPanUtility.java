@@ -180,16 +180,22 @@ public class AadharAndPanUtility {
     }
 
     public HashMap<String, String> callAadhaarMaskingService(List<String> urls) {
-
         HashMap<String, String> maskedDocumentDetails = new HashMap<>();
         try {
+            // Assuming the API can only handle one URL at a time
+            if (urls.size() > 1) {
+                maskedDocumentDetails.put("code", "1112");
+                maskedDocumentDetails.put("msg", "Only one URL can be processed at a time.");
+                return maskedDocumentDetails;
+            }
+
             HashMap<String, List<String>> inputBody = new HashMap<>();
             inputBody.put("urls", urls);
             inputBody.put("requestType", Arrays.asList("true")); // Assuming requestType is a boolean
 
-            HttpHeaders headers=new HttpHeaders();
+            HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization",singzyAuthKey ); // Replace with actual authorization token
+            headers.set("Authorization", singzyAuthKey); // Replace with actual authorization token
             HttpEntity<Map<String, List<String>>> requestEntity = new HttpEntity<>(inputBody, headers);
 
             ResponseEntity<Map> responseEntity = restTemplate.postForEntity(maskingUrl, requestEntity, Map.class);
@@ -210,7 +216,6 @@ public class AadharAndPanUtility {
         }
         return maskedDocumentDetails;
     }
-
 
 
 }
