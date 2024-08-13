@@ -10,10 +10,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class AadharAndPanUtility {
@@ -182,22 +179,24 @@ public class AadharAndPanUtility {
     public HashMap<String, String> callAadhaarMaskingService(String url) {
         HashMap<String, String> maskedDocumentDetails = new HashMap<>();
         try {
-            HashMap<String, String> inputBody = new HashMap<>();
-            inputBody.put("url", url);
-            inputBody.put("requestType", "true"); // Assuming requestType is a boolean
+            HashMap<String, Object> inputBody = new HashMap<>();
+            inputBody.put("urls", Collections.singletonList(url));
+            inputBody.put("requestType", true);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Authorization", singzyAuthKey); // Replace with actual authorization token
-            HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(inputBody, headers);
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(inputBody, headers);
 
             ResponseEntity<Map> responseEntity = restTemplate.postForEntity(maskingUrl, requestEntity, Map.class);
 
             if (responseEntity.getStatusCode() == HttpStatus.OK) {
                 Map responseBody = responseEntity.getBody();
-                // Process the response to extract masked URL
-                String maskedUrl = (String) ((Map) responseBody.get("result")).get("maskedImage");
-                maskedDocumentDetails.put("maskedUrl", maskedUrl);
+                Map result = (Map) responseBody.get("result");
+                String isMasked = (String) result.get("isMasked");
+                List<String> maskedImages = (List<String>) result.get("maskedImages");
+                maskedDocumentDetails.put("isMasked", isMasked);
+                maskedDocumentDetails.put("maskedUrl", maskedImages.get(0));
             } else {
                 maskedDocumentDetails.put("code", "1111");
                 maskedDocumentDetails.put("msg", "Failed to mask Aadhaar document");
