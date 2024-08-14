@@ -66,26 +66,33 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         try {
             String mobileNo;
             Optional<KycCustomer> customer = kycCustomerRepository.getCustomer(loanNo);
-            List<CustomerDetails> customerDetailsList = fetchingDetails.getCustomerIdentification(loanNo).get().stream().filter(identification -> identification.getIdentificationType().contains("AAdhar_No")).collect(Collectors.toList());
-            if (customer.isPresent() && !customerDetailsList.isEmpty()) {
-                mobileNo = customer.get().getMobileNo();
-                if (mobileNo != null && !mobileNo.isEmpty()) {
-                    otpUtility.generateOtp(mobileNo, otpResponse);
-                    if (!otpResponse.containsKey("otpCode")) {
+                if(customer.isPresent()) {
+                    List<CustomerDetails> customerDetailsList = fetchingDetails.getCustomerIdentification(loanNo).get().stream().filter(identification -> identification.getIdentificationType().contains("AAdhar_No")).collect(Collectors.toList());
+                    if(customerDetailsList.isEmpty()) {
+                        logger.warn("Identification type did not found for Loan number {}", loanNo);
+                        otpResponse.put("msg", "Loan no not found");
+                        otpResponse.put("code", "1111");
                         return otpResponse;
                     }
-                    return otpUtility.sendOtp(mobileNo, otpResponse.get("otpCode"), loanNo);
-                } else {
-                    logger.warn("Failed to send OTP for loanNo: {}", loanNo);
-                    otpResponse.put("msg", "Please try again");
-                    otpResponse.put("code", "1111");
+                    mobileNo = customer.get().getMobileNo();
+                    if (mobileNo != null && !mobileNo.isEmpty()) {
+                        otpUtility.generateOtp(mobileNo, otpResponse);
+                        if (!otpResponse.containsKey("otpCode")) {
+                            return otpResponse;
+                        }
+                        return otpUtility.sendOtp(mobileNo, otpResponse.get("otpCode"), loanNo);
+                    } else {
+                        logger.warn("Failed to send OTP for loanNo: {}", loanNo);
+                        otpResponse.put("msg", "Please try again");
+                        otpResponse.put("code", "1111");
+                    }
                 }
-            } else {
-                logger.warn("Loan number {} not found", loanNo);
-                otpResponse.put("msg", "Loan no not found");
-                otpResponse.put("code", "1111");
-                return otpResponse;
-            }
+                else {
+                    logger.warn("Loan number {} not found", loanNo);
+                    otpResponse.put("msg", "Loan no not found");
+                    otpResponse.put("code", "1111");
+                    return otpResponse;
+                }
         } catch (Exception e) {
             logger.error("Error while sending OTP for loanNo: {}", loanNo, e);
             otpResponse.put("msg", "Technical issue.");
@@ -160,7 +167,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         try {
             CustomerDataResponse customerDataResponse = fetchingDetails.getCustomerData(loanNo).get();
             kycCustomerRepository.updateKycFlag(customerDataResponse.getLoanNumber());
-            updateCustomerDetails(customerDataResponse, "N", "aadhar");
+            updateCustomerDetails(customerDataResponse, "N","aadhar");
             otpUtility.sendTextMsg(customerDataResponse.getPhoneNumber(), SmsTemplate.existingKyc); //otp send
             logger.info("Customer KYC flag updated successfully for loanNo: {}", loanNo);
 
@@ -288,7 +295,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     }
 
 
-    public void updateCustomerDetails(CustomerDataResponse loanDetails, String status, String documentType) {
+    public void updateCustomerDetails(CustomerDataResponse loanDetails, String status,String documentType) {
 
         UpdatedDetails updatedDetails = new UpdatedDetails();
         updatedDetails.setLoanNumber(loanDetails.getLoanNumber());
@@ -368,7 +375,3 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         return commonResponse;
     }
 }
-
-
-
-
