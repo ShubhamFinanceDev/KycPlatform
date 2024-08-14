@@ -130,13 +130,13 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 urls.add(documentDetail.get("fileUrl"));
             }
             // Mask Aadhaar documents before extracting details
-            if (inputBase64.getDocumentType().equals("aadhar")) {
-                HashMap<String, String> maskingResult = aadharAndPanUtility.callAadhaarMaskingService(urls);
-                if (maskingResult.containsKey("code") && maskingResult.get("code").equals("1111")) {
-                    return maskingResult; // Return masking error if any
+            if (!urls.isEmpty()) {
+                // Call the Aadhaar masking service
+                documentDetail = aadharAndPanUtility.callAadhaarMaskingService(urls);
+                if (!documentDetail.containsKey("code")) {
+                    // Call the extraction service if masking was successful
+                    documentDetail = callExtractionService(urls, inputBase64);
                 }
-                // Update URLs to use masked URLs
-                urls = Arrays.asList(maskingResult.get("maskedUrls").split(","));
             }
 
             documentDetail = (!urls.isEmpty()) ? callExtractionService(urls, inputBase64) : documentDetail;

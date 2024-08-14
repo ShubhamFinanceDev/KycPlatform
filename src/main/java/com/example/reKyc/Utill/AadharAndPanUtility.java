@@ -180,39 +180,43 @@ public class AadharAndPanUtility {
     }
 
     public HashMap<String, String> callAadhaarMaskingService(List<String> urls) {
-
-        HashMap<String, String> maskedDocumentDetails = new HashMap<>();
+        HashMap<String, String> responseMap = new HashMap<>();
         try {
-            for (String url : urls) {
-                HashMap<String, String> inputBody = new HashMap<>();
-                inputBody.put("urls", url);
-                inputBody.put("requestType", "true"); // Assuming requestType is a boolean
+            // Prepare the HTTP request
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "{{ \n" + "G6sys7hyKmpdAnH6eKAflPJ1YnVqqsMy}}"); // Replace with your token or use a method to fetch it dynamically
 
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.APPLICATION_JSON);
-                headers.set("Authorization", apiKey); // Replace with actual authorization token
-                HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(inputBody, headers);
+            // Create the request body
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("urls", urls);
+            requestBody.put("requestType", true);
 
-                ResponseEntity<Map> responseEntity = restTemplate.postForEntity(maskingUrl, requestEntity, Map.class);
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-                if (responseEntity.getStatusCode() == HttpStatus.OK) {
-                    Map responseBody = responseEntity.getBody();
-                    // Process the response to extract masked URLs
-                    List<String> maskedUrls = (List<String>) ((Map) responseBody.get("result")).get("maskedImages");
-                    maskedDocumentDetails.put("maskedUrls", String.join(",", maskedUrls));
-                } else {
-                    maskedDocumentDetails.put("code", "1111");
-                    maskedDocumentDetails.put("msg", "Failed to mask Aadhaar documents");
-                }
+            // Send the request
+            ResponseEntity<Map> response = restTemplate.exchange("https://api-preproduction.signzy.app/api/v3/aadhaar/maskers", HttpMethod.POST, entity, Map.class
+            );
+
+            // Check response and handle accordingly
+            if (response.getStatusCode() == HttpStatus.OK) {
+                responseMap.put("code", "0000"); // Success code
+                responseMap.put("msg", "Aadhaar masking successful");
+            } else {
+                responseMap.put("code", "1112");
+                responseMap.put("msg", "Aadhaar masking failed");
             }
+
         } catch (Exception e) {
-            maskedDocumentDetails.put("code", "1111");
-            maskedDocumentDetails.put("msg", "Technical issue, please try again");
-            logger.error("Error masking Aadhaar documents: {}", e.getMessage());
+            responseMap.put("code", "1113");
+            responseMap.put("msg", "Error during Aadhaar masking");
         }
-        return maskedDocumentDetails;
+
+        return responseMap;
     }
-
-
-
 }
+
+
+
+
