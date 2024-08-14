@@ -14,10 +14,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.InputStream;
@@ -60,8 +58,6 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     private FetchingDetails fetchingDetails;
     @Autowired
             private AadharAndPanUtility aadharAndPanUtility;
-
-    RestTemplate restTemplate=new RestTemplate();
 
     Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
@@ -129,16 +125,15 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 if (documentDetail.containsKey("code")) break;
                 urls.add(documentDetail.get("fileUrl"));
             }
-            // Mask Aadhaar documents before extracting details
+
             if (!urls.isEmpty()) {
-                // Call the Aadhaar masking service
+
                 documentDetail = aadharAndPanUtility.callAadhaarMaskingService(urls);
                 if (!documentDetail.containsKey("code")) {
-                    // Call the extraction service if masking was successful
+
                     documentDetail = callExtractionService(urls, inputBase64);
                 }
             }
-
             documentDetail = (!urls.isEmpty()) ? callExtractionService(urls, inputBase64) : documentDetail;
         } catch (Exception e) {
             documentDetail.put("code", "1111");
