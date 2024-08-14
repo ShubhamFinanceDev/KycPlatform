@@ -37,7 +37,6 @@ public class Shubham {
             String documentType = inputParam.getDocumentType();
             String documentId = inputParam.getDocumentId();
             CustomerDataResponse  customerDataResponse = fetchingDetails.getCustomerData(inputParam.getLoanNo()).get();
-            System.out.println("call");
             extractDetail = service.callFileExchangeServices(inputParam);
 
             customerDataResponse.setAddressDetailsResidential(extractDetail.get("address"));

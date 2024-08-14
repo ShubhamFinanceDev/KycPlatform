@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
-
 @Service
 public class AadharAndPanUtility {
 
@@ -77,7 +76,7 @@ public class AadharAndPanUtility {
         } catch (Exception e) {
             urlResponse.put("code", "1111");
             urlResponse.put("msg", "Technical issue, please try again");
-            logger.error("Error converting Base64 String: {}", e.getMessage());
+            logger.error("Error while converting Base64 to url: {}", e.getMessage());
         }
 
         return urlResponse;
@@ -96,7 +95,7 @@ public class AadharAndPanUtility {
 
             ResponseEntity<AadharResponse> aadharResponseBody = restTemplate.postForEntity(extractAadharUrl, requestEntity, AadharResponse.class);
 
-            if (aadharResponseBody.getStatusCode()== HttpStatus.OK){
+            if (aadharResponseBody.getStatusCode() == HttpStatus.OK) {
                 AadharResponse aadharResponse = aadharResponseBody.getBody();
                 if (aadharResponse != null && !(aadharResponse.getResult().getUid().isBlank()) && !(aadharResponse.getResult().getName().isBlank()) && !(aadharResponse.getResult().getAddress().isBlank()) && aadharResponse.getResult().isValidBackAndFront()) {
                     if (maskDocumentAndFile.compareDocumentNumber(aadharResponse.getResult().getUid(), documentId, "aadhar")) {
@@ -162,9 +161,7 @@ public class AadharAndPanUtility {
                     panResponse.put("code", "1111");
                     panResponse.put("msg", "File did not extracted, please try again");
                 }
-            }
-            else
-            {
+            } else {
                 panResponse.put("code", "1111");
                 panResponse.put("msg", "Technical issue, please try again");
             }
@@ -177,29 +174,31 @@ public class AadharAndPanUtility {
         return panResponse;
     }
 
-    private String maskAadhar(String unmaskedUrl) throws Exception
-    {
-        List<String> urls=new ArrayList<>();
+    private String maskAadhar(String unmaskedUrl) throws Exception {
+        List<String> urls = new ArrayList<>();
         urls.add(unmaskedUrl);
         HashMap<String, Object> urlRequest = new HashMap<>();
-        urlRequest.put("urls",urls);
+        urlRequest.put("urls", urls);
         urlRequest.put("requestType", true);
 
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", singzyAuthKey);
+
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(urlRequest, headers);
         ResponseEntity<HashMap> maskingResponse = restTemplate.postForEntity(maskingUrl, requestEntity, HashMap.class);
-
         if (maskingResponse.getStatusCode() == HttpStatus.OK) {
             Map<String, Object> responseStatus = (Map<String, Object>) maskingResponse.getBody().get("result");
-            if (responseStatus.get("isMasked").equals("Yes") && responseStatus.get("requestType").equals("M")) {
-                logger.info("Masking  Completed");
-                urls.add((String) responseStatus.get("maskedImages"));
+            if (responseStatus.get("isMasked").equals("yes")) {
+                logger.info("Masking process completed");
+                urls.clear();
+               urls=(List<String>) (responseStatus.get("maskedImages"));
+
             } else {
                 urls.clear();
+                logger.info("Masking process failed");
             }
         }
-    return urls.get(urls.size());
+        return  urls.get(0);
 
     }
 
