@@ -48,17 +48,19 @@ public class User {
     private final Logger logger = LoggerFactory.getLogger(User.class);
 
     @PostMapping("/send-otp")
-    public ResponseEntity<HashMap> sendOtpOnRegisteredMobile(@RequestBody @Valid Map<String, String> inputParam) {
+    public ResponseEntity<HashMap<String, String>> sendOtpOnRegisteredMobile(@RequestBody @Valid Map<String, String> inputParam) {
         logger.info("Received request to send OTP with input parameters : {}", inputParam);
         HashMap<String, String> otpResponse = new HashMap<>();
         String loanNo = inputParam.get("loanNo");
-        if (loanNo.isEmpty()) {
-            logger.warn("Request to send OTP failed due to missing loanNo");
-            otpResponse.put("msg", "One or more field is required");
+
+        // Validate the loan number format (e.g., should not be empty and should follow a specific pattern)
+        if (loanNo == null || loanNo.isEmpty() || !loanNo.matches("^[a-zA-Z0-9_]+$")) {
+            logger.warn("Request to send OTP failed due to invalid loanNo: {}", loanNo);
+            otpResponse.put("msg", "Invalid loan number format");
             otpResponse.put("code", "400");
             return new ResponseEntity<>(otpResponse, HttpStatus.BAD_REQUEST);
-
         }
+
         otpResponse = service.validateAndSendOtp(loanNo);
         return ResponseEntity.ok(otpResponse);
     }
