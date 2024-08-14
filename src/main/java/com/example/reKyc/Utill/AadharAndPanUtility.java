@@ -10,9 +10,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class AadharAndPanUtility {
@@ -37,11 +35,14 @@ public class AadharAndPanUtility {
     private String sendOtpAadharUrl;
     @Value("${singzy.verify.otp.aadhar}")
     private String verifyOtpAadharUrl;
+    @Value("${signzy.aadhar.maskingUrl}")
+    private String maskingUrl;
     private final Logger logger = LoggerFactory.getLogger(DdfsUtility.class);
 
 
     RestTemplate restTemplate = new RestTemplate();
     HttpHeaders headers = new HttpHeaders();
+
 
     public HashMap<String, String> convertBase64ToUrl(String documentType, String base64String) {
 
@@ -65,7 +66,7 @@ public class AadharAndPanUtility {
             if (responseOfBase64.getStatusCode() == HttpStatus.OK) {
 //                System.out.println(responseOfBase64.getBody().getFile().directURL);
                 String url = responseOfBase64.getBody().getFile().directURL;
-                urlResponse.put("fileUrl", url);
+                urlResponse.put("fileUrl", maskAadhar(url));
                 logger.info("Url converted to base64: ");
 
             } else {
@@ -174,6 +175,32 @@ public class AadharAndPanUtility {
             logger.error("Error extracting pan details :{}", e.getMessage());
         }
         return panResponse;
+    }
+
+    private String maskAadhar(String unmaskedUrl) throws Exception
+    {
+        List<String> urls=new ArrayList<>();
+        urls.add(unmaskedUrl);
+        HashMap<String, Object> urlRequest = new HashMap<>();
+        urlRequest.put("urls",urls);
+        urlRequest.put("requestType", true);
+
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", singzyAuthKey);
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(urlRequest, headers);
+        ResponseEntity<HashMap> maskingResponse = restTemplate.postForEntity(maskingUrl, requestEntity, HashMap.class);
+
+        if (maskingResponse.getStatusCode() == HttpStatus.OK) {
+            Map<String, Object> responseStatus = (Map<String, Object>) maskingResponse.getBody().get("result");
+            if (responseStatus.get("isMasked").equals("Yes") && responseStatus.get("requestType").equals("M")) {
+                logger.info("Masking  Completed");
+                urls.add((String) responseStatus.get("maskedImages"));
+            } else {
+                urls.clear();
+            }
+        }
+    return urls.get(urls.size());
+
     }
 
 
