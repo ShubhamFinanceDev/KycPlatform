@@ -177,4 +177,40 @@ public class AadharAndPanUtility {
     }
 
 
+    public HashMap<String, String> callAadhaarMaskingService(List<String> urls) {
+        HashMap<String, String> responseMap = new HashMap<>();
+        try {
+            // Prepare the HTTP request
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", "{{ \n" + "G6sys7hyKmpdAnH6eKAflPJ1YnVqqsMy}}"); // Replace with your token or use a method to fetch it dynamically
+
+            // Create the request body
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("urls", urls);
+            requestBody.put("requestType", true);
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+            // Send the request
+            ResponseEntity<Map> response = restTemplate.exchange("https://api-preproduction.signzy.app/api/v3/aadhaar/maskers", HttpMethod.POST, entity, Map.class
+            );
+
+            // Check response and handle accordingly
+            if (response.getStatusCode() == HttpStatus.OK) {
+                responseMap.put("code", "0000"); // Success code
+                responseMap.put("msg", "Aadhaar masking successful");
+            } else {
+                responseMap.put("code", "1112");
+                responseMap.put("msg", "Aadhaar masking failed");
+            }
+
+        } catch (Exception e) {
+            responseMap.put("code", "1113");
+            responseMap.put("msg", "Error during Aadhaar masking");
+        }
+
+        return responseMap;
+    }
 }
