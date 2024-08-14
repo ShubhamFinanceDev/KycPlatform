@@ -56,6 +56,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     private UpdatedDetailRepository updatedDetailRepository;
     @Autowired
     private FetchingDetails fetchingDetails;
+    @Autowired
+    private AadharAndPanUtility aadharAndPanUtility;
 
     Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
@@ -125,6 +127,15 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 documentDetail = singzyServices.convertBase64ToUrl(base64.getFileType(), base64.getBase64String());
                 if (documentDetail.containsKey("code")) break;
                 urls.add(documentDetail.get("fileUrl"));
+            }
+
+            if (!urls.isEmpty()) {
+
+                documentDetail = aadharAndPanUtility.callAadhaarMaskingService(urls);
+                if (!documentDetail.containsKey("code")) {
+
+                    documentDetail = callExtractionService(urls, inputBase64);
+                }
             }
             documentDetail = (!urls.isEmpty()) ? callExtractionService(urls, inputBase64) : documentDetail;
         } catch (Exception e) {

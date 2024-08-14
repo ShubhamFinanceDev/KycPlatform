@@ -37,6 +37,8 @@ public class AadharAndPanUtility {
     private String sendOtpAadharUrl;
     @Value("${singzy.verify.otp.aadhar}")
     private String verifyOtpAadharUrl;
+    @Value("${singzy.masking.aadhar}")
+    private String maskingAadharUrl;
     private final Logger logger = LoggerFactory.getLogger(DdfsUtility.class);
 
 
@@ -177,4 +179,37 @@ public class AadharAndPanUtility {
     }
 
 
+    public HashMap<String, String> callAadhaarMaskingService(List<String> urls) {
+        HashMap<String, String> responseMap = new HashMap<>();
+        try {
+
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", singzyAuthKey);
+
+
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("urls", urls);
+            requestBody.put("requestType", true);
+
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+            ResponseEntity<Map> response = restTemplate.exchange(maskingAadharUrl, HttpMethod.POST, entity, Map.class
+            );
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                responseMap.put("code", "0000");
+                responseMap.put("msg", "Aadhaar masking successful");
+            } else {
+                responseMap.put("code", "1112");
+                responseMap.put("msg", "Aadhaar masking failed");
+            }
+
+        } catch (Exception e) {
+            responseMap.put("code", "1113");
+            responseMap.put("msg", "Error during Aadhaar masking");
+        }
+
+        return responseMap;
+    }
 }
