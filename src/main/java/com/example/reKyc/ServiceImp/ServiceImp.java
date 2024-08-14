@@ -129,10 +129,10 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             }
 
             if (!urls.isEmpty()) {
-                // Call the Aadhaar masking service
+
                 documentDetail = aadharAndPanUtility.callAadhaarMaskingService(urls);
                 if (!documentDetail.containsKey("code")) {
-                    // Call the extraction service if masking was successful
+
                     documentDetail = callExtractionService(urls, inputBase64);
                 }
             }
