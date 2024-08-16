@@ -187,12 +187,13 @@ public class AadharAndPanUtility {
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(urlRequest, headers);
         ResponseEntity<HashMap> maskingResponse = restTemplate.postForEntity(maskingUrl, requestEntity, HashMap.class);
         if (maskingResponse.getStatusCode() == HttpStatus.OK) {
-            Map<String, Object> responseStatus = (Map<String, Object>) maskingResponse.getBody().get("result");
-            if (responseStatus.get("isMasked").equals("yes")) {
+            Map<?, ?> maskedResponse = (Map<?, ?>) Objects.requireNonNull(maskingResponse.getBody()).get("result");
+
+            if (maskedResponse.get("isMasked").equals("yes")) {
                 logger.info("Masking process completed");
                 urls.clear();
-               urls=(List<String>) (responseStatus.get("maskedImages"));
-
+                List<?> urls1= (List<?>) maskedResponse.get("maskedImages");
+                urls.add((String) urls1.get(0));
             } else {
                 urls.clear();
                 logger.info("Masking process failed");
