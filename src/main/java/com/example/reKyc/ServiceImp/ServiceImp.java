@@ -166,7 +166,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         CommonResponse commonResponse = new CommonResponse();
         try {
             CustomerDataResponse customerDataResponse = fetchingDetails.getCustomerData(loanNo).get();
-            kycCustomerRepository.updateKycFlag(customerDataResponse.getLoanNumber());
+            kycCustomerRepository.updateExistingKycFlag(customerDataResponse.getLoanNumber());
             updateCustomerDetails(customerDataResponse, "N","aadhar");
             otpUtility.sendTextMsg(customerDataResponse.getPhoneNumber(), SmsTemplate.existingKyc); //otp send
             logger.info("Customer KYC flag updated successfully for loanNo: {}", loanNo);
@@ -225,16 +225,20 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 commonResponse.setMsg("File upload error, try again");
                 logger.info("file bucket url does not exist.");
             }
-            if (commonResponse.getCode().equals("0000")) {
-                updatedDetailRepository.updateKycStatus(customerDataResponse.getLoanNumber());
-                otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc);
-            }
         } catch (Exception e) {
             commonResponse.setCode("1111");
             commonResponse.setMsg("Technical error, try again");
             logger.info("Error while fetching customer data for loanNo: {}", loanNo);
         }
         return commonResponse;
+
+    }
+@Override
+    public void confirmationSmsAndUpdateKycStatus(String loanNo, String mobileNo) throws Exception {
+
+        updatedDetailRepository.updateKycStatus(loanNo);
+        otpUtility.sendTextMsg(mobileNo, SmsTemplate.updationKyc);
+        kycCustomerRepository.kycCustomerUpdate(loanNo);
 
     }
 

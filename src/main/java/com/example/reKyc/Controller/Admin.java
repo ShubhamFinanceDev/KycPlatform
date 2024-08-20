@@ -69,7 +69,7 @@ public class Admin {
                         customer.setLoanNumber(loanNo.toString());
                         customer.setMobileNo(formattedContactNo);
                         customer.setSmsFlag("N");
-                        customer.setKycFlag("Y");
+                        customer.setKycFlag("A");
                         customerList.add(customer);
                     } else {
                         response.put("msg", errorMsg);

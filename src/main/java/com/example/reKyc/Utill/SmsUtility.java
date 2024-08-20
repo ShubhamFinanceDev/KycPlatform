@@ -118,19 +118,18 @@ public class SmsUtility {
     @Scheduled(cron = "0 0 0 10 * *")
     public void reminderSmsOnMobileNo() {
         try {
-            List<KycCustomer> kycCustomers = kycCustomerRepository.findMobileNumber();
+            List<KycCustomer> kycCustomers = kycCustomerRepository.findForSmsReminder();
 
             if (!kycCustomers.isEmpty()) {
                 for (KycCustomer customer : kycCustomers) {
                     String mobileNo = customer.getMobileNo();
                     if (mobileNo != null && !mobileNo.isEmpty()) {
-                      sendTextMsg(mobileNo, SmsTemplate.lnkKyc);
+                        sendTextMsg(mobileNo, SmsTemplate.lnkKyc);
                     }
                 }
                 byte[] excelData = generateFile(kycCustomers);
                 sendSimpleMail(excelData);
 
-                logger.info("KYC report shared with {} customers.");
             } else {
                 logger.info("No eligible mobile numbers found to send SMS notifications.");
             }
@@ -142,9 +141,9 @@ public class SmsUtility {
     public byte[] generateFile(List<KycCustomer> reportModels) throws IOException {
 
         XSSFWorkbook workbook = new XSSFWorkbook();
-        XSSFSheet sheet = workbook.createSheet("SMS-Report");
+        XSSFSheet sheet = workbook.createSheet("Rekyc-Report");
         int rowCount = 0;
-        String[] header = {"loan_number", "kyc_flag", "mobile_no", "sms_flag"};
+        String[] header = {"loan_number", "mobile_no"};
         Row headerRow = sheet.createRow(rowCount++);
         int cellCount = 0;
 
@@ -156,10 +155,8 @@ public class SmsUtility {
             cellCount = 0;
             row.createCell(cellCount++).setCellValue(readData.getLoanNumber());
             row.createCell(cellCount++).setCellValue(readData.getMobileNo());
-            row.createCell(cellCount++).setCellValue(readData.getKycFlag());
-            row.createCell(cellCount++).setCellValue(readData.getSmsFlag());
         }
-        logger.info("No of records insert in file " + rowCount);
+        logger.info("No of records insert in file {}", rowCount);
         byte[] excelData;
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -177,19 +174,20 @@ public class SmsUtility {
 
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
-                MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
             helper.setFrom(sender);
             helper.setTo(receiver);
-            helper.setText("Msg send successfully");
+            helper.setText("Dear Sir, \n\n\n Please find the below attached sheet. \n\n\n\n Regards\n It Support.");
             helper.setSubject("Information mail");
 
             InputStreamSource attachmentSource = new ByteArrayResource(excelData);
-            helper.addAttachment("Reminder sms report.xlsx", attachmentSource);
-                javaMailSender.send(message);
+            helper.addAttachment("Rekyc report.xlsx", attachmentSource);
+            javaMailSender.send(message);
+            logger.info("KYC report shared with {} user", receiver);
 
         } catch (Exception e) {
-            System.out.println(e);
+            System.out.println(e.getMessage());
         }
     }
 }
