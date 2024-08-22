@@ -111,7 +111,7 @@ public class SmsUtility {
         otpResponse.put("mobile", mobileNo);
         otpResponse.put("msg", "Otp send successfully.");
         otpResponse.put("code", "0000");
-        otpResponse.put("otpCode",otpCode);
+        otpResponse.put("otpCode",otpCode);  // add for uat testing
         logger.info("otp sent on mobile");
         return otpResponse;
     }
