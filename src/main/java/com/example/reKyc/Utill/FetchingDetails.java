@@ -58,7 +58,6 @@ public class FetchingDetails {
             String jdbcQuery = Query.loanQuery.concat("'" + loanNo + "'");
             customerIdentificationDetails = jdbcTemplate.query(jdbcQuery, new BeanPropertyRowMapper<>(CustomerDetails.class));
             logger.info("Data fetched successfully.");
-            saveCustomerData(customerDataResponse,customerIdentificationDetails.get(0),customerIdentificationDetails);
         }
 
         customerDataResponse.setPanNumber(customerDataResponse.getPanNumber() != null ? maskDocumentNo.documentNoEncryption(customerDataResponse.getPanNumber()) : "NA");

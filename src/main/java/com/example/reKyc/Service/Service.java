@@ -7,13 +7,12 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 
 public interface Service {
 
     HashMap<String,String> validateAndSendOtp(String loanNo);
     boolean otpValidation(String mobileNo, String otpCode, String loanNo);
-    HashMap<String,String> callFileExchangeServices(InputBase64 inputBase64);
+    HashMap<String,String> callFileExchangeServices(InputBase64 inputBase64, CustomerDataResponse customerDataResponse);
     CommonResponse updateCustomerKycFlag(String loanNo,String mobileNo);
     CommonResponse callDdfsService(UpdateAddress inputAddress, String loanNo);
     KycCountUpload kycCount();

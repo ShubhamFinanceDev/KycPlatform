@@ -2,6 +2,7 @@ package com.example.reKyc.Utill;
 
 
 import com.example.reKyc.Model.*;
+import com.example.reKyc.Repository.CustomerDetailsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,9 @@ import java.util.Map;
 
 @Service
 public class AadharAndPanUtility {
+
+    @Autowired
+    private CustomerDetailsRepository customerDetailsRepository;
 
     @Autowired
     private MaskDocumentNo maskDocumentAndFile;
@@ -131,7 +135,7 @@ public class AadharAndPanUtility {
         return addressPreview;
     }
 
-    public HashMap<String, String> extractPanDetails(List<String> urls, String documentId) {
+    public HashMap<String, String> extractPanDetails(List<String> urls, String documentId, CustomerDataResponse customerDataResponse) {
 
         HashMap<String, Object> inputBody = new HashMap<>();
         inputBody.put("files", urls);
@@ -155,7 +159,7 @@ public class AadharAndPanUtility {
                     panResponse.put("code", "0000");
                     panResponse.put("msg", "File extracted successfully");
                     panResponse.put("name", extractPanResponse.getBody().getResult().getName());
-//                  panResponse.put("address", aadharResponse.getResult().getAddress());
+                  panResponse.put("address", customerDataResponse.getAddressDetailsResidential());
                     panResponse.put("dateOfBirth", extractPanResponse.getBody().getResult().getDob());
                     panResponse.put("uid", extractPanResponse.getBody().getResult().getNumber());
                     logger.info("Extract pan details :");

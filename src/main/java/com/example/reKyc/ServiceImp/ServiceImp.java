@@ -14,7 +14,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -116,7 +115,12 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     @Override
+<<<<<<< Updated upstream
     public HashMap<String, String> callFileExchangeServices(InputBase64 inputBase64) {
+=======
+    public HashMap<String, String> callFileExchangeServices(InputBase64 inputBase64, CustomerDataResponse customerDataResponse) {
+
+>>>>>>> Stashed changes
         HashMap<String, String> documentDetail = new HashMap<>();
         List<String> urls = new ArrayList<>();
         try {
@@ -125,6 +129,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 if (documentDetail.containsKey("code")) break;
                 urls.add(documentDetail.get("fileUrl"));
             }
+<<<<<<< Updated upstream
 
             if (!urls.isEmpty()) {
 
@@ -135,6 +140,9 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 }
             }
             documentDetail = (!urls.isEmpty()) ? callExtractionService(urls, inputBase64) : documentDetail;
+=======
+            documentDetail = (!urls.isEmpty()) ? callExtractionService(urls, inputBase64,customerDataResponse) : documentDetail;
+>>>>>>> Stashed changes
         } catch (Exception e) {
             documentDetail.put("code", "1111");
             documentDetail.put("msg", "Technical issue");
@@ -142,6 +150,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         return documentDetail;
     }
 
+<<<<<<< Updated upstream
     private HashMap<String, String> callExtractionService(List<String> urls, InputBase64 inputBase64) {
         HashMap<String, String> extractedDetails;
         extractedDetails = (inputBase64.getDocumentType().equals("aadhar") ? singzyServices.extractAadharDetails(urls, inputBase64.getDocumentId()) : singzyServices.extractPanDetails(urls, inputBase64.getDocumentId()));
@@ -151,7 +160,35 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             urls.forEach(url -> {
                 saveUpdatedDetails(inputBase64, url);
             });
+=======
+
+    private HashMap<String, String> callExtractionService(List<String> urls, InputBase64 inputBase64, CustomerDataResponse customerDataResponse) {
+        HashMap<String, String> extractedDetails = new HashMap<>();
+        String documentType = inputBase64.getDocumentType();
+
+        try {
+            switch (documentType) {
+                case "aadhar":
+                    extractedDetails = singzyServices.extractAadharDetails(urls, inputBase64.getDocumentId());
+                    break;
+
+                case "pan":
+                    extractedDetails = singzyServices.extractPanDetails(urls, inputBase64.getDocumentId(),customerDataResponse);
+                    break;
+                default:
+            }
+            if ("0000".equals(extractedDetails.get("code"))) {
+                deleteUnProcessRecord(inputBase64.getLoanNo());
+                urls.forEach(url -> saveUpdatedDetails(inputBase64, url));
+            }
+
+        } catch (Exception e) {
+            extractedDetails.put("code", "1111");
+            extractedDetails.put("msg", "Technical issue, please try again");
+            logger.error("Error extracting details: {}", e.getMessage());
+>>>>>>> Stashed changes
         }
+
         return extractedDetails;
     }
 
@@ -165,8 +202,15 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         CommonResponse commonResponse = new CommonResponse();
         try {
             CustomerDataResponse customerDataResponse = fetchingDetails.getCustomerData(loanNo).get();
+<<<<<<< Updated upstream
             kycCustomerRepository.updateKycFlag(customerDataResponse.getLoanNumber());
             updateCustomerDetails(customerDataResponse, "N", "aadhar");
+=======
+            kycCustomerRepository.updateExistingKycFlag(customerDataResponse.getLoanNumber());
+            updateCustomerDetails(customerDataResponse, "N","aadhar");
+            updateCustomerDetails(customerDataResponse,"N","pan");
+
+>>>>>>> Stashed changes
             otpUtility.sendTextMsg(customerDataResponse.getPhoneNumber(), SmsTemplate.existingKyc); //otp send
             logger.info("Customer KYC flag updated successfully for loanNo: {}", loanNo);
 

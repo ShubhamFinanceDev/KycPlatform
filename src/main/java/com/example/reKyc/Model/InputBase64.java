@@ -23,6 +23,7 @@ public class InputBase64 {
         private String base64String;
         @NotNull
         private String fileType;
+
     }
 }
 

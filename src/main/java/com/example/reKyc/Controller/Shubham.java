@@ -37,8 +37,12 @@ public class Shubham {
             String documentType = inputParam.getDocumentType();
             String documentId = inputParam.getDocumentId();
             CustomerDataResponse  customerDataResponse = fetchingDetails.getCustomerData(inputParam.getLoanNo()).get();
+<<<<<<< Updated upstream
             System.out.println("call");
             extractDetail = service.callFileExchangeServices(inputParam);
+=======
+            extractDetail = service.callFileExchangeServices(inputParam,customerDataResponse);
+>>>>>>> Stashed changes
 
             customerDataResponse.setAddressDetailsResidential(extractDetail.get("address"));
             service.updateCustomerDetails(customerDataResponse, null,documentType);

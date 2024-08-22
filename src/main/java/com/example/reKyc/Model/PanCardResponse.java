@@ -18,9 +18,7 @@ public class PanCardResponse {
         private String name;
         private String fatherName;
         private String number;
-        private String panType;
-        private PanCardSummary summary;
-        private RelativeDetails relativeDetails;
+    private RelativeDetails relativeDetails;
     }
 @Data
  public static  class PanCardSummary {
