@@ -30,6 +30,8 @@ public class AadharAndPanUtility {
     @Value("${singzy.extraction.pan}")
     private String extractPanUrl;
 
+    @Value("${signzy.extraction.voterId}")
+    private String voterIdUrl;
     @Value("${singzy.authorisation.key}")
     private String singzyAuthKey;
 
@@ -176,6 +178,51 @@ public class AadharAndPanUtility {
             logger.error("Error extracting pan details :{}", e.getMessage());
         }
         return panResponse;
+    }
+
+    public HashMap<String, String> extractVoterIdDetails(List<String> urls, String documentId) {
+
+        HashMap<String, Object> inputBody = new HashMap<>();
+        inputBody.put("files", urls);
+        inputBody.put("type", "individualVoterId");
+        inputBody.put("getRelativeData", true);
+        HashMap<String, String> voterIdResponse = new HashMap<>();
+
+        try {
+
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", singzyAuthKey);
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(inputBody, headers);
+            ResponseEntity<VoterIdResponse> extractVoterIdResponse = restTemplate.postForEntity(voterIdUrl, requestEntity, VoterIdResponse.class);
+
+            if (extractVoterIdResponse.getStatusCode() == HttpStatus.OK) {
+                if (maskDocumentAndFile.compareDocumentNumber(extractVoterIdResponse.getBody().getResult().getEpicNumber(), documentId, "voterId")) {
+
+                    System.out.println("Response-" + extractVoterIdResponse.getBody().getResult());
+                    System.out.println("staus" + extractVoterIdResponse.getStatusCode());
+                    voterIdResponse.put("code", "0000");
+                    voterIdResponse.put("msg", "File extracted successfully");
+                    voterIdResponse.put("name", extractVoterIdResponse.getBody().getResult().getName());
+                    voterIdResponse.put("dateOfBirth", extractVoterIdResponse.getBody().getResult().getDob());
+                    voterIdResponse.put("uid", extractVoterIdResponse.getBody().getResult().getEpicNumber());
+                    logger.info("Extract pan details :");
+                } else {
+                    voterIdResponse.put("code", "1111");
+                    voterIdResponse.put("msg", "File did not extracted, please try again");
+                }
+            }
+            else
+            {
+                voterIdResponse.put("code", "1111");
+                voterIdResponse.put("msg", "Technical issue, please try again");
+            }
+
+        } catch (Exception e) {
+            voterIdResponse.put("code", "1111");
+            voterIdResponse.put("msg", "Technical issue, please try again");
+            logger.error("Error extracting pan details :{}", e.getMessage());
+        }
+        return voterIdResponse;
     }
 
 
