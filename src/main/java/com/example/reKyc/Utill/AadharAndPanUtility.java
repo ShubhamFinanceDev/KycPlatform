@@ -39,6 +39,9 @@ public class AadharAndPanUtility {
     private String verifyOtpAadharUrl;
     @Value("${signzy.aadhar.maskingUrl}")
     private String maskingUrl;
+    @Value("${signzy.extraction.voterId}")
+    private String voterIdUrl;
+
     private final Logger logger = LoggerFactory.getLogger(DdfsUtility.class);
 
 
@@ -179,29 +182,72 @@ public class AadharAndPanUtility {
     public CompletableFuture<List<String>> maskAadhar(List<String> unmaskedUrl) throws Exception {
         List<String> maskedUrls = new ArrayList<>();
         HashMap<String, Object> urlRequest = new HashMap<>();
-        urlRequest.put("requestType", true);
-
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", singzyAuthKey);
 
-        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(urlRequest, headers);
-        for(int i=0;i<unmaskedUrl.size();i++){
+        for (String url : unmaskedUrl) {
+            List<String> unmaskedUrls1= new ArrayList<>();
+            unmaskedUrls1.add(url);
+            urlRequest.put("requestType", true);
+            urlRequest.put("urls", unmaskedUrls1);
 
-        ResponseEntity<HashMap> maskingResponse = restTemplate.postForEntity(unmaskedUrl.get(i), requestEntity, HashMap.class);
-        if (maskingResponse.getStatusCode() == HttpStatus.OK) {
-            Map<?, ?> maskedResponse = (Map<?, ?>) Objects.requireNonNull(maskingResponse.getBody()).get("result");
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(urlRequest, headers);
+            ResponseEntity<HashMap> maskingResponse = restTemplate.postForEntity(maskingUrl, requestEntity, HashMap.class);
+            if (maskingResponse.getStatusCode() == HttpStatus.OK) {
+                Map<?, ?> maskedResponse = (Map<?, ?>) Objects.requireNonNull(maskingResponse.getBody()).get("result");
 
-            if (maskedResponse.get("isMasked").equals("yes")) {
-                logger.info("Masking process completed");
-                List<?> urls1 = (List<?>) maskedResponse.get("maskedImages");
-                maskedUrls.add((String) urls1.get(0));
-            } else {
-                logger.info("Masking process failed");
-            }
+                if (maskedResponse.get("isMasked").equals("yes")) {
+                    logger.info("Masking process completed");
+                    List<?> urls1 = (List<?>) maskedResponse.get("maskedImages");
+                    maskedUrls.add((String) urls1.get(0));
+                } else {
+                    logger.info("Masking process failed");
+                }
+
         }
         }
         return CompletableFuture.completedFuture(maskedUrls);
+    }
 
+
+    public HashMap<String, String> extractVoterIdDetails(List<String> urls) {
+
+        HashMap<String, Object> inputBody = new HashMap<>();
+        inputBody.put("urls", urls);
+        HashMap<String,String> voterIdResponse=new HashMap<>();
+        try {
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", singzyAuthKey);
+            HttpEntity<HashMap<String,Object>> requestEntity = new HttpEntity<>(inputBody, headers);
+
+            ResponseEntity<HashMap> voterIdExtractionResponse = restTemplate.postForEntity(voterIdUrl, requestEntity, HashMap.class);
+
+            if (voterIdExtractionResponse.getStatusCode() == HttpStatus.OK) {
+                System.out.println("Response-" + voterIdExtractionResponse.getBody());
+                Map<?, ?> voterIdDetails = (Map<?, ?>) Objects.requireNonNull(voterIdExtractionResponse.getBody()).get("result");
+
+                voterIdResponse.put("code", "0000");
+                voterIdResponse.put("msg", "File extracted successfully");
+                voterIdResponse.put("name", (String) voterIdDetails.get("name"));
+                voterIdResponse.put("dateOfBirth", (String) voterIdDetails.get("dob"));
+                voterIdResponse.put("uid", (String) voterIdDetails.get("epicNumber"));
+//                String address = (String) voterIdDetails.get("address");
+                voterIdResponse.put("address", (String) voterIdDetails.get("address"));
+
+                logger.info("Extract voterId details {}", voterIdResponse);
+            }
+            else
+            {
+                voterIdResponse.put("code", "1111");
+                voterIdResponse.put("msg", "Technical issue, please try again");
+            }
+
+        } catch (Exception e) {
+            voterIdResponse.put("code", "1111");
+            voterIdResponse.put("msg", "Technical issue, please try again");
+            logger.error("Error extracting voterId details :{}", e.getMessage());
+        }
+        return voterIdResponse;
     }
 
 
