@@ -143,16 +143,42 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     private HashMap<String, String> callExtractionService(List<String> urls, InputBase64 inputBase64) {
-        HashMap<String, String> extractedDetails;
-        extractedDetails = (inputBase64.getDocumentType().equals("aadhar") ? singzyServices.extractAadharDetails(urls, inputBase64.getDocumentId()) : singzyServices.extractPanDetails(urls, inputBase64.getDocumentId()));
+//        HashMap<String, String> extractedDetails;
+//        extractedDetails = (inputBase64.getDocumentType().equals("aadhar") ? singzyServices.extractAadharDetails(urls, inputBase64.getDocumentId()) : singzyServices.extractPanDetails(urls, inputBase64.getDocumentId()));
 
-        if (extractedDetails.get("code").equals("0000")) {
-            deleteUnProcessRecord(inputBase64.getLoanNo());
-            urls.forEach(url -> {
-                saveUpdatedDetails(inputBase64, url);
+        HashMap<String, String> extractedDetails = new HashMap<>();
+        String documentType = inputBase64.getDocumentType();
 
-            });
+        try {
+            switch (documentType) {
+                case "aadhar":
+                    extractedDetails = singzyServices.extractAadharDetails(urls, inputBase64.getDocumentId());
+                    break;
+
+                case "pan":
+                    extractedDetails = singzyServices.extractPanDetails(urls, inputBase64.getDocumentId());
+                    break;
+
+                case "voterId":
+                    extractedDetails = singzyServices.extractVoterIdDetails(urls, inputBase64.getDocumentId());
+                    break;
+
+                default:
+                    if (extractedDetails.get("code").equals("0000")) {
+                        deleteUnProcessRecord(inputBase64.getLoanNo());
+                        urls.forEach(url -> {
+                            saveUpdatedDetails(inputBase64, url);
+
+                        });
+                    }
+            }
+
+            } catch (Exception e) {
+            extractedDetails.put("code", "1111");
+            extractedDetails.put("msg", "Technical issue, please try again");
+            logger.error("Error extracting details: {}", e.getMessage());
         }
+
         return extractedDetails;
     }
 
