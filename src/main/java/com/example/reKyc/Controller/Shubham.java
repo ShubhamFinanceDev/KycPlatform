@@ -37,7 +37,6 @@ public class Shubham {
             String documentType = inputParam.getDocumentType();
             String documentId = inputParam.getDocumentId();
             CustomerDataResponse  customerDataResponse = fetchingDetails.getCustomerData(inputParam.getLoanNo()).get();
-            System.out.println("call");
             extractDetail = service.callFileExchangeServices(inputParam);
 
             customerDataResponse.setAddressDetailsResidential(extractDetail.get("address"));
@@ -62,6 +61,7 @@ public class Shubham {
             if(service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo()))
             {
                 commonResponse = service.callDdfsService(inputUpdateAddress,inputUpdateAddress.getLoanNo());   // calls a service to update the address details
+                service.confirmationSmsAndUpdateKycStatus(inputUpdateAddress.getLoanNo(),inputUpdateAddress.getMobileNo());
             }
             else{
                 commonResponse.setMsg("Loan no or Otp is not valid.");

@@ -14,10 +14,10 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.sql.Date;
@@ -56,8 +56,6 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     private UpdatedDetailRepository updatedDetailRepository;
     @Autowired
     private FetchingDetails fetchingDetails;
-    @Autowired
-    private AadharAndPanUtility aadharAndPanUtility;
 
     Logger logger = LoggerFactory.getLogger(OncePerRequestFilter.class);
 
@@ -68,8 +66,14 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         try {
             String mobileNo;
             Optional<KycCustomer> customer = kycCustomerRepository.getCustomer(loanNo);
-            List<CustomerDetails> customerDetailsList = fetchingDetails.getCustomerIdentification(loanNo).get().stream().filter(identification -> identification.getIdentificationType().contains("AAdhar_No")).collect(Collectors.toList());
-                if(customer.isPresent() && !customerDetailsList.isEmpty()) {
+                if(customer.isPresent()) {
+                    List<CustomerDetails> customerDetailsList = fetchingDetails.getCustomerIdentification(loanNo).get().stream().filter(identification -> identification.getIdentificationType().contains("AAdhar_No")).collect(Collectors.toList());
+                    if(customerDetailsList.isEmpty()) {
+                        logger.warn("Identification type did not found for Loan number {}", loanNo);
+                        otpResponse.put("msg", "Loan no not found");
+                        otpResponse.put("code", "1111");
+                        return otpResponse;
+                    }
                     mobileNo = customer.get().getMobileNo();
                     if (mobileNo != null && !mobileNo.isEmpty()) {
                         otpUtility.generateOtp(mobileNo, otpResponse);
@@ -128,15 +132,6 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 if (documentDetail.containsKey("code")) break;
                 urls.add(documentDetail.get("fileUrl"));
             }
-
-            if (!urls.isEmpty()) {
-
-                documentDetail = aadharAndPanUtility.callAadhaarMaskingService(urls);
-                if (!documentDetail.containsKey("code")) {
-
-                    documentDetail = callExtractionService(urls, inputBase64);
-                }
-            }
             documentDetail = (!urls.isEmpty()) ? callExtractionService(urls, inputBase64) : documentDetail;
         } catch (Exception e) {
 
@@ -148,41 +143,15 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     private HashMap<String, String> callExtractionService(List<String> urls, InputBase64 inputBase64) {
-//        HashMap<String, String> extractedDetails;
-//        extractedDetails = (inputBase64.getDocumentType().equals("aadhar") ?
-//                singzyServices.extractAadharDetails(urls, inputBase64.getDocumentId()) :
-//                singzyServices.extractPanDetails(urls, inputBase64.getDocumentId()));
+        HashMap<String, String> extractedDetails;
+        extractedDetails = (inputBase64.getDocumentType().equals("aadhar") ? singzyServices.extractAadharDetails(urls, inputBase64.getDocumentId()) : singzyServices.extractPanDetails(urls, inputBase64.getDocumentId()));
 
-        HashMap<String, String> extractedDetails = new HashMap<>();
-        String documentType = inputBase64.getDocumentType();
+        if (extractedDetails.get("code").equals("0000")) {
+            deleteUnProcessRecord(inputBase64.getLoanNo());
+            urls.forEach(url -> {
+                saveUpdatedDetails(inputBase64, url);
 
-        try {
-            switch (documentType) {
-                case "aadhar":
-                    extractedDetails = singzyServices.extractAadharDetails(urls, inputBase64.getDocumentId());
-                    break;
-
-                case "pan":
-                    extractedDetails = singzyServices.extractPanDetails(urls, inputBase64.getDocumentId());
-                    break;
-
-                case "voterId":
-                    extractedDetails = singzyServices.extractVoterIdDetails(urls, inputBase64.getDocumentId());
-                    break;
-                default:
-
-                    if (extractedDetails.get("code").equals("0000")) {
-                        deleteUnProcessRecord(inputBase64.getLoanNo());
-                        urls.forEach(url -> {
-                            saveUpdatedDetails(inputBase64, url);
-
-                        });
-                    }
-            }
-        } catch (Exception e) {
-            extractedDetails.put("code", "1111");
-            extractedDetails.put("msg", "Technical issue, please try again");
-            logger.error("Error extracting details: {}", e.getMessage());
+            });
         }
         return extractedDetails;
     }
@@ -197,7 +166,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         CommonResponse commonResponse = new CommonResponse();
         try {
             CustomerDataResponse customerDataResponse = fetchingDetails.getCustomerData(loanNo).get();
-            kycCustomerRepository.updateKycFlag(customerDataResponse.getLoanNumber());
+            kycCustomerRepository.updateExistingKycFlag(customerDataResponse.getLoanNumber());
             updateCustomerDetails(customerDataResponse, "N","aadhar");
             otpUtility.sendTextMsg(customerDataResponse.getPhoneNumber(), SmsTemplate.existingKyc); //otp send
             logger.info("Customer KYC flag updated successfully for loanNo: {}", loanNo);
@@ -256,16 +225,20 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 commonResponse.setMsg("File upload error, try again");
                 logger.info("file bucket url does not exist.");
             }
-            if (commonResponse.getCode().equals("0000")) {
-                updatedDetailRepository.updateKycStatus(customerDataResponse.getLoanNumber());
-                otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc);
-            }
         } catch (Exception e) {
             commonResponse.setCode("1111");
             commonResponse.setMsg("Technical error, try again");
             logger.info("Error while fetching customer data for loanNo: {}", loanNo);
         }
         return commonResponse;
+
+    }
+@Override
+    public void confirmationSmsAndUpdateKycStatus(String loanNo, String mobileNo) throws Exception {
+
+        updatedDetailRepository.updateKycStatus(loanNo);
+        otpUtility.sendTextMsg(mobileNo, SmsTemplate.updationKyc);
+        kycCustomerRepository.kycCustomerUpdate(loanNo);
 
     }
 
