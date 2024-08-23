@@ -24,6 +24,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.apache.commons.codec.binary.Base64;
@@ -46,9 +47,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Autowired
     private MaskDocumentNo maskDocumentAndFile;
     @Autowired
-    private AadharAndPanUtility singzyServices;
-    @Autowired
-    private AadharAndPanUtility externalApiServices;
+    private AadharAndPanUtility aadharAndPanUtility;
     @Autowired
     private DdfsUtility ddfsUtility;
     @Autowired
@@ -120,18 +119,18 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     @Override
-    public HashMap<String, String> callFileExchangeServices(InputBase64 inputBase64, CustomerDataResponse customerDataResponse) {
+    public HashMap<String, String> callFileExchangeServices(InputBase64 inputBase64) {
 
         HashMap<String, String> documentDetail = new HashMap<>();
         List<String> urls = new ArrayList<>();
         try {
 
             for (InputBase64.Base64Data base64 : inputBase64.getBase64Data()) {
-                documentDetail = singzyServices.convertBase64ToUrl(base64.getFileType(), base64.getBase64String());
+                documentDetail = aadharAndPanUtility.convertBase64ToUrl(base64.getFileType(), base64.getBase64String());
                 if (documentDetail.containsKey("code")) break;
                 urls.add(documentDetail.get("fileUrl"));
             }
-            documentDetail = (!urls.isEmpty()) ? callExtractionService(urls, inputBase64,customerDataResponse) : documentDetail;
+            documentDetail = (!urls.isEmpty()) ? callExtractionService(urls, inputBase64) : documentDetail;
         } catch (Exception e) {
 
             documentDetail.put("code", "1111");
@@ -141,18 +140,24 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     }
 
 
-    private HashMap<String, String> callExtractionService(List<String> urls, InputBase64 inputBase64, CustomerDataResponse customerDataResponse) {
+    private HashMap<String, String> callExtractionService(List<String> urls, InputBase64 inputBase64) {
         HashMap<String, String> extractedDetails = new HashMap<>();
         String documentType = inputBase64.getDocumentType();
 
         try {
             switch (documentType) {
                 case "aadhar":
-                    extractedDetails = singzyServices.extractAadharDetails(urls, inputBase64.getDocumentId());
+                    CompletableFuture<List<String>> maskedUrls=aadharAndPanUtility.maskAadhar(urls);
+                    extractedDetails = aadharAndPanUtility.extractAadharDetails(urls, inputBase64.getDocumentId());
+
+                   if(maskedUrls.isDone()) {
+                       urls.clear();
+                       urls.addAll(maskedUrls.get());
+                   }
                     break;
 
                 case "pan":
-                    extractedDetails = singzyServices.extractPanDetails(urls, inputBase64.getDocumentId(),customerDataResponse);
+                    extractedDetails = aadharAndPanUtility.extractPanDetails(urls, inputBase64.getDocumentId());
                     break;
                 default:
             }
@@ -277,7 +282,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             updatedDetails.setDdfsFlag("N");
             updatedDetails.setImageUrl(url);
             ddfsUploadRepository.save(updatedDetails);
-            logger.info("Updated details saved successfully for loanNo: {}", inputUpdatedDetails.getLoanNo());
+            logger.info("Updated details saved: {}", updatedDetails);
 
         } catch (Exception e) {
             logger.error("Error occurred while saving updated details for loanNo: {}", inputUpdatedDetails.getLoanNo(), e);

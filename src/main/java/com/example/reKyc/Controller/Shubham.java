@@ -35,11 +35,9 @@ public class Shubham {
         try {
 
             String documentType = inputParam.getDocumentType();
-            String documentId = inputParam.getDocumentId();
             CustomerDataResponse  customerDataResponse = fetchingDetails.getCustomerData(inputParam.getLoanNo()).get();
-            extractDetail = service.callFileExchangeServices(inputParam,customerDataResponse);
-
-            customerDataResponse.setAddressDetailsResidential(extractDetail.get("address"));
+            extractDetail = service.callFileExchangeServices(inputParam);
+            customerDataResponse.setAddressDetailsResidential(extractDetail.containsKey("address") ? extractDetail.get("address") :customerDataResponse.getAddressDetailsResidential());
             service.updateCustomerDetails(customerDataResponse, null,documentType);
             return ResponseEntity.ok(extractDetail);
 

@@ -12,7 +12,7 @@ public interface Service {
 
     HashMap<String,String> validateAndSendOtp(String loanNo);
     boolean otpValidation(String mobileNo, String otpCode, String loanNo);
-    HashMap<String,String> callFileExchangeServices(InputBase64 inputBase64, CustomerDataResponse customerDataResponse);
+    HashMap<String,String> callFileExchangeServices(InputBase64 inputBase64);
     CommonResponse updateCustomerKycFlag(String loanNo,String mobileNo);
     CommonResponse callDdfsService(UpdateAddress inputAddress, String loanNo);
     void confirmationSmsAndUpdateKycStatus(String loanNo, String mobileNo) throws Exception;

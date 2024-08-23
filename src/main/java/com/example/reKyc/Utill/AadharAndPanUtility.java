@@ -7,10 +7,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+
 @Service
 public class AadharAndPanUtility {
 
@@ -65,7 +68,7 @@ public class AadharAndPanUtility {
             if (responseOfBase64.getStatusCode() == HttpStatus.OK) {
 //                System.out.println(responseOfBase64.getBody().getFile().directURL);
                 String url = responseOfBase64.getBody().getFile().directURL;
-                urlResponse.put("fileUrl", maskAadhar(url));
+                urlResponse.put("fileUrl", url);
                 logger.info("Url converted to base64: ");
 
             } else {
@@ -129,7 +132,7 @@ public class AadharAndPanUtility {
         return addressPreview;
     }
 
-    public HashMap<String, String> extractPanDetails(List<String> urls, String documentId,CustomerDataResponse customerDataResponse) {
+    public HashMap<String, String> extractPanDetails(List<String> urls, String documentId) {
 
         HashMap<String, Object> inputBody = new HashMap<>();
         inputBody.put("files", urls);
@@ -153,7 +156,6 @@ public class AadharAndPanUtility {
                     panResponse.put("code", "0000");
                     panResponse.put("msg", "File extracted successfully");
                     panResponse.put("name", extractPanResponse.getBody().getResult().getName());
-                  panResponse.put("address", customerDataResponse.getAddressDetailsResidential());
                     panResponse.put("dateOfBirth", extractPanResponse.getBody().getResult().getDob());
                     panResponse.put("uid", extractPanResponse.getBody().getResult().getNumber());
                     logger.info("Extract pan details :");
@@ -173,33 +175,32 @@ public class AadharAndPanUtility {
         }
         return panResponse;
     }
-
-    private String maskAadhar(String unmaskedUrl) throws Exception {
-        List<String> urls = new ArrayList<>();
-        urls.add(unmaskedUrl);
+    @Async
+    public CompletableFuture<List<String>> maskAadhar(List<String> unmaskedUrl) throws Exception {
+        List<String> maskedUrls = new ArrayList<>();
         HashMap<String, Object> urlRequest = new HashMap<>();
-        urlRequest.put("urls", urls);
         urlRequest.put("requestType", true);
 
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", singzyAuthKey);
 
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(urlRequest, headers);
-        ResponseEntity<HashMap> maskingResponse = restTemplate.postForEntity(maskingUrl, requestEntity, HashMap.class);
+        for(int i=0;i<unmaskedUrl.size();i++){
+
+        ResponseEntity<HashMap> maskingResponse = restTemplate.postForEntity(unmaskedUrl.get(i), requestEntity, HashMap.class);
         if (maskingResponse.getStatusCode() == HttpStatus.OK) {
             Map<?, ?> maskedResponse = (Map<?, ?>) Objects.requireNonNull(maskingResponse.getBody()).get("result");
 
             if (maskedResponse.get("isMasked").equals("yes")) {
                 logger.info("Masking process completed");
-                urls.clear();
-                List<?> urls1= (List<?>) maskedResponse.get("maskedImages");
-                urls.add((String) urls1.get(0));
+                List<?> urls1 = (List<?>) maskedResponse.get("maskedImages");
+                maskedUrls.add((String) urls1.get(0));
             } else {
-                urls.clear();
                 logger.info("Masking process failed");
             }
         }
-        return  urls.get(0);
+        }
+        return CompletableFuture.completedFuture(maskedUrls);
 
     }
 
