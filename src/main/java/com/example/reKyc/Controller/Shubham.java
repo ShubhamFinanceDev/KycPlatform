@@ -4,6 +4,7 @@ import com.example.reKyc.Model.*;
 import com.example.reKyc.Service.LoanNoAuthentication;
 import com.example.reKyc.Service.Service;
 import com.example.reKyc.Utill.FetchingDetails;
+import com.example.reKyc.Utill.MaskDocumentNo;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 
 @RestController
@@ -28,6 +30,8 @@ public class Shubham {
     private LoanNoAuthentication loanNoAuthentication;
     @Autowired
     private FetchingDetails fetchingDetails;
+    @Autowired
+    private MaskDocumentNo maskDocumentNo;
 
     @PostMapping("/upload-preview")
     public ResponseEntity<?> handleRequest(@RequestBody @Valid InputBase64 inputParam) {     //convert base64 into url
@@ -35,10 +39,21 @@ public class Shubham {
         try {
 
             String documentType = inputParam.getDocumentType();
-            CustomerDataResponse  customerDataResponse = fetchingDetails.getCustomerData(inputParam.getLoanNo()).get();
+            CompletableFuture<CustomerDataResponse> customerDataResponse = fetchingDetails.getCustomerData(inputParam.getLoanNo());
             extractDetail = service.callFileExchangeServices(inputParam);
-            customerDataResponse.setAddressDetailsResidential(extractDetail.containsKey("address") ? extractDetail.get("address") :customerDataResponse.getAddressDetailsResidential());
-            service.updateCustomerDetails(customerDataResponse, null,documentType);
+            CustomerDataResponse customerDataResponse1=customerDataResponse.get();
+            System.out.println(customerDataResponse1);
+            if(extractDetail.get("code").equals("0000")) {
+                if (maskDocumentNo.compareDocumentNumber(customerDataResponse1, inputParam.getDocumentId(), extractDetail.get("documentType"))) {
+                    customerDataResponse1.setAddressDetailsResidential(extractDetail.containsKey("address") ? extractDetail.get("address") : customerDataResponse1.getAddressDetailsResidential());
+                    service.updateCustomerDetails(customerDataResponse1, null, documentType);
+                } else {
+                    extractDetail.clear();
+                    extractDetail.put("msg", "The document id is invalid.");
+                    extractDetail.put("code", "1111");
+
+                }
+            }
             return ResponseEntity.ok(extractDetail);
 
         } catch (Exception e) {

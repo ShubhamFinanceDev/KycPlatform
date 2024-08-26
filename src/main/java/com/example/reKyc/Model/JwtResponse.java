@@ -13,6 +13,7 @@ public class JwtResponse extends CommonResponse {
     private String panNo;
     private String address;
     private String loanNo;
+    private String voterIdNo;
 
     public JwtResponse() {
         this.jwtToken = "";

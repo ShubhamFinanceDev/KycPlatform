@@ -17,7 +17,7 @@ public static final String loanQuery="SELECT \n" +
         "    ON IC.\"Customer Number\" = AD.\"Customer Number\"\n" +
         "WHERE \n" +
         "    IC.\"Applicant Type\" = 'Primary Applicant' \n" +
-        "    AND IDE.\"IDENTIFICATION_TYPE\" = 'AAdhar_No' \n" +
+//        "    AND IDE.\"IDENTIFICATION_TYPE\" = 'AAdhar_No' \n" +
         "    AND AD.\"Addresstype\" = 'Residential Address' \n" +
         "    AND IDE.\"LOAN_ACCOUNT_NO\" =";
 

@@ -12,5 +12,6 @@ public class CustomerDataResponse  {
     private String panNumber;
     private String aadharNumber;
     private String phoneNumber;
+    private String voterIdNumber;
 
 }
