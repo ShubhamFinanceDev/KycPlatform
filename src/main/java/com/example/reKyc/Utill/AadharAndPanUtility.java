@@ -112,9 +112,9 @@ public class AadharAndPanUtility {
                         addressPreview.put("address", aadharResponse.getResult().getAddress());
                         addressPreview.put("dateOfBirth", aadharResponse.getResult().getDateOfBirth());
                         addressPreview.put("uid", aadharResponse.getResult().getUid());
-                        logger.info("Extracted Aadhar Details: ");
+                        logger.info("Extracted Aadhar Details {} ",addressPreview);
                     } else {
-                        addressPreview.put("msg", "The document ID number is incorrect.");
+                        addressPreview.put("msg", "The uploaded document is incorrect.");
                         addressPreview.put("code", "1111");
                     }
 
@@ -148,7 +148,6 @@ public class AadharAndPanUtility {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Authorization", singzyAuthKey);
             HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(inputBody, headers);
-//            System.out.println("request" + inputBody);
             ResponseEntity<PanCardResponse> extractPanResponse = restTemplate.postForEntity(extractPanUrl, requestEntity, PanCardResponse.class);
 
             if (extractPanResponse.getStatusCode() == HttpStatus.OK) {
@@ -156,16 +155,18 @@ public class AadharAndPanUtility {
                 if (maskDocumentAndFile.compareDocumentNumber(panCardResponse.getResult().getNumber(), documentId, "pan")) {
 
                     System.out.println("Response-" + extractPanResponse.getBody().getResult());
-                    System.out.println("staus" + extractPanResponse.getStatusCode());
+                    System.out.println("status" + extractPanResponse.getStatusCode());
                     panResponse.put("code", "0000");
                     panResponse.put("msg", "File extracted successfully");
                     panResponse.put("name", extractPanResponse.getBody().getResult().getName());
                     panResponse.put("dateOfBirth", extractPanResponse.getBody().getResult().getDob());
-                    panResponse.put("uid", extractPanResponse.getBody().getResult().getNumber());
-                    logger.info("Extract pan details :");
+                    String panNo=extractPanResponse.getBody().getResult().getNumber();
+                    panNo="******"+panNo.substring(panNo.length()-6);
+                    panResponse.put("uid", panNo);
+                    logger.info("Extracted pan details {}",panResponse);
                 } else {
                     panResponse.put("code", "1111");
-                    panResponse.put("msg", "File did not extracted, please try again");
+                    panResponse.put("msg", "The uploaded document is incorrect.");
                 }
             } else {
                 panResponse.put("code", "1111");
@@ -232,13 +233,14 @@ public class AadharAndPanUtility {
                     voterIdResponse.put("msg", "File extracted successfully");
                     voterIdResponse.put("name", (String) voterIdDetails.get("name"));
                     voterIdResponse.put("dateOfBirth", (String) voterIdDetails.get("dob"));
-                    voterIdResponse.put("uid", (String) voterIdDetails.get("epicNumber"));
-//                String address = (String) voterIdDetails.get("address");
+                    String voterIdNo=(String) voterIdDetails.get("epicNumber");
+                    voterIdNo="******"+voterIdNo.substring(voterIdNo.length()-6);
+                    voterIdResponse.put("uid", voterIdNo);
                     voterIdResponse.put("address", (String) voterIdDetails.get("address"));
 
                     logger.info("Extract voterId details {}", voterIdResponse);
                 }else {
-                    voterIdResponse.put("msg", "The document ID number is incorrect.");
+                    voterIdResponse.put("msg", "The uploaded document is incorrect.");
                     voterIdResponse.put("code", "1111");
                 }
             }
@@ -255,69 +257,5 @@ public class AadharAndPanUtility {
         }
         return voterIdResponse;
     }
-
-    @Async
-    public CompletableFuture<List<String>> maskVoterId(List<String> unmaskedUrl) throws Exception {
-        List<String> maskedUrls = new ArrayList<>();
-        HashMap<String, Object> urlRequest = new HashMap<>();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", singzyAuthKey);
-
-        for (String url : unmaskedUrl) {
-            List<String> unmaskedUrls1= new ArrayList<>();
-            unmaskedUrls1.add(url);
-            urlRequest.put("requestType", true);
-            urlRequest.put("urls", unmaskedUrls1);
-
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(urlRequest, headers);
-            ResponseEntity<HashMap> maskingResponse = restTemplate.postForEntity(maskingUrl, requestEntity, HashMap.class);
-            if (maskingResponse.getStatusCode() == HttpStatus.OK) {
-                Map<?, ?> maskedResponse = (Map<?, ?>) Objects.requireNonNull(maskingResponse.getBody()).get("result");
-
-                if (maskedResponse.get("isMasked").equals("yes")) {
-                    logger.info("Masking process completed");
-                    List<?> urls1 = (List<?>) maskedResponse.get("maskedImages");
-                    maskedUrls.add((String) urls1.get(0));
-                } else {
-                    logger.info("Masking process failed");
-                }
-
-            }
-        }
-        return CompletableFuture.completedFuture(maskedUrls);
-    }
-
-
-    @Async
-    public CompletableFuture<List<String>> maskPanCard(List<String> unmaskedUrl) throws Exception {
-        List<String> maskedUrls = new ArrayList<>();
-        HashMap<String, Object> urlRequest = new HashMap<>();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", singzyAuthKey);
-
-        for (String url : unmaskedUrl) {
-            List<String> unmaskedUrls1= new ArrayList<>();
-            unmaskedUrls1.add(url);
-            urlRequest.put("requestType", true);
-            urlRequest.put("urls", unmaskedUrls1);
-
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(urlRequest, headers);
-            ResponseEntity<HashMap> maskingResponse = restTemplate.postForEntity(maskingUrl, requestEntity, HashMap.class);
-            if (maskingResponse.getStatusCode() == HttpStatus.OK) {
-                Map<?, ?> maskedResponse = (Map<?, ?>) Objects.requireNonNull(maskingResponse.getBody()).get("result");
-
-                if (maskedResponse.get("isMasked").equals("yes")) {
-                    logger.info("Masking process completed");
-                    List<?> urls1 = (List<?>) maskedResponse.get("maskedImages");
-                    maskedUrls.add((String) urls1.get(0));
-                } else {
-                    logger.info("Masking process failed");
-                }
-
-            }
-        }
-        return CompletableFuture.completedFuture(maskedUrls);
-    }
-
 
 }

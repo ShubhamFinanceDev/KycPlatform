@@ -155,20 +155,11 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                     break;
 
                 case "pan":
-                    CompletableFuture<List<String>> maskedUrls2 = aadharAndPanUtility.maskPanCard(urls);
                     extractedDetails = aadharAndPanUtility.extractPanDetails(urls, inputBase64.getDocumentId());
-                    List<String> maskedUrlsResult2 = maskedUrls2.get();
-                    urls.clear();
-                    urls.addAll(maskedUrlsResult2);
                     break;
 
                 case "voterId":
-                    CompletableFuture<List<String>> maskedUrls1=aadharAndPanUtility.maskVoterId(urls);
-                    System.out.println(maskedUrls1.get());
                     extractedDetails=aadharAndPanUtility.extractVoterIdDetails(urls, inputBase64.getDocumentId());
-                    List<String> maskedUrlsResult1 = maskedUrls1.get();
-                    urls.clear();
-                    urls.addAll(maskedUrlsResult1);
                 default:
             }
             if ("0000".equals(extractedDetails.get("code"))) {
