@@ -152,7 +152,8 @@ public class AadharAndPanUtility {
             ResponseEntity<PanCardResponse> extractPanResponse = restTemplate.postForEntity(extractPanUrl, requestEntity, PanCardResponse.class);
 
             if (extractPanResponse.getStatusCode() == HttpStatus.OK) {
-                if (maskDocumentAndFile.compareDocumentNumber(extractPanResponse.getBody().getResult().getNumber(), documentId, "pan")) {
+                PanCardResponse panCardResponse = extractPanResponse.getBody();
+                if (maskDocumentAndFile.compareDocumentNumber(panCardResponse.getResult().getNumber(), documentId, "pan")) {
 
                     System.out.println("Response-" + extractPanResponse.getBody().getResult());
                     System.out.println("staus" + extractPanResponse.getStatusCode());
@@ -210,7 +211,7 @@ public class AadharAndPanUtility {
     }
 
 
-    public HashMap<String, String> extractVoterIdDetails(List<String> urls) {
+    public HashMap<String, String> extractVoterIdDetails(List<String> urls, String documentId) {
 
         HashMap<String, Object> inputBody = new HashMap<>();
         inputBody.put("urls", urls);
@@ -226,15 +227,20 @@ public class AadharAndPanUtility {
                 System.out.println("Response-" + voterIdExtractionResponse.getBody());
                 Map<?, ?> voterIdDetails = (Map<?, ?>) Objects.requireNonNull(voterIdExtractionResponse.getBody()).get("result");
 
-                voterIdResponse.put("code", "0000");
-                voterIdResponse.put("msg", "File extracted successfully");
-                voterIdResponse.put("name", (String) voterIdDetails.get("name"));
-                voterIdResponse.put("dateOfBirth", (String) voterIdDetails.get("dob"));
-                voterIdResponse.put("uid", (String) voterIdDetails.get("epicNumber"));
+                if (maskDocumentAndFile.compareDocumentNumber((String) voterIdDetails.get("epicNumber"), documentId, "voterId")) {
+                    voterIdResponse.put("code", "0000");
+                    voterIdResponse.put("msg", "File extracted successfully");
+                    voterIdResponse.put("name", (String) voterIdDetails.get("name"));
+                    voterIdResponse.put("dateOfBirth", (String) voterIdDetails.get("dob"));
+                    voterIdResponse.put("uid", (String) voterIdDetails.get("epicNumber"));
 //                String address = (String) voterIdDetails.get("address");
-                voterIdResponse.put("address", (String) voterIdDetails.get("address"));
+                    voterIdResponse.put("address", (String) voterIdDetails.get("address"));
 
-                logger.info("Extract voterId details {}", voterIdResponse);
+                    logger.info("Extract voterId details {}", voterIdResponse);
+                }else {
+                    voterIdResponse.put("msg", "The document ID number is incorrect.");
+                    voterIdResponse.put("code", "1111");
+                }
             }
             else
             {

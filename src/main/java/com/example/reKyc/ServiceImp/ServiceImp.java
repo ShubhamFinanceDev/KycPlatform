@@ -159,7 +159,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                     break;
 
                 case "voterId":
-                    extractedDetails=aadharAndPanUtility.extractVoterIdDetails(urls);
+                    extractedDetails=aadharAndPanUtility.extractVoterIdDetails(urls, inputBase64.getDocumentId());
                 default:
             }
             if ("0000".equals(extractedDetails.get("code"))) {
