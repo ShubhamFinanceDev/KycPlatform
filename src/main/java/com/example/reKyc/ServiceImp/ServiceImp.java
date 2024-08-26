@@ -14,7 +14,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -25,6 +24,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.apache.commons.codec.binary.Base64;
@@ -47,9 +47,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Autowired
     private MaskDocumentNo maskDocumentAndFile;
     @Autowired
-    private AadharAndPanUtility singzyServices;
-    @Autowired
-    private AadharAndPanUtility externalApiServices;
+    private AadharAndPanUtility aadharAndPanUtility;
     @Autowired
     private DdfsUtility ddfsUtility;
     @Autowired
@@ -128,7 +126,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         try {
 
             for (InputBase64.Base64Data base64 : inputBase64.getBase64Data()) {
-                documentDetail = singzyServices.convertBase64ToUrl(base64.getFileType(), base64.getBase64String());
+                documentDetail = aadharAndPanUtility.convertBase64ToUrl(base64.getFileType(), base64.getBase64String());
                 if (documentDetail.containsKey("code")) break;
                 urls.add(documentDetail.get("fileUrl"));
             }
@@ -143,16 +141,39 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     private HashMap<String, String> callExtractionService(List<String> urls, InputBase64 inputBase64) {
-        HashMap<String, String> extractedDetails;
-        extractedDetails = (inputBase64.getDocumentType().equals("aadhar") ? singzyServices.extractAadharDetails(urls, inputBase64.getDocumentId()) : singzyServices.extractPanDetails(urls, inputBase64.getDocumentId()));
+        HashMap<String, String> extractedDetails = new HashMap<>();
+        String documentType = inputBase64.getDocumentType();
 
-        if (extractedDetails.get("code").equals("0000")) {
-            deleteUnProcessRecord(inputBase64.getLoanNo());
-            urls.forEach(url -> {
-                saveUpdatedDetails(inputBase64, url);
+        try {
+            switch (documentType) {
+                case "aadhar":
+                    CompletableFuture<List<String>> maskedUrls=aadharAndPanUtility.maskAadhar(urls);
+                    extractedDetails = aadharAndPanUtility.extractAadharDetails(urls, inputBase64.getDocumentId());
+                     List<String> maskedUrlsResult = maskedUrls.get();
+                     urls.clear();
+                     urls.addAll(maskedUrlsResult);
+                    break;
 
-            });
+                case "pan":
+                    extractedDetails = aadharAndPanUtility.extractPanDetails(urls, inputBase64.getDocumentId());
+                    break;
+
+                case "voterId":
+                    extractedDetails=aadharAndPanUtility.extractVoterIdDetails(urls, inputBase64.getDocumentId());
+                default:
+            }
+            if ("0000".equals(extractedDetails.get("code"))) {
+                deleteUnProcessRecord(inputBase64.getLoanNo());
+                urls.forEach(url -> saveUpdatedDetails(inputBase64, url));
+            }
+
+        } catch (Exception e) {
+            extractedDetails.put("code", "1111");
+            extractedDetails.put("msg", "Technical issue, please try again");
+            logger.error("Error extracting details: {}", e.getMessage());
+
         }
+
         return extractedDetails;
     }
 
@@ -262,7 +283,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             updatedDetails.setDdfsFlag("N");
             updatedDetails.setImageUrl(url);
             ddfsUploadRepository.save(updatedDetails);
-            logger.info("Updated details saved successfully for loanNo: {}", inputUpdatedDetails.getLoanNo());
+            logger.info("Updated details saved: {}", updatedDetails);
 
         } catch (Exception e) {
             logger.error("Error occurred while saving updated details for loanNo: {}", inputUpdatedDetails.getLoanNo(), e);

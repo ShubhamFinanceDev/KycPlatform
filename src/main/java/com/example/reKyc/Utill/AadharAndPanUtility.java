@@ -7,10 +7,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+
 @Service
 public class AadharAndPanUtility {
 
@@ -36,6 +39,9 @@ public class AadharAndPanUtility {
     private String verifyOtpAadharUrl;
     @Value("${signzy.aadhar.maskingUrl}")
     private String maskingUrl;
+    @Value("${signzy.extraction.voterId}")
+    private String voterIdUrl;
+
     private final Logger logger = LoggerFactory.getLogger(DdfsUtility.class);
 
 
@@ -65,7 +71,7 @@ public class AadharAndPanUtility {
             if (responseOfBase64.getStatusCode() == HttpStatus.OK) {
 //                System.out.println(responseOfBase64.getBody().getFile().directURL);
                 String url = responseOfBase64.getBody().getFile().directURL;
-                urlResponse.put("fileUrl", maskAadhar(url));
+                urlResponse.put("fileUrl", url);
                 logger.info("Url converted to base64: ");
 
             } else {
@@ -98,7 +104,8 @@ public class AadharAndPanUtility {
             if (aadharResponseBody.getStatusCode() == HttpStatus.OK) {
                 AadharResponse aadharResponse = aadharResponseBody.getBody();
                 if (aadharResponse != null && !(aadharResponse.getResult().getUid().isBlank()) && !(aadharResponse.getResult().getName().isBlank()) && !(aadharResponse.getResult().getAddress().isBlank()) && aadharResponse.getResult().isValidBackAndFront()) {
-                    if (maskDocumentAndFile.compareDocumentNumber(aadharResponse.getResult().getUid(), documentId, "aadhar")) {
+                    String extractedIdNo = aadharResponse.getResult().getUid();
+                    if (extractedIdNo.substring(extractedIdNo.length()-8).equals(documentId)) {
 //                    System.out.println(aadharResponse);
                         addressPreview.put("code", "0000");
                         addressPreview.put("msg", "File extracted successfully");
@@ -106,10 +113,15 @@ public class AadharAndPanUtility {
                         addressPreview.put("address", aadharResponse.getResult().getAddress());
                         addressPreview.put("dateOfBirth", aadharResponse.getResult().getDateOfBirth());
                         addressPreview.put("uid", aadharResponse.getResult().getUid());
-                        logger.info("Extracted Aadhar Details: ");
+                        addressPreview.put("documentType", "aadhar");
+
+                        logger.info("Extracted Aadhar Details {} ",addressPreview);
                     } else {
-                        addressPreview.put("msg", "The document ID number is incorrect.");
+                        addressPreview.put("msg", "The uploaded document is incorrect.");
                         addressPreview.put("code", "1111");
+                        logger.warn("Uploaded document id {} is not equals to entered id  {}", extractedIdNo, documentId);
+
+
                     }
 
                 } else {
@@ -142,24 +154,28 @@ public class AadharAndPanUtility {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("Authorization", singzyAuthKey);
             HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(inputBody, headers);
-//            System.out.println("request" + inputBody);
             ResponseEntity<PanCardResponse> extractPanResponse = restTemplate.postForEntity(extractPanUrl, requestEntity, PanCardResponse.class);
 
             if (extractPanResponse.getStatusCode() == HttpStatus.OK) {
-                if (maskDocumentAndFile.compareDocumentNumber(extractPanResponse.getBody().getResult().getNumber(), documentId, "pan")) {
+                PanCardResponse panCardResponse = extractPanResponse.getBody();
+                if (panCardResponse != null && !(panCardResponse.getResult().getNumber().isBlank()) && !(panCardResponse.getResult().getDob().isBlank()))
+                    if (panCardResponse.getResult().getNumber().equals(documentId)) {
 
                     System.out.println("Response-" + extractPanResponse.getBody().getResult());
-                    System.out.println("staus" + extractPanResponse.getStatusCode());
+                    System.out.println("status" + extractPanResponse.getStatusCode());
                     panResponse.put("code", "0000");
                     panResponse.put("msg", "File extracted successfully");
                     panResponse.put("name", extractPanResponse.getBody().getResult().getName());
-//                  panResponse.put("address", aadharResponse.getResult().getAddress());
                     panResponse.put("dateOfBirth", extractPanResponse.getBody().getResult().getDob());
-                    panResponse.put("uid", extractPanResponse.getBody().getResult().getNumber());
-                    logger.info("Extract pan details :");
+                    String panNo=extractPanResponse.getBody().getResult().getNumber();
+                    panNo="******"+panNo.substring(panNo.length()-6);
+                    panResponse.put("uid", panNo);
+                    panResponse.put("documentType", "pan");
+                    logger.info("Extracted pan details {}",panResponse);
                 } else {
                     panResponse.put("code", "1111");
-                    panResponse.put("msg", "File did not extracted, please try again");
+                    panResponse.put("msg", "The uploaded document is incorrect.");
+                    logger.warn("Uploaded document id {} is not equals to entered id  {}", panCardResponse.getResult().getNumber(), documentId);
                 }
             } else {
                 panResponse.put("code", "1111");
@@ -173,35 +189,90 @@ public class AadharAndPanUtility {
         }
         return panResponse;
     }
-
-    private String maskAadhar(String unmaskedUrl) throws Exception {
-        List<String> urls = new ArrayList<>();
-        urls.add(unmaskedUrl);
+    @Async
+    public CompletableFuture<List<String>> maskAadhar(List<String> unmaskedUrl) throws Exception {
+        List<String> maskedUrls = new ArrayList<>();
         HashMap<String, Object> urlRequest = new HashMap<>();
-        urlRequest.put("urls", urls);
-        urlRequest.put("requestType", true);
-
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", singzyAuthKey);
 
-        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(urlRequest, headers);
-        ResponseEntity<HashMap> maskingResponse = restTemplate.postForEntity(maskingUrl, requestEntity, HashMap.class);
-        if (maskingResponse.getStatusCode() == HttpStatus.OK) {
-            Map<?, ?> maskedResponse = (Map<?, ?>) Objects.requireNonNull(maskingResponse.getBody()).get("result");
+        for (String url : unmaskedUrl) {
+            List<String> unmaskedUrls1= new ArrayList<>();
+            unmaskedUrls1.add(url);
+            urlRequest.put("requestType", true);
+            urlRequest.put("urls", unmaskedUrls1);
 
-            if (maskedResponse.get("isMasked").equals("yes")) {
-                logger.info("Masking process completed");
-                urls.clear();
-                List<?> urls1= (List<?>) maskedResponse.get("maskedImages");
-                urls.add((String) urls1.get(0));
-            } else {
-                urls.clear();
-                logger.info("Masking process failed");
-            }
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(urlRequest, headers);
+            ResponseEntity<HashMap> maskingResponse = restTemplate.postForEntity(maskingUrl, requestEntity, HashMap.class);
+            if (maskingResponse.getStatusCode() == HttpStatus.OK) {
+                Map<?, ?> maskedResponse = (Map<?, ?>) Objects.requireNonNull(maskingResponse.getBody()).get("result");
+
+                if (maskedResponse.get("isMasked").equals("yes")) {
+                    logger.info("Masking process completed");
+                    List<?> urls1 = (List<?>) maskedResponse.get("maskedImages");
+                    maskedUrls.add((String) urls1.get(0));
+                } else {
+                    logger.info("Masking process failed");
+                }
+
         }
-        return  urls.get(0);
-
+        }
+        return CompletableFuture.completedFuture(maskedUrls);
     }
 
+
+    public HashMap<String, String> extractVoterIdDetails(List<String> urls, String documentId) {
+
+        HashMap<String, Object> inputBody = new HashMap<>();
+        inputBody.put("urls", urls);
+        HashMap<String,String> voterIdResponse=new HashMap<>();
+        try {
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", singzyAuthKey);
+            HttpEntity<HashMap<String,Object>> requestEntity = new HttpEntity<>(inputBody, headers);
+
+            ResponseEntity<HashMap> voterIdExtractionResponse = restTemplate.postForEntity(voterIdUrl, requestEntity, HashMap.class);
+
+            if (voterIdExtractionResponse.getStatusCode() == HttpStatus.OK) {
+
+                System.out.println("Response-" + voterIdExtractionResponse.getBody());
+                Map<?, ?> voterIdDetails = (Map<?, ?>) Objects.requireNonNull(voterIdExtractionResponse.getBody()).get("result");
+
+                Map<?,?> extractedAddress = (Map<?, ?>) voterIdDetails.get("splitAddress");
+                String extractedPincode = (String) extractedAddress.get("pincode");
+                String extractedNo = (String) voterIdDetails.get("epicNumber");
+                if (extractedNo.equals(documentId)) {
+                    voterIdResponse.put("code", "0000");
+                    voterIdResponse.put("msg", "File extracted successfully");
+                    voterIdResponse.put("name", (String) voterIdDetails.get("name"));
+                    voterIdResponse.put("dateOfBirth", (String) voterIdDetails.get("dob"));
+                    extractedNo="******"+extractedNo.substring(extractedNo.length()-4
+                    );
+                    voterIdResponse.put("uid", extractedNo);
+                    voterIdResponse.put("address", (String) voterIdDetails.get("address"));
+                    voterIdResponse.put("pincode", extractedPincode);
+                    voterIdResponse.put("documentType", "voterId");
+
+                    logger.info("Extract voterId details {}", voterIdResponse);
+                }else {
+                    voterIdResponse.put("msg", "The uploaded document is incorrect.");
+                    voterIdResponse.put("code", "1111");
+                    logger.warn("Uploaded document id {} is not equals to entered id  {}.", documentId, extractedNo);
+
+                }
+            }
+            else
+            {
+                voterIdResponse.put("code", "1111");
+                voterIdResponse.put("msg", "Technical issue, please try again");
+            }
+
+        } catch (Exception e) {
+            voterIdResponse.put("code", "1111");
+            voterIdResponse.put("msg", "Technical issue, please try again");
+            logger.error("Error extracting voterId details :{}", e.getMessage());
+        }
+        return voterIdResponse;
+    }
 
 }
