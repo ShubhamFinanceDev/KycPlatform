@@ -256,5 +256,68 @@ public class AadharAndPanUtility {
         return voterIdResponse;
     }
 
+    @Async
+    public CompletableFuture<List<String>> maskVoterId(List<String> unmaskedUrl) throws Exception {
+        List<String> maskedUrls = new ArrayList<>();
+        HashMap<String, Object> urlRequest = new HashMap<>();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", singzyAuthKey);
+
+        for (String url : unmaskedUrl) {
+            List<String> unmaskedUrls1= new ArrayList<>();
+            unmaskedUrls1.add(url);
+            urlRequest.put("requestType", true);
+            urlRequest.put("urls", unmaskedUrls1);
+
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(urlRequest, headers);
+            ResponseEntity<HashMap> maskingResponse = restTemplate.postForEntity(maskingUrl, requestEntity, HashMap.class);
+            if (maskingResponse.getStatusCode() == HttpStatus.OK) {
+                Map<?, ?> maskedResponse = (Map<?, ?>) Objects.requireNonNull(maskingResponse.getBody()).get("result");
+
+                if (maskedResponse.get("isMasked").equals("yes")) {
+                    logger.info("Masking process completed");
+                    List<?> urls1 = (List<?>) maskedResponse.get("maskedImages");
+                    maskedUrls.add((String) urls1.get(0));
+                } else {
+                    logger.info("Masking process failed");
+                }
+
+            }
+        }
+        return CompletableFuture.completedFuture(maskedUrls);
+    }
+
+
+    @Async
+    public CompletableFuture<List<String>> maskPanCard(List<String> unmaskedUrl) throws Exception {
+        List<String> maskedUrls = new ArrayList<>();
+        HashMap<String, Object> urlRequest = new HashMap<>();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", singzyAuthKey);
+
+        for (String url : unmaskedUrl) {
+            List<String> unmaskedUrls1= new ArrayList<>();
+            unmaskedUrls1.add(url);
+            urlRequest.put("requestType", true);
+            urlRequest.put("urls", unmaskedUrls1);
+
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(urlRequest, headers);
+            ResponseEntity<HashMap> maskingResponse = restTemplate.postForEntity(maskingUrl, requestEntity, HashMap.class);
+            if (maskingResponse.getStatusCode() == HttpStatus.OK) {
+                Map<?, ?> maskedResponse = (Map<?, ?>) Objects.requireNonNull(maskingResponse.getBody()).get("result");
+
+                if (maskedResponse.get("isMasked").equals("yes")) {
+                    logger.info("Masking process completed");
+                    List<?> urls1 = (List<?>) maskedResponse.get("maskedImages");
+                    maskedUrls.add((String) urls1.get(0));
+                } else {
+                    logger.info("Masking process failed");
+                }
+
+            }
+        }
+        return CompletableFuture.completedFuture(maskedUrls);
+    }
+
 
 }
