@@ -166,7 +166,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
                 deleteUnProcessRecord(inputBase64.getLoanNo());
                 urls.forEach(url -> saveUpdatedDetails(inputBase64, url));
             }
-
+            logger.warn("extraction process completed {}." ,extractedDetails);
         } catch (Exception e) {
             extractedDetails.put("code", "1111");
             extractedDetails.put("msg", "Technical issue, please try again");

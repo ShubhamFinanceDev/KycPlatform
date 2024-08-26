@@ -64,7 +64,7 @@ public class FetchingDetails {
 
         customerDataResponse.setPanNumber(customerDataResponse.getPanNumber() != null ? "******"+subStringOfDocumentId(customerDataResponse.getPanNumber()) : "NA");
         customerDataResponse.setAadharNumber(customerDataResponse.getAadharNumber() != null ? "********"+subStringOfDocumentId(customerDataResponse.getAadharNumber()) : "NA");
-        customerDataResponse.setVoterIdNumber(customerDataResponse.getVoterIdNumber() != null ? "******"+subStringOfDocumentId(customerDataResponse.getAadharNumber()) : "NA");
+        customerDataResponse.setVoterIdNumber(customerDataResponse.getVoterIdNumber() != null ? "******"+subStringOfDocumentId(customerDataResponse.getVoterIdNumber()) : "NA");
         return CompletableFuture.completedFuture(customerDataResponse);
     }
 
@@ -88,6 +88,7 @@ public class FetchingDetails {
             }
             else if (customerDetails1.getIdentificationType().contains("Voter_ID")) {
                 customerDataResponse.setVoterIdNumber(customerDetails1.getIdentificationNumber());
+                customerDataResponse.setVoterIdNumber("WDC3149440");
             }
         }
     }

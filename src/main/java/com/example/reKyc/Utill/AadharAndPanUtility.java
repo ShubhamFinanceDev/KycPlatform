@@ -117,16 +117,16 @@ public class AadharAndPanUtility {
 
                         logger.info("Extracted Aadhar Details {} ",addressPreview);
                     } else {
-                        addressPreview.put("msg", "The uploaded document is incorrect.");
+                        addressPreview.put("msg", "The entered document-id is incorrect.");
                         addressPreview.put("code", "1111");
-                        logger.warn("Uploaded document id {} is not equals to entered id  {}", extractedIdNo, documentId);
+                        logger.warn("document id of aadhar {} is not equals to entered id  {}", extractedIdNo, documentId);
 
 
                     }
 
                 } else {
                     addressPreview.put("code", "1111");
-                    addressPreview.put("msg", "Uploaded file is not valid, please try again");
+                    addressPreview.put("msg", "The Uploaded document is not valid, please try again");
                 }
             } else {
                 addressPreview.put("code", "1111");
@@ -158,11 +158,19 @@ public class AadharAndPanUtility {
 
             if (extractPanResponse.getStatusCode() == HttpStatus.OK) {
                 PanCardResponse panCardResponse = extractPanResponse.getBody();
-                if (panCardResponse != null && !(panCardResponse.getResult().getNumber().isBlank()) && !(panCardResponse.getResult().getDob().isBlank()))
-                    if (panCardResponse.getResult().getNumber().equals(documentId)) {
 
-                    System.out.println("Response-" + extractPanResponse.getBody().getResult());
-                    System.out.println("status" + extractPanResponse.getStatusCode());
+                if (panCardResponse == null || (panCardResponse.getResult().getNumber().isBlank() || panCardResponse.getResult().getDob().isBlank())){
+                    panResponse.put("msg", "The uploaded document is invalid, please try again.");
+                    panResponse.put("code", "1111");
+                    return panResponse;
+                }
+                    if (!(panCardResponse.getResult().getNumber().equals(documentId))) {
+                        panResponse.put("code", "1111");
+                        panResponse.put("msg", "The entered document-id is incorrect.");
+                        logger.warn("document id of pan-card {} is not equals to entered id {}", panCardResponse.getResult().getNumber(), documentId);
+                        return panResponse;
+                    }
+
                     panResponse.put("code", "0000");
                     panResponse.put("msg", "File extracted successfully");
                     panResponse.put("name", extractPanResponse.getBody().getResult().getName());
@@ -172,11 +180,7 @@ public class AadharAndPanUtility {
                     panResponse.put("uid", panNo);
                     panResponse.put("documentType", "pan");
                     logger.info("Extracted pan details {}",panResponse);
-                } else {
-                    panResponse.put("code", "1111");
-                    panResponse.put("msg", "The uploaded document is incorrect.");
-                    logger.warn("Uploaded document id {} is not equals to entered id  {}", panCardResponse.getResult().getNumber(), documentId);
-                }
+
             } else {
                 panResponse.put("code", "1111");
                 panResponse.put("msg", "Technical issue, please try again");
@@ -235,31 +239,36 @@ public class AadharAndPanUtility {
 
             if (voterIdExtractionResponse.getStatusCode() == HttpStatus.OK) {
 
-                System.out.println("Response-" + voterIdExtractionResponse.getBody());
                 Map<?, ?> voterIdDetails = (Map<?, ?>) Objects.requireNonNull(voterIdExtractionResponse.getBody()).get("result");
-
                 Map<?,?> extractedAddress = (Map<?, ?>) voterIdDetails.get("splitAddress");
-                String extractedPincode = (String) extractedAddress.get("pincode");
+
+                String addressString=(String) voterIdDetails.get("address");
                 String extractedNo = (String) voterIdDetails.get("epicNumber");
-                if (extractedNo.equals(documentId)) {
+                if(addressString.isBlank() ||extractedNo.isBlank()) {
+
+                    voterIdResponse.put("msg", "The uploaded document is invalid, please try again.");
+                    voterIdResponse.put("code", "1111");
+                    return voterIdResponse;
+                }
+
+                if (!extractedNo.equals(documentId)) {
+
+                    voterIdResponse.put("code", "1111");
+                    voterIdResponse.put("msg", "The entered document-id is incorrect.");
+                    logger.warn("document id of voter-id {} is not equals to entered id  {}", voterIdResponse.get("epicNumber"), documentId);
+                    return voterIdResponse;
+                }
+                    String extractedPincode = (String) extractedAddress.get("pincode");
                     voterIdResponse.put("code", "0000");
                     voterIdResponse.put("msg", "File extracted successfully");
                     voterIdResponse.put("name", (String) voterIdDetails.get("name"));
                     voterIdResponse.put("dateOfBirth", (String) voterIdDetails.get("dob"));
-                    extractedNo="******"+extractedNo.substring(extractedNo.length()-4
-                    );
+                    extractedNo="******"+extractedNo.substring(extractedNo.length()-4);
                     voterIdResponse.put("uid", extractedNo);
-                    voterIdResponse.put("address", (String) voterIdDetails.get("address"));
+                    voterIdResponse.put("address", addressString+ (!extractedNo.isBlank() ? extractedPincode: ""));
                     voterIdResponse.put("pincode", extractedPincode);
                     voterIdResponse.put("documentType", "voterId");
-
                     logger.info("Extract voterId details {}", voterIdResponse);
-                }else {
-                    voterIdResponse.put("msg", "The uploaded document is incorrect.");
-                    voterIdResponse.put("code", "1111");
-                    logger.warn("Uploaded document id {} is not equals to entered id  {}.", documentId, extractedNo);
-
-                }
             }
             else
             {
