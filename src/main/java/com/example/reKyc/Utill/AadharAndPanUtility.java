@@ -238,6 +238,8 @@ public class AadharAndPanUtility {
                 System.out.println("Response-" + voterIdExtractionResponse.getBody());
                 Map<?, ?> voterIdDetails = (Map<?, ?>) Objects.requireNonNull(voterIdExtractionResponse.getBody()).get("result");
 
+                Map<?,?> extractedAddress = (Map<?, ?>) voterIdDetails.get("splitAddress");
+                String extractedPincode = (String) extractedAddress.get("pincode");
                 String extractedNo = (String) voterIdDetails.get("epicNumber");
                 if (extractedNo.equals(documentId)) {
                     voterIdResponse.put("code", "0000");
@@ -248,6 +250,7 @@ public class AadharAndPanUtility {
                     );
                     voterIdResponse.put("uid", extractedNo);
                     voterIdResponse.put("address", (String) voterIdDetails.get("address"));
+                    voterIdResponse.put("pincode", extractedPincode);
                     voterIdResponse.put("documentType", "voterId");
 
                     logger.info("Extract voterId details {}", voterIdResponse);
