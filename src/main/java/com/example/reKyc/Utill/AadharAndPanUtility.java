@@ -158,7 +158,8 @@ public class AadharAndPanUtility {
 
             if (extractPanResponse.getStatusCode() == HttpStatus.OK) {
                 PanCardResponse panCardResponse = extractPanResponse.getBody();
-                if (panCardResponse.getResult().getNumber().equals(documentId)) {
+                if (panCardResponse != null && !(panCardResponse.getResult().getNumber().isBlank()) && !(panCardResponse.getResult().getDob().isBlank()))
+                    if (panCardResponse.getResult().getNumber().equals(documentId)) {
 
                     System.out.println("Response-" + extractPanResponse.getBody().getResult());
                     System.out.println("status" + extractPanResponse.getStatusCode());
@@ -233,6 +234,7 @@ public class AadharAndPanUtility {
             ResponseEntity<HashMap> voterIdExtractionResponse = restTemplate.postForEntity(voterIdUrl, requestEntity, HashMap.class);
 
             if (voterIdExtractionResponse.getStatusCode() == HttpStatus.OK) {
+
                 System.out.println("Response-" + voterIdExtractionResponse.getBody());
                 Map<?, ?> voterIdDetails = (Map<?, ?>) Objects.requireNonNull(voterIdExtractionResponse.getBody()).get("result");
 
