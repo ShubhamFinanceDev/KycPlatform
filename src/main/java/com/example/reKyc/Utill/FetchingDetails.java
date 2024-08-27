@@ -88,7 +88,7 @@ public class FetchingDetails {
             }
             else if (customerDetails1.getIdentificationType().contains("Voter_ID")) {
                 customerDataResponse.setVoterIdNumber(customerDetails1.getIdentificationNumber());
-                customerDataResponse.setVoterIdNumber("WDC3149440");
+                customerDataResponse.setVoterIdNumber("NBP3984440");
             }
         }
     }
