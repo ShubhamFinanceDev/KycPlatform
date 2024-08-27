@@ -27,6 +27,6 @@ public interface KycCustomerRepository extends JpaRepository<KycCustomer,String>
    List<KycCustomer> findForSmsReminder();
    @Transactional
    @Modifying
-   @Query("update KycCustomer k set k.smsFlag = 'Y' where k.loanNumber =:loanNo")
+   @Query("update KycCustomer k set k.kycFlag = 'Y' where k.loanNumber =:loanNo")
    void kycCustomerUpdate(String loanNo);
 }
