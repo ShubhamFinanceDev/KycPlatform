@@ -105,7 +105,7 @@ public class AadharAndPanUtility {
                 AadharResponse aadharResponse = aadharResponseBody.getBody();
                 if (aadharResponse != null && !(aadharResponse.getResult().getUid().isBlank()) && !(aadharResponse.getResult().getName().isBlank()) && !(aadharResponse.getResult().getAddress().isBlank()) && aadharResponse.getResult().isValidBackAndFront()) {
                     String extractedIdNo = aadharResponse.getResult().getUid();
-                    if (extractedIdNo.substring(extractedIdNo.length()-8).equals(documentId)) {
+                    if (extractedIdNo.substring(extractedIdNo.length()-4).equals(documentId.substring(documentId.length()-4))) {
 //                    System.out.println(aadharResponse);
                         addressPreview.put("code", "0000");
                         addressPreview.put("msg", "File extracted successfully");
