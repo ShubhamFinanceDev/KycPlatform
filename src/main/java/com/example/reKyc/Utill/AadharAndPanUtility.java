@@ -266,7 +266,6 @@ public class AadharAndPanUtility {
                     extractedNo="******"+extractedNo.substring(extractedNo.length()-4);
                     voterIdResponse.put("uid", extractedNo);
                     voterIdResponse.put("address", addressString+ (!extractedNo.isBlank() ? extractedPincode: ""));
-                    voterIdResponse.put("pincode", extractedPincode);
                     voterIdResponse.put("documentType", "voterId");
                     logger.info("Extract voterId details {}", voterIdResponse);
             }
