@@ -65,13 +65,13 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             String mobileNo;
             Optional<KycCustomer> customer = kycCustomerRepository.getCustomer(loanNo);
                 if(customer.isPresent()) {
-                    List<CustomerDetails> customerDetailsList = fetchingDetails.getCustomerIdentification(loanNo).get().stream().filter(identification -> identification.getIdentificationType().contains("AAdhar_No")).collect(Collectors.toList());
-                    if(customerDetailsList.isEmpty()) {
-                        logger.warn("Identification type did not found for Loan number {}", loanNo);
-                        otpResponse.put("msg", "Loan no not found");
-                        otpResponse.put("code", "1111");
-                        return otpResponse;
-                    }
+//                    List<CustomerDetails> customerDetailsList = fetchingDetails.getCustomerIdentification(loanNo).get().stream().filter(identification -> identification.getIdentificationType().contains("AAdhar_No")).collect(Collectors.toList());
+//                    if(customerDetailsList.isEmpty()) {
+//                        logger.warn("Identification type did not found for Loan number {}", loanNo);
+//                        otpResponse.put("msg", "Loan no not found");
+//                        otpResponse.put("code", "1111");
+//                        return otpResponse;
+//                    }
                     mobileNo = customer.get().getMobileNo();
                     if (mobileNo != null && !mobileNo.isEmpty()) {
                         otpUtility.generateOtp(mobileNo, otpResponse);

@@ -42,16 +42,23 @@ public class Shubham {
             CompletableFuture<CustomerDataResponse> customerDataResponse = fetchingDetails.getCustomerData(inputParam.getLoanNo());
             extractDetail = service.callFileExchangeServices(inputParam);
             CustomerDataResponse customerDataResponse1=customerDataResponse.get();
-            System.out.println(customerDataResponse1);
-            if(extractDetail.get("code").equals("0000")) {
-                if (maskDocumentNo.compareDocumentNumber(customerDataResponse1, inputParam.getDocumentId(), extractDetail.get("documentType"))) {
-                    customerDataResponse1.setAddressDetailsResidential(extractDetail.containsKey("address") ? extractDetail.get("address") : customerDataResponse1.getAddressDetailsResidential());
-                    service.updateCustomerDetails(customerDataResponse1, null, documentType);
-                } else {
-                    extractDetail.clear();
-                    extractDetail.put("msg", "The document id is invalid.");
-                    extractDetail.put("code", "1111");
 
+            if(extractDetail.get("code").equals("0000")) {
+                if(!inputParam.getLoanNo().contains("_")) {
+                    if (maskDocumentNo.compareDocumentNumber(customerDataResponse1, inputParam.getDocumentId(), extractDetail.get("documentType"))) {
+                        customerDataResponse1.setAddressDetailsResidential(extractDetail.get("address"));
+                        service.updateCustomerDetails(customerDataResponse1, null, documentType);
+                    } else {
+                        extractDetail.clear();
+                        extractDetail.put("msg", "The document id is invalid.");
+                        extractDetail.put("code", "1111");
+
+                    }
+                }
+                else
+                {
+                    customerDataResponse1.setAddressDetailsResidential(extractDetail.get("address"));
+                    service.updateCustomerDetails(customerDataResponse1, null, documentType);
                 }
             }
             return ResponseEntity.ok(extractDetail);
