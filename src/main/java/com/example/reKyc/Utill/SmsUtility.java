@@ -96,7 +96,7 @@ public class SmsUtility {
             HashMap<String, String> otpResponse = restTemplate.getForObject(apiUrl, HashMap.class);
 
             if (otpResponse.get("status").equals("OK")) {
-                logger.info("Otp send successfully");
+                logger.info("Sms send successfully");
             }
         } catch (Exception e) {
             logger.error("Error while sending otp on mobile.");
