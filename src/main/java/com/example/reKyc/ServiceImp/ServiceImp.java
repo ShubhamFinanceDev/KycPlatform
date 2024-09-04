@@ -160,7 +160,10 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
                 case "voterId":
                     extractedDetails=aadharAndPanUtility.extractVoterIdDetails(urls, inputBase64.getDocumentId());
+                    break;
                 default:
+                    extractedDetails.put("code", "1111");
+                    extractedDetails.put("msg", "document type not supported");
             }
             if ("0000".equals(extractedDetails.get("code"))) {
                 deleteUnProcessRecord(inputBase64.getLoanNo());
