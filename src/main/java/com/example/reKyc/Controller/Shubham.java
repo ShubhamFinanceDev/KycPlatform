@@ -41,10 +41,9 @@ public class Shubham {
             String documentType = inputParam.getDocumentType();
             CompletableFuture<CustomerDataResponse> customerDataResponse = fetchingDetails.getCustomerData(inputParam.getLoanNo());
             extractDetail = service.callFileExchangeServices(inputParam);
-            CustomerDataResponse customerDataResponse1=customerDataResponse.get();
-
-            if(extractDetail.get("code").equals("0000")) {
-                if(!inputParam.getLoanNo().contains("_")) {
+            CustomerDataResponse customerDataResponse1 = customerDataResponse.get();
+            if (extractDetail.get("code").equals("0000")) {
+                if (!inputParam.getLoanNo().contains("_")) {
                     if (maskDocumentNo.compareDocumentNumber(customerDataResponse1, inputParam.getDocumentId(), extractDetail.get("documentType"))) {
                         customerDataResponse1.setAddressDetailsResidential(extractDetail.get("address"));
                         service.updateCustomerDetails(customerDataResponse1, null, documentType);
@@ -52,11 +51,8 @@ public class Shubham {
                         extractDetail.clear();
                         extractDetail.put("msg", "The document id is invalid.");
                         extractDetail.put("code", "1111");
-
                     }
-                }
-                else
-                {
+                } else {
                     customerDataResponse1.setAddressDetailsResidential(extractDetail.get("address"));
                     service.updateCustomerDetails(customerDataResponse1, null, documentType);
                 }
@@ -78,14 +74,12 @@ public class Shubham {
     public ResponseEntity<?> finalUpdate(@RequestBody @Valid UpdateAddress inputUpdateAddress) {
         CommonResponse commonResponse = new CommonResponse();
         try {
-            if(service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo()))
-            {
-                commonResponse = service.callDdfsService(inputUpdateAddress,inputUpdateAddress.getLoanNo());   // calls a service to update the address details
-                if(commonResponse.getCode().equals("0000")) {
+            if (service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo())) {
+                commonResponse = service.callDdfsService(inputUpdateAddress, inputUpdateAddress.getLoanNo());   // calls a service to update the address details
+                if (commonResponse.getCode().equals("0000")) {
                     service.confirmationSmsAndUpdateKycStatus(inputUpdateAddress.getLoanNo(), inputUpdateAddress.getMobileNo());
                 }
-            }
-            else{
+            } else {
                 commonResponse.setMsg("Loan no or Otp is not valid.");
                 commonResponse.setCode("1111");
             }
