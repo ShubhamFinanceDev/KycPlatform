@@ -75,9 +75,9 @@ public class Shubham {
         CommonResponse commonResponse = new CommonResponse();
         try {
             if (service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo())) {
-                commonResponse = service.callDdfsService(inputUpdateAddress, inputUpdateAddress.getLoanNo());   // calls a service to update the address details
+                commonResponse = service.callDdfsService(inputUpdateAddress, inputUpdateAddress.getLoanNo()); // calls a service to update the address details
                 if (commonResponse.getCode().equals("0000")) {
-                    service.confirmationSmsAndUpdateKycStatus(inputUpdateAddress.getLoanNo(), inputUpdateAddress.getMobileNo());
+                    service.confirmationSmsAndUpdateKycStatus(inputUpdateAddress.getLoanNo(), inputUpdateAddress.getMobileNo(),inputUpdateAddress.getApplicationNo());
                 }
             } else {
                 commonResponse.setMsg("Loan no or Otp is not valid.");

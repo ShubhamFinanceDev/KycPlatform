@@ -15,4 +15,8 @@ public interface DdfsUploadRepository extends JpaRepository<DdfsUpload,Long> {
 
     @Query("select dd from DdfsUpload dd where dd.ddfsFlag='N' or dd.fileName is not null AND dd.loanNo=:loanNo")
     List<DdfsUpload> deletePreviousDetail(String loanNo);
+    @Transactional
+    @Modifying
+    @Query("update DdfsUpload dd set dd.ddfsFlag = 'Y', dd.fileName=:applicationNo where dd.loanNo=:loanNo and dd.ddfsFlag='N' and dd.updatedDate=CURRENT DATE ")
+    void updateDDfsFlag(String applicationNo, String loanNo);
 }
