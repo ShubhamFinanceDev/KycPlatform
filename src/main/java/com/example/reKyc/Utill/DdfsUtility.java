@@ -119,7 +119,6 @@ public class DdfsUtility {
 
     public boolean executeApiCalls(List<String> bases64String, String applicationNo) throws Exception {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
-        System.out.println("url size"+bases64String.size());
         String ddfsKey=generateDDFSKey();
         boolean processingStatus=false;
         Callable<Boolean> task1 = () -> callDDFSApi(bases64String.get(0), applicationNo,ddfsKey);
