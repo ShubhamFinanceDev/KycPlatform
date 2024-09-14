@@ -31,7 +31,6 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .authorizeRequests().
                 requestMatchers("/shubham").authenticated().requestMatchers("/userKyc/**", "/admin/**","/actuator/health").permitAll()
-                .requestMatchers("/shubham/upload-preview").permitAll()
                 .anyRequest()
                 .authenticated()
                 .and().exceptionHandling(ex -> ex.authenticationEntryPoint(point))
