@@ -116,8 +116,8 @@ public class SmsUtility {
         return otpResponse;
     }
 
-    @Scheduled(cron = "0 0 0 10 * *")
-    public void reminderSmsOnMobileNo() {
+    @Scheduled(cron = "0 0 10 10 * *")
+    public void reminderSmsProcess() {
         try {
             List<KycCustomer> kycCustomers = kycCustomerRepository.findForSmsReminder();
 
@@ -128,7 +128,9 @@ public class SmsUtility {
                         sendTextMsg(mobileNo, SmsTemplate.lnkKyc);
                     }
                 }
-                byte[] excelData = generateFile(kycCustomers);
+
+                logger.info("Reminder sms sent to {} customer",kycCustomers.size());
+                byte[] excelData = generateFileForUnProcessLoans(kycCustomers);
                 sendSimpleMail(excelData);
 
             } else {
@@ -137,9 +139,12 @@ public class SmsUtility {
         } catch (Exception e) {
             logger.error("Technical issue: {}", e.getMessage(), e);
         }
+        finally {
+            logger.info("Reminder process has been completed.");
+        }
     }
 
-    public byte[] generateFile(List<KycCustomer> reportModels) throws IOException {
+    public byte[] generateFileForUnProcessLoans(List<KycCustomer> reportModels) throws IOException {
 
         XSSFWorkbook workbook = new XSSFWorkbook();
         XSSFSheet sheet = workbook.createSheet("Rekyc-Report");
