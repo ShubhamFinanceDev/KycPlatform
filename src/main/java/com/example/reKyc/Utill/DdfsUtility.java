@@ -5,10 +5,7 @@ import org.openxmlformats.schemas.drawingml.x2006.chart.CTRotY;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
@@ -19,10 +16,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.text.SimpleDateFormat;
-import java.util.Base64;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
+import java.util.*;
+import java.util.concurrent.*;
 
 @Component
 public class DdfsUtility {
@@ -85,12 +80,12 @@ public class DdfsUtility {
     }
 
 
-    public Boolean callDDFSApi(String base64String, String applicationNo) {
+    public Boolean callDDFSApi(String base64String, String applicationNo,String ddfsKey) {
         boolean status = false;
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         try {
 
-            formData.add("token", generateDDFSKey());
+            formData.add("token", ddfsKey);
             formData.add("clientId", "SHUBHAM/REKYC");
             formData.add("file", applicationNo);
             formData.add("subPath", "2024/APR");
@@ -107,7 +102,7 @@ public class DdfsUtility {
             HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formData, headers);
             ResponseEntity<HashMap> responseBody = restTemplate.postForEntity(ddfsUrl, requestEntity, HashMap.class);
 
-            if (responseBody.getStatusCode().toString().contains("200") && responseBody.getBody().get("status").toString().contains("SUCCESS")) {
+            if (responseBody.getStatusCode()== HttpStatus.OK && responseBody.getBody().get("status").toString().contains("SUCCESS")) {
 //                System.out.println("Response from the DDFS API: " + responseBody.getBody().get("status"));
                 logger.info("DDFS API Call Success");
                 status = true;
@@ -120,6 +115,43 @@ public class DdfsUtility {
         }
         return status;
     }
+
+
+    public boolean executeApiCalls(List<String> bases64String, String applicationNo) throws Exception {
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+        String ddfsKey=generateDDFSKey();
+        boolean processingStatus=false;
+        Callable<Boolean> task1 = () -> callDDFSApi(bases64String.get(0), applicationNo,ddfsKey);
+        Callable<Boolean> task2 = () -> callDDFSApi(bases64String.get(1), applicationNo,ddfsKey);
+
+
+        try {
+            Future<Boolean> future1 = executorService.submit(task1);
+            Future<Boolean> future2 = executorService.submit(task2);
+
+            Boolean result1 = future1.get(30, TimeUnit.SECONDS);  // Wait for task 1 to complete (timeout of 30 seconds)
+            Boolean result2 = future2.get(30, TimeUnit.SECONDS);  // Wait for task 2 to complete (timeout of 30 seconds)
+
+            if (result1 && result2) {
+                logger.info("Both API calls completed successfully.");
+                processingStatus=true;
+            } else if (!result1 && !result2) {
+                logger.error("Both API calls failed.");
+
+            } else if (!result1) {
+                logger.error("API call 1 failed.");
+            } else {
+                logger.error("API call 2 failed.");
+            }
+
+        } catch (Exception e) {
+            logger.error("Error in executing API calls simultaneously: {}", e.getMessage());
+        } finally {
+            executorService.shutdown();  // Always shut down the ExecutorService
+        }
+        return processingStatus;
+    }
+
 
 }
 

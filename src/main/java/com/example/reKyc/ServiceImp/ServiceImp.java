@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.sql.Date;
@@ -25,6 +24,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.apache.commons.codec.binary.Base64;
@@ -43,13 +43,11 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     @Autowired
     private DdfsUploadRepository ddfsUploadRepository;
     @Autowired
-    private OtpUtility otpUtility;
+    private SmsUtility otpUtility;
     @Autowired
     private MaskDocumentNo maskDocumentAndFile;
     @Autowired
-    private AadharAndPanUtility singzyServices;
-    @Autowired
-    private AadharAndPanUtility externalApiServices;
+    private AadharAndPanUtility aadharAndPanUtility;
     @Autowired
     private DdfsUtility ddfsUtility;
     @Autowired
@@ -66,33 +64,32 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         try {
             String mobileNo;
             Optional<KycCustomer> customer = kycCustomerRepository.getCustomer(loanNo);
-                if(customer.isPresent()) {
-                    List<CustomerDetails> customerDetailsList = fetchingDetails.getCustomerIdentification(loanNo).get().stream().filter(identification -> identification.getIdentificationType().contains("AAdhar_No")).collect(Collectors.toList());
-                    if(customerDetailsList.isEmpty()) {
-                        logger.warn("Identification type did not found for Loan number {}", loanNo);
-                        otpResponse.put("msg", "Loan no not found");
-                        otpResponse.put("code", "1111");
+            if (customer.isPresent()) {
+//                    List<CustomerDetails> customerDetailsList = fetchingDetails.getCustomerIdentification(loanNo).get().stream().filter(identification -> identification.getIdentificationType().contains("AAdhar_No")).collect(Collectors.toList());
+//                    if(customerDetailsList.isEmpty()) {
+//                        logger.warn("Identification type did not found for Loan number {}", loanNo);
+//                        otpResponse.put("msg", "Loan no not found");
+//                        otpResponse.put("code", "1111");
+//                        return otpResponse;
+//                    }
+                mobileNo = customer.get().getMobileNo();
+                if (mobileNo != null && !mobileNo.isEmpty()) {
+                    otpUtility.generateOtp(mobileNo, otpResponse);
+                    if (!otpResponse.containsKey("otpCode")) {
                         return otpResponse;
                     }
-                    mobileNo = customer.get().getMobileNo();
-                    if (mobileNo != null && !mobileNo.isEmpty()) {
-                        otpUtility.generateOtp(mobileNo, otpResponse);
-                        if (!otpResponse.containsKey("otpCode")) {
-                            return otpResponse;
-                        }
-                        return otpUtility.sendOtp(mobileNo, otpResponse.get("otpCode"), loanNo);
-                    } else {
-                        logger.warn("Failed to send OTP for loanNo: {}", loanNo);
-                        otpResponse.put("msg", "Please try again");
-                        otpResponse.put("code", "1111");
-                    }
-                }
-                else {
-                    logger.warn("Loan number {} not found", loanNo);
-                    otpResponse.put("msg", "Loan no not found");
+                    return otpUtility.sendOtp(mobileNo, otpResponse.get("otpCode"), loanNo);
+                } else {
+                    logger.warn("Failed to send OTP for loanNo: {}", loanNo);
+                    otpResponse.put("msg", "Please try again");
                     otpResponse.put("code", "1111");
-                    return otpResponse;
                 }
+            } else {
+                logger.warn("Loan number {} not found", loanNo);
+                otpResponse.put("msg", "Loan no not found");
+                otpResponse.put("code", "1111");
+                return otpResponse;
+            }
         } catch (Exception e) {
             logger.error("Error while sending OTP for loanNo: {}", loanNo, e);
             otpResponse.put("msg", "Technical issue.");
@@ -128,7 +125,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         try {
 
             for (InputBase64.Base64Data base64 : inputBase64.getBase64Data()) {
-                documentDetail = singzyServices.convertBase64ToUrl(base64.getFileType(), base64.getBase64String());
+                documentDetail = aadharAndPanUtility.convertBase64ToUrl(base64.getFileType(), base64.getBase64String());
                 if (documentDetail.containsKey("code")) break;
                 urls.add(documentDetail.get("fileUrl"));
             }
@@ -143,16 +140,42 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     private HashMap<String, String> callExtractionService(List<String> urls, InputBase64 inputBase64) {
-        HashMap<String, String> extractedDetails;
-        extractedDetails = (inputBase64.getDocumentType().equals("aadhar") ? singzyServices.extractAadharDetails(urls, inputBase64.getDocumentId()) : singzyServices.extractPanDetails(urls, inputBase64.getDocumentId()));
+        HashMap<String, String> extractedDetails = new HashMap<>();
+        String documentType = inputBase64.getDocumentType();
 
-        if (extractedDetails.get("code").equals("0000")) {
-            deleteUnProcessRecord(inputBase64.getLoanNo());
-            urls.forEach(url -> {
-                saveUpdatedDetails(inputBase64, url);
+        try {
+            switch (documentType) {
+                case "aadhar":
+                    CompletableFuture<List<String>> maskedUrls = aadharAndPanUtility.maskAadhar(urls);
+                    extractedDetails = aadharAndPanUtility.extractAadharDetails(urls, inputBase64.getDocumentId());
+                    List<String> maskedUrlsResult = maskedUrls.get();
+                    urls.clear();
+                    urls.addAll(maskedUrlsResult);
+                    break;
 
-            });
+                case "pan":
+                    extractedDetails = aadharAndPanUtility.extractPanDetails(urls, inputBase64.getDocumentId());
+                    break;
+
+                case "voterId":
+                    extractedDetails = aadharAndPanUtility.extractVoterIdDetails(urls, inputBase64.getDocumentId());
+                    break;
+                default:
+                    extractedDetails.put("code", "1111");
+                    extractedDetails.put("msg", "document type not supported");
+            }
+            if ("0000".equals(extractedDetails.get("code"))) {
+                deleteUnProcessRecord(inputBase64.getLoanNo());
+                urls.forEach(url -> saveUpdatedDetails(inputBase64, url));
+            }
+            logger.warn("extraction process completed {}.", extractedDetails);
+        } catch (Exception e) {
+            extractedDetails.put("code", "1111");
+            extractedDetails.put("msg", "Technical issue, please try again");
+            logger.error("Error extracting details: {}", e.getMessage());
+
         }
+
         return extractedDetails;
     }
 
@@ -166,8 +189,8 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         CommonResponse commonResponse = new CommonResponse();
         try {
             CustomerDataResponse customerDataResponse = fetchingDetails.getCustomerData(loanNo).get();
-            kycCustomerRepository.updateKycFlag(customerDataResponse.getLoanNumber());
-            updateCustomerDetails(customerDataResponse, "N","aadhar");
+            kycCustomerRepository.updateExistingKycFlag(customerDataResponse.getLoanNumber());
+            updateCustomerDetails(customerDataResponse, "N", "aadhar");
             otpUtility.sendTextMsg(customerDataResponse.getPhoneNumber(), SmsTemplate.existingKyc); //otp send
             logger.info("Customer KYC flag updated successfully for loanNo: {}", loanNo);
 
@@ -185,34 +208,22 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
         logger.info("Calling ddfs service for applicationNO: {}", loanNo);
         CommonResponse commonResponse = new CommonResponse();
         try {
-            CustomerDataResponse customerDataResponse = fetchingDetails.getCustomerData(loanNo).get();
             List<DdfsUpload> ddfsUploads = ddfsUploadRepository.getImageUrl(inputAddress.getLoanNo());
-            if (!ddfsUploads.isEmpty() && customerDataResponse.getApplicationNumber() != null) {
-
+            Optional<UpdatedDetails> updatedDetails=updatedDetailRepository.findById(loanNo);
+            if (!ddfsUploads.isEmpty() && updatedDetails.isPresent()) {
+                List<String> base64StringList = new ArrayList<>();
+                inputAddress.setApplicationNo(updatedDetails.get().getApplicationNumber());
                 for (DdfsUpload result : ddfsUploads) {
                     String imageUrl = result.getImageUrl();
                     try {
-
                         InputStream inputStream = new URL(imageUrl).openStream();
 
                         byte[] imageBytes = IOUtils.toByteArray(inputStream);
-
                         String base64String = Base64.encodeBase64String(imageBytes);
                         inputStream.close();
-                        if (ddfsUtility.callDDFSApi(base64String, customerDataResponse.getApplicationNumber())) {
-                            result.setFileName(customerDataResponse.getApplicationNumber());
-                            result.setDdfsFlag("Y");
-                            ddfsUploadRepository.save(result);
-                        } else {
-                            commonResponse.setCode("1111");
-                            commonResponse.setMsg("File upload error, try again");
-                            break;
-
-                        }
-                        logger.info("DDFS service call successfully for applicationNO: {}", customerDataResponse.getApplicationNumber());
-
+                        base64StringList.add(base64String);
                     } catch (Exception e) {
-                        logger.error("Error occurred while calling ddfs service for applicationNO: {}", customerDataResponse.getApplicationNumber(), e);
+                        logger.error("Error occurred while calling ddfs service for applicationNO: {}",updatedDetails.get().getApplicationNumber(), e);
                         System.out.println(e);
                         commonResponse.setCode("1111");
                         commonResponse.setMsg("File upload error, try again");
@@ -220,14 +231,18 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
                     }
                 }
+
+                if (!ddfsUtility.executeApiCalls(base64StringList,updatedDetails.get().getApplicationNumber())) {
+                    commonResponse.setCode("1111");
+                    commonResponse.setMsg("File upload error, try again");
+                    logger.info("Error occurred while calling ddfs service");
+
+                }
+
             } else {
                 commonResponse.setCode("1111");
                 commonResponse.setMsg("File upload error, try again");
                 logger.info("file bucket url does not exist.");
-            }
-            if (commonResponse.getCode().equals("0000")) {
-                updatedDetailRepository.updateKycStatus(customerDataResponse.getLoanNumber());
-                otpUtility.sendTextMsg(inputAddress.getMobileNo(), SmsTemplate.updationKyc);
             }
         } catch (Exception e) {
             commonResponse.setCode("1111");
@@ -235,6 +250,17 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             logger.info("Error while fetching customer data for loanNo: {}", loanNo);
         }
         return commonResponse;
+
+    }
+
+    @Override
+    public void confirmationSmsAndUpdateKycStatus(String loanNo, String mobileNo,String applicationNo) throws Exception {
+
+        ddfsUploadRepository.updateDDfsFlag(applicationNo,loanNo);
+        updatedDetailRepository.updateKycStatus(loanNo);
+        kycCustomerRepository.kycCustomerUpdate(loanNo);
+        otpUtility.sendTextMsg(mobileNo, SmsTemplate.updationKyc);
+
 
     }
 
@@ -258,7 +284,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             updatedDetails.setDdfsFlag("N");
             updatedDetails.setImageUrl(url);
             ddfsUploadRepository.save(updatedDetails);
-            logger.info("Updated details saved successfully for loanNo: {}", inputUpdatedDetails.getLoanNo());
+            logger.info("Updated details saved: {}", updatedDetails);
 
         } catch (Exception e) {
             logger.error("Error occurred while saving updated details for loanNo: {}", inputUpdatedDetails.getLoanNo(), e);
@@ -295,7 +321,7 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
     }
 
 
-    public void updateCustomerDetails(CustomerDataResponse loanDetails, String status,String documentType) {
+    public void updateCustomerDetails(CustomerDataResponse loanDetails, String status, String documentType) {
 
         UpdatedDetails updatedDetails = new UpdatedDetails();
         updatedDetails.setLoanNumber(loanDetails.getLoanNumber());

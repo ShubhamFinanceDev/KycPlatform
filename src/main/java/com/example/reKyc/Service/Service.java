@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 
 public interface Service {
 
@@ -16,8 +15,9 @@ public interface Service {
     HashMap<String,String> callFileExchangeServices(InputBase64 inputBase64);
     CommonResponse updateCustomerKycFlag(String loanNo,String mobileNo);
     CommonResponse callDdfsService(UpdateAddress inputAddress, String loanNo);
+    void confirmationSmsAndUpdateKycStatus(String loanNo, String mobileNo,String applicationNo) throws Exception;
     KycCountUpload kycCount();
-     void updateCustomerDetails(CustomerDataResponse loanDetails, String status,String documentType);
+    void updateCustomerDetails(CustomerDataResponse loanDetails, String status,String documentType);
     CustomerDetails loanDetails(String loanNo);
     List<UpdatedDetails> getReportDataList();
     void generateExcel(HttpServletResponse response, List<UpdatedDetails> reportList);

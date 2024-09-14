@@ -17,4 +17,5 @@ public class UpdateAddress {
     private String mobileNo;
     @NotNull
     private String otpCode;
+    private String applicationNo;
 }

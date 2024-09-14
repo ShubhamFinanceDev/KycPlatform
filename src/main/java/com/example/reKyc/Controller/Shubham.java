@@ -1,11 +1,10 @@
 package com.example.reKyc.Controller;
 
-import com.example.reKyc.Entity.CustomerDetails;
 import com.example.reKyc.Model.*;
 import com.example.reKyc.Service.LoanNoAuthentication;
 import com.example.reKyc.Service.Service;
 import com.example.reKyc.Utill.FetchingDetails;
-import com.example.reKyc.Utill.OtpUtility;
+import com.example.reKyc.Utill.MaskDocumentNo;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,9 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -33,6 +30,8 @@ public class Shubham {
     private LoanNoAuthentication loanNoAuthentication;
     @Autowired
     private FetchingDetails fetchingDetails;
+    @Autowired
+    private MaskDocumentNo maskDocumentNo;
 
     @PostMapping("/upload-preview")
     public ResponseEntity<?> handleRequest(@RequestBody @Valid InputBase64 inputParam) {     //convert base64 into url
@@ -40,13 +39,24 @@ public class Shubham {
         try {
 
             String documentType = inputParam.getDocumentType();
-            String documentId = inputParam.getDocumentId();
-            CustomerDataResponse  customerDataResponse = fetchingDetails.getCustomerData(inputParam.getLoanNo()).get();
-            System.out.println("call");
+            CompletableFuture<CustomerDataResponse> customerDataResponse = fetchingDetails.getCustomerData(inputParam.getLoanNo());
             extractDetail = service.callFileExchangeServices(inputParam);
-
-            customerDataResponse.setAddressDetailsResidential(extractDetail.get("address"));
-            service.updateCustomerDetails(customerDataResponse, null,documentType);
+            CustomerDataResponse customerDataResponse1 = customerDataResponse.get();
+            if (extractDetail.get("code").equals("0000")) {
+                if (!inputParam.getLoanNo().contains("_")) {
+                    if (maskDocumentNo.compareDocumentNumber(customerDataResponse1, inputParam.getDocumentId(), extractDetail.get("documentType"))) {
+                        customerDataResponse1.setAddressDetailsResidential(extractDetail.get("address"));
+                        service.updateCustomerDetails(customerDataResponse1, null, documentType);
+                    } else {
+                        extractDetail.clear();
+                        extractDetail.put("msg", "The document id is invalid.");
+                        extractDetail.put("code", "1111");
+                    }
+                } else {
+                    customerDataResponse1.setAddressDetailsResidential(extractDetail.get("address"));
+                    service.updateCustomerDetails(customerDataResponse1, null, documentType);
+                }
+            }
             return ResponseEntity.ok(extractDetail);
 
         } catch (Exception e) {
@@ -64,11 +74,12 @@ public class Shubham {
     public ResponseEntity<?> finalUpdate(@RequestBody @Valid UpdateAddress inputUpdateAddress) {
         CommonResponse commonResponse = new CommonResponse();
         try {
-            if(service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo()))
-            {
-                commonResponse = service.callDdfsService(inputUpdateAddress,inputUpdateAddress.getLoanNo());   // calls a service to update the address details
-            }
-            else{
+            if (service.otpValidation(inputUpdateAddress.getMobileNo(), inputUpdateAddress.getOtpCode(), inputUpdateAddress.getLoanNo())) {
+                commonResponse = service.callDdfsService(inputUpdateAddress, inputUpdateAddress.getLoanNo()); // calls a service to update the address details
+                if (commonResponse.getCode().equals("0000")) {
+                    service.confirmationSmsAndUpdateKycStatus(inputUpdateAddress.getLoanNo(), inputUpdateAddress.getMobileNo(),inputUpdateAddress.getApplicationNo());
+                }
+            } else {
                 commonResponse.setMsg("Loan no or Otp is not valid.");
                 commonResponse.setCode("1111");
             }

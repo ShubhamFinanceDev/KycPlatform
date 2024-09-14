@@ -52,18 +52,19 @@ public class FetchingDetails {
             customerIdentificationDetails= getCustomerIdentification(loanNo).get();
             List<CustomerDetails> customerDetails = customerDetailsRepository.getLoanDetails(loanNo);
             if (!customerDetails.isEmpty() && !customerIdentificationDetails.isEmpty()) {
-                logger.info("Data fetched successfully.");
+                logger.info("Data fetched successfully from old records");
                 saveCustomerData(customerDataResponse,customerDetails.get(0),customerIdentificationDetails);
             }
         } else {
             String jdbcQuery = Query.loanQuery.concat("'" + loanNo + "'");
             customerIdentificationDetails = jdbcTemplate.query(jdbcQuery, new BeanPropertyRowMapper<>(CustomerDetails.class));
-            logger.info("Data fetched successfully.");
+            logger.info("Data fetched successfully from main table");
             saveCustomerData(customerDataResponse,customerIdentificationDetails.get(0),customerIdentificationDetails);
         }
 
-        customerDataResponse.setPanNumber(customerDataResponse.getPanNumber() != null ? maskDocumentNo.documentNoEncryption(customerDataResponse.getPanNumber()) : "NA");
-        customerDataResponse.setAadharNumber(customerDataResponse.getAadharNumber() != null ? maskDocumentNo.documentNoEncryption(customerDataResponse.getAadharNumber()) : "NA");
+        customerDataResponse.setPanNumber(customerDataResponse.getPanNumber() != null ? "******"+subStringOfDocumentId(customerDataResponse.getPanNumber()) : "NA");
+        customerDataResponse.setAadharNumber(customerDataResponse.getAadharNumber() != null ? "********"+subStringOfDocumentId(customerDataResponse.getAadharNumber()) : "NA");
+        customerDataResponse.setVoterIdNumber(customerDataResponse.getVoterIdNumber() != null ? "******"+subStringOfDocumentId(customerDataResponse.getVoterIdNumber()) : "NA");
         return CompletableFuture.completedFuture(customerDataResponse);
     }
 
@@ -71,18 +72,28 @@ public class FetchingDetails {
         customerDataResponse.setCustomerName(customerDetails.getCustomerName());
         customerDataResponse.setLoanNumber(customerDetails.getLoanAccountNo());
         customerDataResponse.setApplicationNumber(customerDetails.getApplicationNumber());
-            customerDataResponse.setPhoneNumber(customerIdentificationDetails.get(0).getPhoneNumber());
-//        customerDataResponse.setPhoneNumber("8160041657");
+//            customerDataResponse.setPhoneNumber(customerIdentificationDetails.get(0).getPhoneNumber());
+        customerDataResponse.setPhoneNumber("8160041657");
         customerDataResponse.setAddressDetailsResidential(customerDetails.getResidentialAddress());
 
         for (CustomerDetails customerDetails1 : customerIdentificationDetails) {
 
             if (customerDetails1.getIdentificationType().contains("PAN")) {
-                customerDataResponse.setPanNumber(customerDetails1.getIdentificationNumber());
+//                customerDataResponse.setPanNumber(customerDetails1.getIdentificationNumber());
+                customerDataResponse.setPanNumber("DMCPR9699D");
+
             } else if (customerDetails1.getIdentificationType().contains("AAdhar_No")) {
-                    customerDataResponse.setAadharNumber(customerDetails1.getIdentificationNumber());
-//                customerDataResponse.setAadharNumber("390920211147");
+//                    customerDataResponse.setAadharNumber(customerDetails1.getIdentificationNumber());
+                customerDataResponse.setAadharNumber("390920211147");
+            }
+            else if (customerDetails1.getIdentificationType().contains("Voter_ID")) {
+                customerDataResponse.setVoterIdNumber(customerDetails1.getIdentificationNumber());
+                customerDataResponse.setVoterIdNumber("NBP3984440");
             }
         }
+    }
+
+    private String subStringOfDocumentId(String documentNo) {
+        return documentNo.substring(documentNo.length()-4);
     }
 }

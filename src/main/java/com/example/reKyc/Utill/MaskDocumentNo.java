@@ -1,46 +1,38 @@
 package com.example.reKyc.Utill;
 
 
+import com.example.reKyc.Model.CustomerDataResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
 @Component
 public class MaskDocumentNo {
 
+    private final Logger logger = LoggerFactory.getLogger(MaskDocumentNo.class);
 
-
-    public String documentNoEncryption(String documentNo) {
-
-        String documentEncrypt = "";
-        for (int i = 0; i < documentNo.length() - 4; i++) {
-            documentEncrypt = documentEncrypt + "*";
-
-        }
-        String subString = documentNo.substring(documentNo.length() - 4, documentNo.length());
-        documentEncrypt = documentEncrypt + subString;
-
-        return documentEncrypt;
-    }
-
-    public boolean compareDocumentNumber(String extractedId, String documentId, String documentType) {
-
-        String subExtractedId = extractedId.substring(extractedId.length() - 4, extractedId.length());
+    public boolean compareDocumentNumber(CustomerDataResponse customerDataResponse,String documentId, String documentType) {
 
         boolean comparison = false;
-        if (documentType.equals("aadhar")) {
-            String aadharNo = documentId.substring(documentId.length() - 4, documentId.length());
-            if (aadharNo.equals(subExtractedId)) {
-                comparison = true;
-            }
-        } else {
-            if (extractedId.equals(documentId)) {
-                comparison = true;
-            }
+        documentId=documentId.substring(documentId.length()-4);
+
+        switch (documentType)
+        {
+            case "pan":
+
+                comparison= customerDataResponse.getPanNumber().substring(customerDataResponse.getPanNumber().length()-4).equals(documentId);
+                break;
+            case "aadhar":
+                comparison= customerDataResponse.getAadharNumber().substring(customerDataResponse.getAadharNumber().length()-4).equals(documentId);
+                break;
+            case "voterId":
+                comparison= customerDataResponse.getVoterIdNumber().substring(customerDataResponse.getVoterIdNumber().length()-4).equals(documentId);
+            break;
         }
+
         return comparison;
-
-    }
-
-
+}
 }
 
 

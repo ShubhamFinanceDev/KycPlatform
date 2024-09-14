@@ -90,6 +90,7 @@ public class User {
             jwtResponse.setName(kycCustomer.getCustomerName());
             jwtResponse.setPanNo(kycCustomer.getPanNumber());
             jwtResponse.setAadharNo(kycCustomer.getAadharNumber());
+            jwtResponse.setVoterIdNo(kycCustomer.getVoterIdNumber());
             jwtResponse.setLoanNo(request.getLoanNo());
             return ResponseEntity.ok(jwtResponse);
         } catch (Exception e) {
