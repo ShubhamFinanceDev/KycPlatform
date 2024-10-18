@@ -90,7 +90,7 @@ public class SmsUtility {
     @Async
     public void sendTextMsg(String mobileNo, String body) {
 
-        String apiUrl = otpUrl + "?method=" + otpMethod + "&api_key=" + otpKey + "&to=" + mobileNo + "&sender=" + otpSender + "&message=" + body + "&format=" + otpFormat + "&unicode=auto";
+        String apiUrl = otpUrl + "?method=" + otpMethod + "&api_key=" + otpKey + "&to=" + mobileNo + "&sender=" + otpSender + "&message=" + body + "&format=" + otpFormat + "&unicode=auto&shortUrl=1";
         try {
             RestTemplate restTemplate = new RestTemplate();
             HashMap<String, String> otpResponse = restTemplate.getForObject(apiUrl, HashMap.class);
