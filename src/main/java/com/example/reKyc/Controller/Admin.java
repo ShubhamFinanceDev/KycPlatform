@@ -12,18 +12,22 @@ import com.example.reKyc.Utill.SmsUtility;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.*;
+import org.owasp.encoder.Encode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.validation.constraints.NotNull;
 import java.io.InputStream;
 import java.util.*;
 
 @RestController
 @RequestMapping("/admin")
 @CrossOrigin
+@Validated
 public class Admin {
 
     @Autowired
@@ -35,9 +39,15 @@ public class Admin {
     @Autowired
     private SmsUtility otpUtility;
 
+    // Helper function for sanitizing user input
+    private String sanitizeInput(String input) {
+        return Encode.forHtml(input); // OWASP Encoder to prevent XSS
+    }
+
     @CrossOrigin
     @PostMapping("/invoke-kyc-process-flag")
-    public ResponseEntity<?> invokeProcessFlag(@RequestParam("file") MultipartFile file, @RequestParam("uid") Long uid) {
+    public ResponseEntity<?> invokeProcessFlag(@RequestParam("file") @NotNull MultipartFile file,
+                                               @RequestParam("uid") @NotNull Long uid) {
 
         HashMap<String, String> response = new HashMap<>();
         String errorMsg = "";
@@ -47,7 +57,7 @@ public class Admin {
             }
             List<KycCustomer> customerList = new ArrayList<>();
             InputStream inputStream = file.getInputStream();
-            ZipSecureFile.setMinInflateRatio(0);                //for zip bomb detected
+            ZipSecureFile.setMinInflateRatio(0);  // For zip bomb protection
             Workbook workbook = WorkbookFactory.create(inputStream);
             Sheet sheet = workbook.getSheetAt(0);
             Iterator<Row> rowIterator = sheet.iterator();
@@ -57,17 +67,17 @@ public class Admin {
 
                 while (rowIterator.hasNext()) {
                     KycCustomer customer = new KycCustomer();
-
                     Row row = rowIterator.next();
                     Cell loanNo = row.getCell(0);
                     Cell contactNo = row.getCell(1);
-                    errorMsg = (loanNo == null || loanNo.getCellType() == CellType.BLANK) ? "File upload error due to row no " + (row.getRowNum() + 1) + " is empty" : "";
+                    errorMsg = (loanNo == null || loanNo.getCellType() == CellType.BLANK) ?
+                            "File upload error due to row no " + (row.getRowNum() + 1) + " is empty" : "";
 
                     if (errorMsg.isEmpty()) {
                         DataFormatter dataFormatter = new DataFormatter();
                         String formattedContactNo = dataFormatter.formatCellValue(contactNo);
-                        customer.setLoanNumber(loanNo.toString());
-                        customer.setMobileNo(formattedContactNo);
+                        customer.setLoanNumber(sanitizeInput(loanNo.toString())); // Sanitize loan number
+                        customer.setMobileNo(sanitizeInput(formattedContactNo)); // Sanitize contact number
                         customer.setSmsFlag("N");
                         customer.setKycFlag("A");
                         customerList.add(customer);
@@ -76,7 +86,6 @@ public class Admin {
                         response.put("code", "1111");
                         break;
                     }
-
                 }
                 if (errorMsg.isEmpty()) {
                     try {
@@ -106,8 +115,15 @@ public class Admin {
         AdminResponse adminResponse = new AdminResponse();
         String email = input.get("email");
         String password = input.get("password");
-        Optional<com.example.reKyc.Entity.Admin> admin = adminRepository.adminAccount(email, password);   //check for email and password
 
+        // Validate email format
+        if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            commonResponse.setMsg("Invalid email format");
+            commonResponse.setCode("1111");
+            return new ResponseEntity<>(commonResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        Optional<com.example.reKyc.Entity.Admin> admin = adminRepository.adminAccount(email, password);
         if (admin.isPresent()) {
             adminResponse.setMsg("Login successfully");
             adminResponse.setCode("0000");
@@ -122,38 +138,31 @@ public class Admin {
 
     @GetMapping("/kycCount")
     public ResponseEntity<?> kycCount(@RequestParam("uid") Long uid) {
-
         if (adminRepository.findById(uid).isEmpty()) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-        KycCountUpload count = service.kycCount();   //to fetch and update KYC count
+        KycCountUpload count = service.kycCount();  // To fetch and update KYC count
         return ResponseEntity.ok(count);
     }
 
     @GetMapping("/generate-report")
-    public ResponseEntity<?> generateReport(HttpServletResponse response,@RequestParam(name = "uid")Long uid){
-
-            if (adminRepository.findById(uid).isEmpty()) {
-                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-            }
-            List<UpdatedDetails> reportList = service.getReportDataList();
-            if (reportList.isEmpty()) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-            service.generateExcel(response, reportList);
+    public ResponseEntity<?> generateReport(HttpServletResponse response, @RequestParam(name = "uid") Long uid) {
+        if (adminRepository.findById(uid).isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        List<UpdatedDetails> reportList = service.getReportDataList();
+        if (reportList.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        service.generateExcel(response, reportList);
         return ResponseEntity.ok("success");
     }
 
     @PostMapping("/send-sms")
-    public ResponseEntity<?> sendSmsAfterUpdateDetails(@RequestParam(name = "uid")Long uid){
+    public ResponseEntity<?> sendSmsAfterUpdateDetails(@RequestParam(name = "uid") Long uid) {
         if (adminRepository.findById(uid).isEmpty()) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         return ResponseEntity.ok(service.sendSmsOnMobile());
-
-
-
     }
 }
-
-

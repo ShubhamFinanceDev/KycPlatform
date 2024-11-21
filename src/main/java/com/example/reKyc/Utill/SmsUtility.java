@@ -106,12 +106,12 @@ public class SmsUtility {
     public HashMap<String, String> sendOtp(String mobileNo, String otpCode, String loanNo) {
         String subStringLoanNo = loanNo.substring(loanNo.length() - 5, loanNo.length());
         String smsBody = "Dear Customer, Your Rekyc OTP is " + otpCode + " for Loan XXXXXXXXXXXXXXX" + subStringLoanNo + ".\\n\\nRegards\\nShubham Housing Development Finance Company";
-//        sendTextMsg(mobileNo, smsBody);
+        sendTextMsg(mobileNo, smsBody);
         HashMap<String, String> otpResponse = new HashMap<>();
         otpResponse.put("mobile", mobileNo);
         otpResponse.put("msg", "Otp send successfully.");
         otpResponse.put("code", "0000");
-        otpResponse.put("otpCode",otpCode);  // add for uat testing
+//        otpResponse.put("otpCode",otpCode);  // add for uat testing
         logger.info("otp sent on mobile");
         return otpResponse;
     }

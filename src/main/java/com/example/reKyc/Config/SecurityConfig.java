@@ -1,7 +1,9 @@
 package com.example.reKyc.Config;
 
 import com.example.reKyc.Security.JwtAuthenticationFilter;
+import com.example.reKyc.Utill.StaticCSPFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,7 +29,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-
         http.csrf(csrf -> csrf.disable())
                 .authorizeRequests().
                 requestMatchers("/shubham").authenticated().requestMatchers("/userKyc/**", "/admin/**","/actuator/health").permitAll()
@@ -39,6 +40,11 @@ public class SecurityConfig {
         return http.build();
     }
 
-
-    
+    @Bean
+    public FilterRegistrationBean<StaticCSPFilter> globalCSPFilter() {
+        FilterRegistrationBean<StaticCSPFilter> registrationBean = new FilterRegistrationBean<>();
+        registrationBean.setFilter(new StaticCSPFilter());
+        registrationBean.addUrlPatterns("/*");
+        return registrationBean;
+    }
 }
