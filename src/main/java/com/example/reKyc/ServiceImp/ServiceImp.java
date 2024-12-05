@@ -17,7 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.sql.Date;
 import java.time.Duration;
@@ -345,9 +347,10 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
 
 
     public void generateExcel(HttpServletResponse response, List<UpdatedDetails> reportList) {
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        try (OutputStream out = response.getOutputStream()) {
 
-        try {
-            XSSFWorkbook workbook = new XSSFWorkbook();
+            workbook = new XSSFWorkbook();
             XSSFSheet sheet = workbook.createSheet("Updated-Details");
             int rowCount = 0;
 
@@ -369,13 +372,19 @@ public class ServiceImp implements com.example.reKyc.Service.Service {
             }
             response.setContentType("text/csv");
             response.setHeader("Content-Disposition", "attachment; filename=MIS_Report.xlsx");
-
             workbook.write(response.getOutputStream());
-            workbook.close();
-        } catch (Exception e) {
-            System.out.println("Error while executing report query :" + e.getMessage());
+            out.flush();
+        } catch (IOException e) {
+            System.out.println("Error while executing report query: " + e.getMessage());
+        } finally {
+            try {
+                workbook.close();
+            } catch (IOException e) {
+                System.out.println("Error closing workbook: " + e.getMessage());
+            }
         }
     }
+
 
     public CommonResponse sendSmsOnMobile() {
         CommonResponse commonResponse = new CommonResponse();
